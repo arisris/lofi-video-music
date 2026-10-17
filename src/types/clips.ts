@@ -9,6 +9,17 @@ export interface ClipSettings {
   [key: string]: unknown;
 }
 
+/** Entry stored in the global ClipRegistry (static clip definitions). */
+export interface ClipRegistryEntry {
+  id: string;
+  name: string;
+  icon?: string;
+  settings: Partial<ClipSettings>;
+  /** Legacy: renders the clip's inspector controls with Mithril. */
+  onSettings?: (clip: unknown) => unknown;
+  [key: string]: unknown;
+}
+
 export const CLIP_TYPES = [
   "music",
   "visualizer",
