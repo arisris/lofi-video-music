@@ -13,7 +13,10 @@
     "fix-webm-duration": "^1.0.6",
     "gifuct-js": "^2.1.2",
     "hono": "^4.12.28",
-    "mithril": "^2.3.8"
+    "mithril": "^2.3.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.36.0",
@@ -21,7 +24,12 @@
     "@iconify-json/ri": "^1.2.10",
     "@iconify/tailwind4": "^1.2.3",
     "@tailwindcss/vite": "^4.2.4",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "tailwindcss": "^4.2.4",
+    "typescript": "^7.0.2",
     "vite": "^8.0.10",
     "wrangler": "^4.88.0"
   }

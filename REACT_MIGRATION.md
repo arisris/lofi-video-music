@@ -73,11 +73,11 @@ src/
 
 ### Phase 0 — Infrastructure
 
-- [ ] Install `react`, `react-dom`, `zustand`
-- [ ] Dev deps: `typescript`, `@vitejs/plugin-react`, `@types/react`, `@types/react-dom`
-- [ ] Update `vite.config` — add `@vitejs/plugin-react`
-- [ ] Create `tsconfig.json` (+ `tsconfig.node.json`): `allowJs` on during transition, `strict` on for new files
-- [ ] Verify: `bun run dev` still runs normally (UI still Mithril)
+- [x] Install `react`, `react-dom`, `zustand` (react@19.3.1, zustand@5.0.15)
+- [x] Dev deps: `typescript@7`, `@vitejs/plugin-react@6`, `@types/react@19`, `@types/react-dom@19`, `@types/node`
+- [x] Update `vite.config.ts` — `@vitejs/plugin-react` added (converted from `vite.config.js`)
+- [x] Create `tsconfig.json` (+ `tsconfig.node.json`): `allowJs` on during transition, `strict` on for new files
+- [x] Verify: `bun run dev` still runs normally (UI still Mithril), `bun run build` passes, `tsc --noEmit` clean
 
 ### Phase 1 — `state.js` → Zustand
 
@@ -156,7 +156,7 @@ Conversion rules:
 
 ## 6. Milestones
 
-- [ ] **M1** — Infrastructure: deps installed, `tsconfig.json` ready, build safe (Phase 0)
+- [x] **M1** — Infrastructure: deps installed, `tsconfig.json` ready, build safe (Phase 0)
 - [ ] **M2** — Zustand slices complete + video ⇄ thumbnail mode swap working (Phase 1)
 - [ ] **M3** — `main.tsx` + React shell alive in the browser (Phase 2)
 - [ ] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
