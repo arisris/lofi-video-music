@@ -111,8 +111,12 @@ export const App = () => {
         </aside>
 
         {!leftPanelCollapsed && (
-          <MithrilBridge
-            render={() => m(Resizer, { side: "left", order: "md:order-1", onResize: (w: number) => { State.mediaPoolWidth = w; } })}
+          <Resizer
+            side="left"
+            order="md:order-1"
+            onResize={(w) => {
+              State.mediaPoolWidth = w;
+            }}
           />
         )}
 
@@ -127,8 +131,12 @@ export const App = () => {
           </div>
         </main>
 
-        <MithrilBridge
-          render={() => m(Resizer, { side: "right", order: "md:order-2", onResize: (w: number) => { State.inspectorWidth = w; } })}
+        <Resizer
+          side="right"
+          order="md:order-2"
+          onResize={(w) => {
+            State.inspectorWidth = w;
+          }}
         />
 
         {/* RIGHT PANEL: Inspector / Properties */}
@@ -136,7 +144,7 @@ export const App = () => {
           className="w-full h-auto md:h-full flex-none border-t md:border-t-0 md:border-l border-slate-800 flex flex-col bg-slate-900/20 order-3 md:order-3"
           style={{ width: window.innerWidth > 768 ? `${inspectorWidth || 320}px` : "100%" }}
         >
-          <MithrilBridge render={() => m(InspectorPanel)} />
+          <InspectorPanel />
         </aside>
       </section>
 
