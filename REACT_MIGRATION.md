@@ -1,56 +1,56 @@
-# Rencana Migrasi: Mithril + JS → React + TypeScript + Zustand
+# Migration Plan: Mithril + JS → React + TypeScript + Zustand
 
-> Branch: `react` | Basis: `master` (commit 94c2cf4) | Terakhir diperbarui: 2026-10-18
+> Branch: `react` | Base: `master` (commit 94c2cf4) | Last updated: 2026-10-18
 
-## 1. Tujuan
+## 1. Goals
 
-Menulis ulang UI aplikasi lofi-video-music-generator dengan:
+Rewrite the UI layer of lofi-video-music-generator using:
 
-- **React** sebagai pengganti Mithril.js
-- **TypeScript** sebagai bahasa utama (migrasi bertahap, bukan big-bang)
-- **Zustand** sebagai state management, menggantikan objek `State` global yang mutable
+- **React** replacing Mithril.js
+- **TypeScript** as the primary language (gradual migration, not big-bang)
+- **Zustand** for state management, replacing the mutable global `State` object
 
-Prinsip penting:
+Key principles:
 
-1. **Incremental, bukan big-bang** — setiap fase diakhiri dengan aplikasi yang tetap bisa `bun run dev` dan berjalan normal.
-2. **Engine dipertahankan** — seluruh kode canvas/render/audio (~30 file di `src/lib/`) tidak ditulis ulang, hanya di-type dan diintegrasikan ulang dengan pattern yang tepat (refs + transient updates).
-3. **Worker tidak tersentuh** — `src/worker.js` (proxy Pexels/Pixabay) tidak berubah sama sekali.
+1. **Incremental, not big-bang** — every phase ends with an app that still runs normally with `bun run dev`.
+2. **Keep the engine** — all canvas/render/audio code (~30 files in `src/lib/`) is not rewritten, only typed and re-integrated with the right patterns (refs + transient updates).
+3. **Worker untouched** — `src/worker.js` (Pexels/Pixabay proxy) does not change at all.
 
 ---
 
-## 2. Analisis Kondisi Saat Ini
+## 2. Current State Analysis
 
-### 2.1 Ukuran kode (total ±8.270 baris)
+### 2.1 Code size (total ~8,270 lines)
 
-| Area | Jumlah File | Baris | Perkiraan Upaya |
+| Area | Files | Lines | Effort Estimate |
 |---|---|---|---|
-| Components (Mithril) | 17 file | ~4.300 | **Tinggi** — konversi manual ke JSX + hooks |
-| Lib engine (render, audio, drag, clips, vfx, visualizers) | ~30 file | ~2.300 | **Rendah–Sedang** — kebanyakan framework-agnostic, tinggal typing |
-| `src/main.js` (routing + shell + HMR) | 1 file | 278 | **Sedang** — ditulis ulang |
-| `src/lib/state.js` | 1 file | 155 | **Sedang** — dipecah jadi store Zustand |
-| `src/utils/` | 3 file | ~470 | Rendah |
-| `src/worker.js` | 1 file | 181 | ✅ Tidak disentuh |
+| Components (Mithril) | 17 | ~4,300 | **High** — manual conversion to JSX + hooks |
+| Lib engine (render, audio, drag, clips, vfx, visualizers) | ~30 | ~2,300 | **Low–Medium** — mostly framework-agnostic, typing only |
+| `src/main.js` (routing + shell + HMR) | 1 | 278 | **Medium** — full rewrite |
+| `src/lib/state.js` | 1 | 155 | **Medium** — split into Zustand store |
+| `src/utils/` | 3 | ~470 | Low |
+| `src/worker.js` | 1 | 181 | ✅ Untouched |
 
-### 2.2 Bagian yang paling berisiko
+### 2.2 Riskiest areas
 
-- **`src/lib/state.js`** — satu objek global mutable tanpa reactivity eksplisit (mengandalkan `m.redraw()` manual). Pecahan state-nya harus dipetakan teliti ke slices Zustand supaya tidak ada logic yang hilang.
-- **Routing + swap state** — `main.js` punya `swapRouteClips()` yang menukar `timelineClips/tracks/selected*` antara mode video (`/`) dan thumbnail (`/image`). Melewati mutasi objek diam-diam; kalau diport dengan tergesah, state dua mode bisa saling tertukar.
-- **HMR sync audio** — `main.js` merestore posisi audio setelah hot-reload; pola ini harus diimplementasikan ulang di atas Zustand.
-- **Render loop berfrekuensi tinggi** — `render.js` membaca `State` tiap frame; kalau salah integrasi (re-render React per frame), performa bakal anjlok.
+- **`src/lib/state.js`** — a single mutable global object with no explicit reactivity (relies on manual `m.redraw()` calls). Its state must be mapped carefully to Zustand slices so no logic is lost.
+- **Routing + route-swap state** — `main.js` has `swapRouteClips()` that swaps `timelineClips/tracks/selected*` between video (`/`) and thumbnail (`/image`) modes. It mutates state silently; a careless port could cause the two modes to overwrite each other.
+- **HMR audio sync** — `main.js` restores the audio position after hot-reload; this pattern must be reimplemented on top of Zustand.
+- **High-frequency render loop** — `render.js` reads `State` every frame; careless integration (React re-render per frame) would tank performance.
 
 ---
 
-## 3. Arsitektur Target
+## 3. Target Architecture
 
 ```
 src/
-  worker.js                 ✅ TIDAK DIUBAH
-  main.tsx                  ← React entry (menggantikan main.js)
+  worker.js                 ✅ UNCHANGED
+  main.tsx                  ← React entry (replaces main.js)
   app/
     App.tsx                 ← Root component + hash router
-    routes/                 ← Screen video ("/") & thumbnail ("/image")
+    routes/                 ← Video ("/") & thumbnail ("/image") screens
   store/
-    editor-store.ts         ← create store + compose slices + HMR persist
+    editor-store.ts         ← create store + compose slices + HMR persistence
     slices/
       transport.ts          ← isPlaying, currentTime, isTransitioning
       timeline.ts           ← timelineTracks, timelineClips, selected*, zoom
@@ -58,49 +58,49 @@ src/
       recording.ts          ← record mode/resolution/fps, modal
       layout.ts             ← panel widths, collapse, activeClipTab
       thumbnail.ts          ← thumbnail layers + selectedLayerId
-    selectors.ts            ← selector memo util
+    selectors.ts            ← memoized selector helpers
   types/
-    clips.ts                ← union tipe Clip + settings per type
+    clips.ts                ← Clip union types + per-type settings
     media.ts
-  components/               ← hasil konversi 1:1, file .tsx per panel
-  lib/                      ← dibiarkan dulu; di-type bertahap ke .ts
-  utils/                    ← di-type bertahap ke .ts
+  components/               ← 1:1 conversion, one .tsx file per panel
+  lib/                      ← kept as-is initially; typed to .ts gradually
+  utils/                    ← typed to .ts gradually
 ```
 
 ---
 
-## 4. Fase Kerja
+## 4. Work Phases
 
-### Fase 0 — Infrastruktur
+### Phase 0 — Infrastructure
 
-- [ ] Instal `react`, `react-dom`, `zustand`
-- [ ] DevDep: `typescript`, `@vitejs/plugin-react`, `@types/react`, `@types/react-dom`
-- [ ] Perbarui `vite.config` — tambahkan `@vitejs/plugin-react`
-- [ ] Buat `tsconfig.json` (+ `tsconfig.node.json`): `allowJs` aktif selama transisi, `strict` aktif untuk file baru
-- [ ] Verifikasi: `bun run dev` masih jalan normal (UI masih Mithril)
+- [ ] Install `react`, `react-dom`, `zustand`
+- [ ] Dev deps: `typescript`, `@vitejs/plugin-react`, `@types/react`, `@types/react-dom`
+- [ ] Update `vite.config` — add `@vitejs/plugin-react`
+- [ ] Create `tsconfig.json` (+ `tsconfig.node.json`): `allowJs` on during transition, `strict` on for new files
+- [ ] Verify: `bun run dev` still runs normally (UI still Mithril)
 
-### Fase 1 — Dari `state.js` ke Zustand
+### Phase 1 — `state.js` → Zustand
 
-- [ ] Buat `types/` — union tipe Clip (text/music/background/overlay/shape/playlist/visualizer), TimelineTrack, MediaItem
-- [ ] Buat store dengan slice-slice sesuai arsitektur di atas
-- [ ] Pindahkan `swapRouteClips` jadi action di store (video ⇄ thumbnail mode swap)
-- [ ] Pertahankan pola persist HMR: `import.meta.hot.data` untuk store
-- [ ] Sementara: `state.js` jadi bridge yang forward ke store agar komponen Mithril lama masih jalan
-- [ ] Verifikasi paritas fitur: playback, add/remove clip, drag, record settings
+- [ ] Create `types/` — Clip union types (text/music/background/overlay/shape/playlist/visualizer), TimelineTrack, MediaItem
+- [ ] Build the store with slices per the target architecture
+- [ ] Move `swapRouteClips` into a store action (video ⇄ thumbnail mode swap)
+- [ ] Preserve the HMR persistence pattern: `import.meta.hot.data` for the store
+- [ ] Interim: `state.js` becomes a bridge forwarding to the store so legacy Mithril components keep working
+- [ ] Verify feature parity: playback, add/remove clip, drag, record settings
 
-### Fase 2 — Entry, routing, dan shell React
+### Phase 2 — React entry, routing, and shell
 
-- [ ] Buat `main.tsx` (`createRoot`)
-- [ ] Hash router `#!` — dua route (`/` dan `/image`) yang memanggil action swap di store
-- [ ] Konversi shell `Editor` → JSX (`App.tsx`): layout 3 panel + audio element + record modal
-- [ ] Pasang `<canvas>`, `<video>`, `<audio>` via React refs; drop `document.getElementById` di init
-- [ ] Pindahkan listener drag global & render loop startup ke `useEffect` dengan cleanup benar
-- [ ] Re-implement HMR audio re-sync di atas store
-- [ ] Hapus `main.js` lama; verifikasi `bun run dev` dan `bun run build`
+- [ ] Create `main.tsx` (`createRoot`)
+- [ ] Hash router `#!` — two routes (`/` and `/image`) calling the swap action in the store
+- [ ] Convert the shell `Editor` → JSX (`App.tsx`): 3-panel layout + audio element + record modal
+- [ ] Mount `<canvas>`, `<video>`, `<audio>` via React refs; drop `document.getElementById` init
+- [ ] Move global drag listeners & render loop startup into `useEffect` with proper cleanup
+- [ ] Re-implement HMR audio re-sync on top of the store
+- [ ] Remove legacy `main.js`; verify `bun run dev` and `bun run build`
 
-### Fase 3 — Konversi komponen (kecil → besar, satu commit per file)
+### Phase 3 — Component conversion (small → large, one commit per file)
 
-| # | Komponen | Baris | Status |
+| # | Component | Lines | Status |
 |---|---|---|---|
 | 1 | `inspector-panel.js` | 10 | ☐ |
 | 2 | `resizer.js` | 38 | ☐ |
@@ -120,44 +120,44 @@ src/
 | 16 | `timeline.js` | 879 | ☐ |
 | 17 | `media-library-panel.js` | 1117 | ☐ |
 
-Aturan konversi:
+Conversion rules:
 
 - `m(Component)` → `<Component />`
-- `attrs` → props typed
+- `attrs` → typed props
 - `oncreate/onremove` → `useEffect` + cleanup
-- Komponen subscribe ke slice yang dibutuhkan saja (state granular), bukan seluruh store
-- [ ] Setelah semua komponen `.tsx`: hapus `mithril` dari `package.json` dan seluruh `m.redraw()` tersisa
+- Components subscribe only to the slices they need (granular state), never the whole store
+- [ ] After all components are `.tsx`: remove `mithril` from `package.json` and remove all remaining `m.redraw()` calls
 
-### Fase 4 — Typing `lib/` dan `utils/`
+### Phase 4 — Typing `lib/` and `utils/`
 
-- [ ] Rename `.js` → `.ts` bertahap, urutan dari leaf ke root: `vfx/` → `visualizers/` → `clips/` → `render.js`, `audio.js`, `drag.js`, `recorder.js` → `utils/`
-- [ ] Type `runtime.js` dengan benar (berisi refs ke canvas/audio/video)
-- [ ] Typing `State` legacy dibongkar; semua akses state lewat store yang sudah typed
-- [ ] Verifikasi: build tanpa error
+- [ ] Rename `.js` → `.ts` gradually, leaf-first order: `vfx/` → `visualizers/` → `clips/` → `render.js`, `audio.js`, `drag.js`, `recorder.js` → `utils/`
+- [ ] Properly type `runtime.js` (holds refs to canvas/audio/video)
+- [ ] Tear down the legacy typed `State`; all state access goes through the typed store
+- [ ] Verify: clean build with no errors
 
-### Fase 5 — Cleanup & finalisasi
+### Phase 5 — Cleanup & finalization
 
-- [ ] `tsconfig.json`: matikan `allowJs`, aktifkan `strict` untuk seluruh file (atau pakai per-directory override)
-- [ ] Hapus `mithril` dari `package.json`, bersihkan node_modules (`bun install`)
-- [ ] Perbarui `README.md` & `AGENTS.md`: stack baru (TypeScript, React, Zustand), direktori baru (`src/store/`, `src/types/`, `src/app/`)
-- [ ] Uji penuh end-to-end: layout editor, thumbnail editor, playback, record, `bun run deploy`
-
----
-
-## 5. Gotcha Teknis (catatan penting saat implementasi)
-
-1. **Render & playback harus "transient"** — nilai yang berubah tiap frame (`currentTime`, posisi drag) dibaca komponen via `useStore.getState()` atau `store.subscribe()` di luar re-render React. UI khusus yang butuh label live (mis. `recordingTime`) pakai `useStore` dengan selector sempit + update throttled (`requestAnimationFrame`), bukan per-frame re-render.
-2. **Zustand + HMR** — gunakan pola `import.meta.hot.data` (sudah ada di `state.js`) untuk menyimpan snapshot store agar hot reload tidak mereset state editor.
-3. **Jangan perbaiki bug di `lib/` sambil memigrasi** — perbaikan bug dan konversi komponen dikerjakan di commit terpisah agar diff per komponen murni migrasi (gampang direview).
-4. **Dep eksternal tetap aman** — `fix-webm-duration`, `gifuct-js`, `hono` tidak terpengaruh migrasi.
-5. **`window.innerWidth`** di `state.js` baris 74–75 akan dipindah ke `layout.ts` dengan guard `typeof window !== "undefined"` — masalahnya hanya untuk kompatibilitas SSR (tidak krusial di sini, tapi tetap tiped konsisten).
+- [ ] `tsconfig.json`: turn off `allowJs`, enable `strict` for all files (or use per-directory overrides)
+- [ ] Remove `mithril` from `package.json`, clean node_modules (`bun install`)
+- [ ] Update `README.md` & `AGENTS.md`: new stack (TypeScript, React, Zustand), new directories (`src/store/`, `src/types/`, `src/app/`)
+- [ ] Full end-to-end test: video editor, thumbnail editor, playback, record, `bun run deploy`
 
 ---
 
-## 6. Milestone
+## 5. Technical Gotchas (important during implementation)
 
-- [ ] **M1** — Infrastruktur: deps terpasang, `tsconfig.json` siap, build aman (Fase 0)
-- [ ] **M2** — Zustand slices lengkap + mode swap video ⇄ thumbnail berjalan (Fase 1)
-- [ ] **M3** — `main.tsx` + React shell hidup di browser (Fase 2)
-- [ ] **M4** — 17 komponen 100% `.tsx`, `mithril` dihapus (Fase 3)
-- [ ] **M5** — `lib/` + `utils/` 100% `.ts`, `strict` aktif, docs diperbarui (Fase 4–5)
+1. **Render & playback must stay "transient"** — values that change every frame (`currentTime`, drag positions) are read in components via `useStore.getState()` or `store.subscribe()` outside React re-renders. Live-value UI (e.g. `recordingTime`) uses `useStore` with a narrow selector + throttled updates (`requestAnimationFrame`), never per-frame re-renders.
+2. **Zustand + HMR** — use the `import.meta.hot.data` pattern (already present in `state.js`) to snapshot the store so hot-reloads do not reset editor state.
+3. **Don't mix bug fixes with migration** — bug fixes and component conversions are separate commits so each component diff is a pure migration (easy to review).
+4. **External deps are safe** — `fix-webm-duration`, `gifuct-js`, `hono` are unaffected by the migration.
+5. **`window.innerWidth`** at `state.js` lines 74–75 moves to `layout.ts` with a `typeof window !== "undefined"` guard — not critical here (no SSR), but keeps things typed consistently.
+
+---
+
+## 6. Milestones
+
+- [ ] **M1** — Infrastructure: deps installed, `tsconfig.json` ready, build safe (Phase 0)
+- [ ] **M2** — Zustand slices complete + video ⇄ thumbnail mode swap working (Phase 1)
+- [ ] **M3** — `main.tsx` + React shell alive in the browser (Phase 2)
+- [ ] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
+- [ ] **M5** — `lib/` + `utils/` 100% `.ts`, `strict` enabled, docs updated (Phases 4–5)
