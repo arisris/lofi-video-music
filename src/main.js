@@ -1,6 +1,7 @@
 import m from "mithril";
 import "./tailwind.css";
 import { State } from "./lib/state";
+import { editorStore } from "./store/editor-store";
 import { runtime } from "./lib/runtime";
 import { renderLoop } from "./lib/render";
 import { handleDragMove, handleDragEnd } from "./lib/drag";
@@ -126,124 +127,9 @@ m.route.prefix = "#!";
 
 let lastResolvedRoute = null;
 
-const initRouteState = () => {
-  if (State.videoClips === undefined) {
-    State.videoClips = [...State.timelineClips];
-  }
-  if (State.videoTracks === undefined) {
-    State.videoTracks = [...State.timelineTracks];
-  }
-  if (State.thumbnailTracks === undefined) {
-    State.thumbnailTracks = [
-      { id: "track-1", name: "Track 1 (Music)", locked: false },
-      { id: "track-2", name: "Track 2", locked: false },
-      { id: "track-3", name: "Track 3", locked: false }
-    ];
-  }
-  if (State.thumbnailClips === undefined) {
-    State.thumbnailClips = [
-      {
-        id: "thumb-text-1",
-        type: "text",
-        trackId: "track-2",
-        start: 0,
-        duration: 60,
-        settings: {
-          content: "LOFI CHILL VIBES",
-          fontFamily: "'Bangers', cursive",
-          fontSize: 70,
-          textColor: "#ffffff",
-          strokeColor: "#f43f5e",
-          strokeWidth: 6,
-          shadowColor: "#000000",
-          shadowBlur: 10,
-          shadowOffsetX: 4,
-          shadowOffsetY: 4,
-          x: 0,
-          y: -80,
-          rotation: -4,
-          scale: 1,
-          bgPadding: 0,
-          bgRadius: 0,
-          bgColor: "transparent"
-        }
-      },
-      {
-        id: "thumb-text-2",
-        type: "text",
-        trackId: "track-3",
-        start: 0,
-        duration: 60,
-        settings: {
-          content: "Late Night Study & Code",
-          fontFamily: "'Lexend', sans-serif",
-          fontSize: 36,
-          textColor: "#ffffff",
-          strokeColor: "#0f172a",
-          strokeWidth: 4,
-          shadowColor: "#000000",
-          shadowBlur: 5,
-          shadowOffsetX: 2,
-          shadowOffsetY: 2,
-          x: 0,
-          y: 40,
-          rotation: 0,
-          scale: 1,
-          bgPadding: 10,
-          bgRadius: 10,
-          bgColor: "rgba(15, 23, 42, 0.75)"
-        }
-      }
-    ];
-  }
-
-  if (State.videoSelectedClipId === undefined) {
-    State.videoSelectedClipId = null;
-  }
-  if (State.thumbnailSelectedClipId === undefined) {
-    State.thumbnailSelectedClipId = "thumb-text-1";
-  }
-  if (State.videoSelectedTrackId === undefined) {
-    State.videoSelectedTrackId = "track-2";
-  }
-  if (State.thumbnailSelectedTrackId === undefined) {
-    State.thumbnailSelectedTrackId = "track-2";
-  }
-};
-
+/** Handle a route change: persist current mode state, restore the target mode. */
 const swapRouteClips = (prevRoute, nextRoute) => {
-  initRouteState();
-  State.currentRoute = nextRoute;
-
-  if (prevRoute !== nextRoute) {
-    if (prevRoute) {
-      // Save entire timeline state of the previous route
-      if (prevRoute === "/") {
-        State.videoClips = [...State.timelineClips];
-        State.videoSelectedClipId = State.selectedClipId;
-        State.videoTracks = [...State.timelineTracks];
-        State.videoSelectedTrackId = State.selectedTrackId;
-      } else if (prevRoute === "/image") {
-        State.thumbnailClips = [...State.timelineClips];
-        State.thumbnailSelectedClipId = State.selectedClipId;
-        State.thumbnailTracks = [...State.timelineTracks];
-        State.thumbnailSelectedTrackId = State.selectedTrackId;
-      }
-    }
-
-    // Load the target route's exact timeline state
-    if (nextRoute === "/") {
-      State.timelineClips = [...State.videoClips];
-      State.selectedClipId = State.videoSelectedClipId;
-      State.timelineTracks = [...State.videoTracks];
-      State.selectedTrackId = State.videoSelectedTrackId;
-    } else if (nextRoute === "/image") {
-      State.timelineClips = [...State.thumbnailClips];
-      State.selectedClipId = State.thumbnailSelectedClipId;
-      State.timelineTracks = [...State.thumbnailTracks];
-      State.selectedTrackId = State.thumbnailSelectedTrackId;
-    }
-  }
+  editorStore.getState().swapRoute(prevRoute, nextRoute);
 };
 
 const AppShell = {

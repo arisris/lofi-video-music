@@ -52,16 +52,19 @@ src/
   store/
     editor-store.ts         ← create store + compose slices + HMR persistence
     slices/
-      transport.ts          ← isPlaying, currentTime, isTransitioning
-      timeline.ts           ← timelineTracks, timelineClips, selected*, zoom
+      playback.ts           ← isPlaying, currentTime, playlist + transitions
+      timeline.ts           ← timelineTracks, timelineClips, selected*, zoom, clipSettings
       media-pool.ts         ← mediaPool + panel state (emoji/pexels/pixabay)
       recording.ts          ← record mode/resolution/fps, modal
-      layout.ts             ← panel widths, collapse, activeClipTab
+      layout.ts             ← panel width, collapse, activeClipTab
       thumbnail.ts          ← thumbnail layers + selectedLayerId
+      interaction.ts        ← drag/transform/snap transient state (added during review)
+      mode.ts               ← route snapshots + swapRoute action (added during review)
     selectors.ts            ← memoized selector helpers
   types/
     clips.ts                ← Clip union types + per-type settings
     media.ts
+    panels.ts               ← media panel (emoji/pexels/pixabay) UI state types
   components/               ← 1:1 conversion, one .tsx file per panel
   lib/                      ← kept as-is initially; typed to .ts gradually
   utils/                    ← typed to .ts gradually
@@ -81,12 +84,13 @@ src/
 
 ### Phase 1 — `state.js` → Zustand
 
-- [ ] Create `types/` — Clip union types (text/music/background/overlay/shape/playlist/visualizer), TimelineTrack, MediaItem
-- [ ] Build the store with slices per the target architecture
-- [ ] Move `swapRouteClips` into a store action (video ⇄ thumbnail mode swap)
-- [ ] Preserve the HMR persistence pattern: `import.meta.hot.data` for the store
-- [ ] Interim: `state.js` becomes a bridge forwarding to the store so legacy Mithril components keep working
-- [ ] Verify feature parity: playback, add/remove clip, drag, record settings
+- [x] Create `types/` — Clip union types (text/music/background/overlay/shape/playlist/visualizer), TimelineTrack, MediaItem
+- [x] Build the store with slices per the target architecture (`playback`, `recording`, `timeline`, `interaction`, `media-pool`, `layout`, `mode`, `thumbnail`)
+- [x] Move `swapRouteClips` into a store action (`ModeSlice.swapRoute`, video ⇄ thumbnail mode swap)
+- [x] Preserve the HMR persistence pattern: `import.meta.hot.data` snapshot in `editor-store.ts`
+- [x] Interim: `src/lib/state.js` is a Proxy bridge forwarding every read/write into the store (legacy components untouched)
+- [x] `main.js` route handlers now call the store action
+- [x] Verified: `tsc --noEmit` clean, build passes, Playwright smoke test (boot w/o console errors, Add Track, /image ⇄ / route swap)
 
 ### Phase 2 — React entry, routing, and shell
 
@@ -157,7 +161,7 @@ Conversion rules:
 ## 6. Milestones
 
 - [x] **M1** — Infrastructure: deps installed, `tsconfig.json` ready, build safe (Phase 0)
-- [ ] **M2** — Zustand slices complete + video ⇄ thumbnail mode swap working (Phase 1)
+- [x] **M2** — Zustand slices complete + video ⇄ thumbnail mode swap working (Phase 1)
 - [ ] **M3** — `main.tsx` + React shell alive in the browser (Phase 2)
 - [ ] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
 - [ ] **M5** — `lib/` + `utils/` 100% `.ts`, `strict` enabled, docs updated (Phases 4–5)
