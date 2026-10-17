@@ -1,0 +1,3582 @@
+{
+  "categories": [
+    {
+      "id": "Smileys and emotions",
+      "name": "Smileys and emotions",
+      "items": [
+        {
+          "codepoint": "1f600",
+          "tag": "smile"
+        },
+        {
+          "codepoint": "1f603",
+          "tag": "smile-with-big-eyes"
+        },
+        {
+          "codepoint": "1f604",
+          "tag": "grin"
+        },
+        {
+          "codepoint": "1f601",
+          "tag": "grinning"
+        },
+        {
+          "codepoint": "1f606",
+          "tag": "laughing"
+        },
+        {
+          "codepoint": "1f605",
+          "tag": "grin-sweat"
+        },
+        {
+          "codepoint": "1f602",
+          "tag": "joy"
+        },
+        {
+          "codepoint": "1f923",
+          "tag": "rofl"
+        },
+        {
+          "codepoint": "1f62d",
+          "tag": "loudly-crying"
+        },
+        {
+          "codepoint": "1f609",
+          "tag": "wink"
+        },
+        {
+          "codepoint": "1f617",
+          "tag": "kissing"
+        },
+        {
+          "codepoint": "1f619",
+          "tag": "kissing-smiling-eyes"
+        },
+        {
+          "codepoint": "1f61a",
+          "tag": "kissing-closed-eyes"
+        },
+        {
+          "codepoint": "1f618",
+          "tag": "kissing-heart"
+        },
+        {
+          "codepoint": "1f970",
+          "tag": "heart-face"
+        },
+        {
+          "codepoint": "1f60d",
+          "tag": "heart-eyes"
+        },
+        {
+          "codepoint": "1f929",
+          "tag": "star-struck"
+        },
+        {
+          "codepoint": "1f973",
+          "tag": "partying-face"
+        },
+        {
+          "codepoint": "1fae0",
+          "tag": "melting"
+        },
+        {
+          "codepoint": "1f643",
+          "tag": "upside-down-face"
+        },
+        {
+          "codepoint": "1f642",
+          "tag": "slightly-happy"
+        },
+        {
+          "codepoint": "1f972",
+          "tag": "happy-cry"
+        },
+        {
+          "codepoint": "1f979",
+          "tag": "holding-back-tears"
+        },
+        {
+          "codepoint": "1f60a",
+          "tag": "blush"
+        },
+        {
+          "codepoint": "263a_fe0f",
+          "tag": "warm-smile"
+        },
+        {
+          "codepoint": "1f60c",
+          "tag": "relieved"
+        },
+        {
+          "codepoint": "1f642_200d_2195_fe0f",
+          "tag": "head-nod"
+        },
+        {
+          "codepoint": "1f642_200d_2194_fe0f",
+          "tag": "head-shake"
+        },
+        {
+          "codepoint": "1f60f",
+          "tag": "smirk"
+        },
+        {
+          "codepoint": "1f924",
+          "tag": "drool"
+        },
+        {
+          "codepoint": "1f60b",
+          "tag": "yum"
+        },
+        {
+          "codepoint": "1f61b",
+          "tag": "stuck-out-tongue"
+        },
+        {
+          "codepoint": "1f61d",
+          "tag": "squinting-tongue"
+        },
+        {
+          "codepoint": "1f61c",
+          "tag": "winky-tongue"
+        },
+        {
+          "codepoint": "1f92a",
+          "tag": "zany-face"
+        },
+        {
+          "codepoint": "1faea",
+          "tag": "distorted-face"
+        },
+        {
+          "codepoint": "1f614",
+          "tag": "pensive"
+        },
+        {
+          "codepoint": "1f97a",
+          "tag": "pleading"
+        },
+        {
+          "codepoint": "1f62c",
+          "tag": "grimacing"
+        },
+        {
+          "codepoint": "1f611",
+          "tag": "expressionless"
+        },
+        {
+          "codepoint": "1f610",
+          "tag": "neutral-face"
+        },
+        {
+          "codepoint": "1f636",
+          "tag": "mouth-none"
+        },
+        {
+          "codepoint": "1f636_200d_1f32b_fe0f",
+          "tag": "face-in-clouds"
+        },
+        {
+          "codepoint": "1fae5",
+          "tag": "dotted-line-face"
+        },
+        {
+          "codepoint": "1f910",
+          "tag": "zipper-face"
+        },
+        {
+          "codepoint": "1fae1",
+          "tag": "salute"
+        },
+        {
+          "codepoint": "1f914",
+          "tag": "thinking-face"
+        },
+        {
+          "codepoint": "1f92b",
+          "tag": "shushing-face"
+        },
+        {
+          "codepoint": "1fae2",
+          "tag": "hand-over-mouth"
+        },
+        {
+          "codepoint": "1f92d",
+          "tag": "smiling-eyes-with-hand-over-mouth"
+        },
+        {
+          "codepoint": "1f971",
+          "tag": "yawn"
+        },
+        {
+          "codepoint": "1f917",
+          "tag": "hug-face"
+        },
+        {
+          "codepoint": "1fae3",
+          "tag": "peeking"
+        },
+        {
+          "codepoint": "1f631",
+          "tag": "screaming"
+        },
+        {
+          "codepoint": "1f928",
+          "tag": "raised-eyebrow"
+        },
+        {
+          "codepoint": "1f9d0",
+          "tag": "monocle"
+        },
+        {
+          "codepoint": "1f612",
+          "tag": "unamused"
+        },
+        {
+          "codepoint": "1f644",
+          "tag": "rolling-eyes"
+        },
+        {
+          "codepoint": "1f62e_200d_1f4a8",
+          "tag": "exhale"
+        },
+        {
+          "codepoint": "1f624",
+          "tag": "triumph"
+        },
+        {
+          "codepoint": "1f620",
+          "tag": "angry"
+        },
+        {
+          "codepoint": "1f621",
+          "tag": "rage"
+        },
+        {
+          "codepoint": "1f92c",
+          "tag": "cursing"
+        },
+        {
+          "codepoint": "1f61e",
+          "tag": "sad"
+        },
+        {
+          "codepoint": "1f613",
+          "tag": "sweat"
+        },
+        {
+          "codepoint": "1f61f",
+          "tag": "worried"
+        },
+        {
+          "codepoint": "1f625",
+          "tag": "concerned"
+        },
+        {
+          "codepoint": "1f622",
+          "tag": "cry"
+        },
+        {
+          "codepoint": "2639_fe0f",
+          "tag": "big-frown"
+        },
+        {
+          "codepoint": "1f641",
+          "tag": "frown"
+        },
+        {
+          "codepoint": "1fae4",
+          "tag": "diagonal-mouth"
+        },
+        {
+          "codepoint": "1f615",
+          "tag": "slightly-frowning"
+        },
+        {
+          "codepoint": "1f630",
+          "tag": "anxious-with-sweat"
+        },
+        {
+          "codepoint": "1f628",
+          "tag": "scared"
+        },
+        {
+          "codepoint": "1f627",
+          "tag": "anguished"
+        },
+        {
+          "codepoint": "1f626",
+          "tag": "gasp"
+        },
+        {
+          "codepoint": "1f62e",
+          "tag": "mouth-open"
+        },
+        {
+          "codepoint": "1f62f",
+          "tag": "surprised"
+        },
+        {
+          "codepoint": "1f632",
+          "tag": "astonished"
+        },
+        {
+          "codepoint": "1f633",
+          "tag": "flushed"
+        },
+        {
+          "codepoint": "1f92f",
+          "tag": "mind-blown"
+        },
+        {
+          "codepoint": "1f616",
+          "tag": "scrunched-mouth"
+        },
+        {
+          "codepoint": "1f623",
+          "tag": "scrunched-eyes"
+        },
+        {
+          "codepoint": "1f629",
+          "tag": "weary"
+        },
+        {
+          "codepoint": "1f62b",
+          "tag": "distraught"
+        },
+        {
+          "codepoint": "1f635",
+          "tag": "x-eyes"
+        },
+        {
+          "codepoint": "1f635_200d_1f4ab",
+          "tag": "dizzy-face"
+        },
+        {
+          "codepoint": "1fae8",
+          "tag": "shaking-face"
+        },
+        {
+          "codepoint": "1f974",
+          "tag": "woozy"
+        },
+        {
+          "codepoint": "1f975",
+          "tag": "hot-face"
+        },
+        {
+          "codepoint": "1f976",
+          "tag": "cold-face"
+        },
+        {
+          "codepoint": "1f922",
+          "tag": "sick"
+        },
+        {
+          "codepoint": "1f92e",
+          "tag": "vomit"
+        },
+        {
+          "codepoint": "1fae9",
+          "tag": "tired"
+        },
+        {
+          "codepoint": "1f634",
+          "tag": "sleep"
+        },
+        {
+          "codepoint": "1f62a",
+          "tag": "sleepy"
+        },
+        {
+          "codepoint": "1f927",
+          "tag": "sneeze"
+        },
+        {
+          "codepoint": "1f912",
+          "tag": "thermometer-face"
+        },
+        {
+          "codepoint": "1f915",
+          "tag": "bandage-face"
+        },
+        {
+          "codepoint": "1f637",
+          "tag": "mask"
+        },
+        {
+          "codepoint": "1f925",
+          "tag": "liar"
+        },
+        {
+          "codepoint": "1f607",
+          "tag": "halo"
+        },
+        {
+          "codepoint": "1f920",
+          "tag": "cowboy"
+        },
+        {
+          "codepoint": "1f911",
+          "tag": "money-face"
+        },
+        {
+          "codepoint": "1f913",
+          "tag": "nerd-face"
+        },
+        {
+          "codepoint": "1f60e",
+          "tag": "sunglasses-face"
+        },
+        {
+          "codepoint": "1f978",
+          "tag": "disguise"
+        },
+        {
+          "codepoint": "1f921",
+          "tag": "clown"
+        },
+        {
+          "codepoint": "1f4a9",
+          "tag": "poop"
+        },
+        {
+          "codepoint": "1f608",
+          "tag": "imp-smile"
+        },
+        {
+          "codepoint": "1f47f",
+          "tag": "imp-frown"
+        },
+        {
+          "codepoint": "1f47b",
+          "tag": "ghost"
+        },
+        {
+          "codepoint": "1f480",
+          "tag": "skull"
+        },
+        {
+          "codepoint": "1f916",
+          "tag": "robot"
+        },
+        {
+          "codepoint": "1f479",
+          "tag": "ogre"
+        },
+        {
+          "codepoint": "2603_fe0f",
+          "tag": "snowman-with-snow"
+        },
+        {
+          "codepoint": "26c4",
+          "tag": "snowman"
+        },
+        {
+          "codepoint": "1f47d",
+          "tag": "alien"
+        },
+        {
+          "codepoint": "1f47e",
+          "tag": "alien-monster"
+        },
+        {
+          "codepoint": "1f31a",
+          "tag": "moon-face-new"
+        },
+        {
+          "codepoint": "1f31d",
+          "tag": "moon-face-full"
+        },
+        {
+          "codepoint": "1f31e",
+          "tag": "sun-with-face"
+        },
+        {
+          "codepoint": "1f31b",
+          "tag": "moon-face-first-quarter"
+        },
+        {
+          "codepoint": "1f31c",
+          "tag": "moon-face-last-quarter"
+        },
+        {
+          "codepoint": "1f63a",
+          "tag": "smiley-cat"
+        },
+        {
+          "codepoint": "1f638",
+          "tag": "smile-cat"
+        },
+        {
+          "codepoint": "1f639",
+          "tag": "joy-cat"
+        },
+        {
+          "codepoint": "1f63b",
+          "tag": "heart-eyes-cat"
+        },
+        {
+          "codepoint": "1f63c",
+          "tag": "smirk-cat"
+        },
+        {
+          "codepoint": "1f63d",
+          "tag": "kissing-cat"
+        },
+        {
+          "codepoint": "1f640",
+          "tag": "scream-cat"
+        },
+        {
+          "codepoint": "1f63f",
+          "tag": "crying-cat-face"
+        },
+        {
+          "codepoint": "1f63e",
+          "tag": "pouting-cat"
+        },
+        {
+          "codepoint": "1f648",
+          "tag": "see-no-evil-monkey"
+        },
+        {
+          "codepoint": "1f649",
+          "tag": "hear-no-evil-monkey"
+        },
+        {
+          "codepoint": "1f64a",
+          "tag": "speak-no-evil-monkey"
+        },
+        {
+          "codepoint": "2b50",
+          "tag": "star"
+        },
+        {
+          "codepoint": "1f31f",
+          "tag": "glowing-star"
+        },
+        {
+          "codepoint": "2728",
+          "tag": "sparkles"
+        },
+        {
+          "codepoint": "26a1",
+          "tag": "electricity"
+        },
+        {
+          "codepoint": "1f4a5",
+          "tag": "collision"
+        },
+        {
+          "codepoint": "1faef",
+          "tag": "fight"
+        },
+        {
+          "codepoint": "1f573_fe0f",
+          "tag": "hole"
+        },
+        {
+          "codepoint": "1f525",
+          "tag": "fire"
+        },
+        {
+          "codepoint": "1f4af",
+          "tag": "100"
+        },
+        {
+          "codepoint": "1f389",
+          "tag": "party-popper"
+        },
+        {
+          "codepoint": "1f38a",
+          "tag": "confetti-ball"
+        },
+        {
+          "codepoint": "2764_fe0f",
+          "tag": "red-heart"
+        },
+        {
+          "codepoint": "1f9e1",
+          "tag": "orange-heart"
+        },
+        {
+          "codepoint": "1f49b",
+          "tag": "yellow-heart"
+        },
+        {
+          "codepoint": "1f49a",
+          "tag": "green-heart"
+        },
+        {
+          "codepoint": "1fa75",
+          "tag": "light-blue-heart"
+        },
+        {
+          "codepoint": "1f499",
+          "tag": "blue-heart"
+        },
+        {
+          "codepoint": "1f49c",
+          "tag": "purple-heart"
+        },
+        {
+          "codepoint": "1f90e",
+          "tag": "brown-heart"
+        },
+        {
+          "codepoint": "1f5a4",
+          "tag": "black-heart"
+        },
+        {
+          "codepoint": "1fa76",
+          "tag": "grey-heart"
+        },
+        {
+          "codepoint": "1f90d",
+          "tag": "white-heart"
+        },
+        {
+          "codepoint": "1fa77",
+          "tag": "pink-heart"
+        },
+        {
+          "codepoint": "1f498",
+          "tag": "cupid"
+        },
+        {
+          "codepoint": "1f49d",
+          "tag": "gift-heart"
+        },
+        {
+          "codepoint": "1f496",
+          "tag": "sparkling-heart"
+        },
+        {
+          "codepoint": "1f497",
+          "tag": "heart-grow"
+        },
+        {
+          "codepoint": "1f493",
+          "tag": "beating-heart"
+        },
+        {
+          "codepoint": "1f49e",
+          "tag": "revolving-hearts"
+        },
+        {
+          "codepoint": "1f495",
+          "tag": "two-hearts"
+        },
+        {
+          "codepoint": "1f48c",
+          "tag": "love-letter"
+        },
+        {
+          "codepoint": "1f49f",
+          "tag": "heart-box"
+        },
+        {
+          "codepoint": "2665_fe0f",
+          "tag": "heart"
+        },
+        {
+          "codepoint": "2763_fe0f",
+          "tag": "heart-exclamation-point"
+        },
+        {
+          "codepoint": "2764_fe0f_200d_1fa79",
+          "tag": "bandaged-heart"
+        },
+        {
+          "codepoint": "1f494",
+          "tag": "broken-heart"
+        },
+        {
+          "codepoint": "2764_fe0f_200d_1f525",
+          "tag": "fire-heart"
+        },
+        {
+          "codepoint": "1f48b",
+          "tag": "kiss"
+        },
+        {
+          "codepoint": "1fac2",
+          "tag": "hugging"
+        },
+        {
+          "codepoint": "1f5e3_fe0f",
+          "tag": "speaking-head"
+        },
+        {
+          "codepoint": "1f463",
+          "tag": "footprints"
+        },
+        {
+          "codepoint": "1fac6",
+          "tag": "fingerprint"
+        },
+        {
+          "codepoint": "1f9e0",
+          "tag": "brain"
+        },
+        {
+          "codepoint": "1fac0",
+          "tag": "anatomical-heart"
+        },
+        {
+          "codepoint": "1fa78",
+          "tag": "blood"
+        },
+        {
+          "codepoint": "1f9a0",
+          "tag": "microbe"
+        },
+        {
+          "codepoint": "1f9b4",
+          "tag": "bone"
+        },
+        {
+          "codepoint": "1f440",
+          "tag": "eyes"
+        },
+        {
+          "codepoint": "1f441_fe0f",
+          "tag": "eye"
+        },
+        {
+          "codepoint": "1fae6",
+          "tag": "biting-lip"
+        },
+        {
+          "codepoint": "1f443",
+          "tag": "nose"
+        },
+        {
+          "codepoint": "1f443_1f3fb",
+          "tag": "nose"
+        },
+        {
+          "codepoint": "1f443_1f3fc",
+          "tag": "nose"
+        },
+        {
+          "codepoint": "1f443_1f3fd",
+          "tag": "nose"
+        },
+        {
+          "codepoint": "1f443_1f3fe",
+          "tag": "nose"
+        },
+        {
+          "codepoint": "1f443_1f3ff",
+          "tag": "nose"
+        },
+        {
+          "codepoint": "1f442",
+          "tag": "ear"
+        },
+        {
+          "codepoint": "1f442_1f3fb",
+          "tag": "ear"
+        },
+        {
+          "codepoint": "1f442_1f3fc",
+          "tag": "ear"
+        },
+        {
+          "codepoint": "1f442_1f3fd",
+          "tag": "ear"
+        },
+        {
+          "codepoint": "1f442_1f3fe",
+          "tag": "ear"
+        },
+        {
+          "codepoint": "1f442_1f3ff",
+          "tag": "ear"
+        },
+        {
+          "codepoint": "1f9bb",
+          "tag": "hearing-aid"
+        },
+        {
+          "codepoint": "1f9bb_1f3fb",
+          "tag": "hearing-aid"
+        },
+        {
+          "codepoint": "1f9bb_1f3fc",
+          "tag": "hearing-aid"
+        },
+        {
+          "codepoint": "1f9bb_1f3fd",
+          "tag": "hearing-aid"
+        },
+        {
+          "codepoint": "1f9bb_1f3fe",
+          "tag": "hearing-aid"
+        },
+        {
+          "codepoint": "1f9bb_1f3ff",
+          "tag": "hearing-aid"
+        },
+        {
+          "codepoint": "1f9b6",
+          "tag": "foot"
+        },
+        {
+          "codepoint": "1f9b6_1f3fb",
+          "tag": "foot"
+        },
+        {
+          "codepoint": "1f9b6_1f3fc",
+          "tag": "foot"
+        },
+        {
+          "codepoint": "1f9b6_1f3fd",
+          "tag": "foot"
+        },
+        {
+          "codepoint": "1f9b6_1f3fe",
+          "tag": "foot"
+        },
+        {
+          "codepoint": "1f9b6_1f3ff",
+          "tag": "foot"
+        },
+        {
+          "codepoint": "1f9b5",
+          "tag": "leg"
+        },
+        {
+          "codepoint": "1f9b5_1f3fb",
+          "tag": "leg"
+        },
+        {
+          "codepoint": "1f9b5_1f3fc",
+          "tag": "leg"
+        },
+        {
+          "codepoint": "1f9b5_1f3fd",
+          "tag": "leg"
+        },
+        {
+          "codepoint": "1f9b5_1f3fe",
+          "tag": "leg"
+        },
+        {
+          "codepoint": "1f9b5_1f3ff",
+          "tag": "leg"
+        },
+        {
+          "codepoint": "1f9bf",
+          "tag": "leg-mechanical"
+        },
+        {
+          "codepoint": "1f9be",
+          "tag": "arm-mechanical"
+        },
+        {
+          "codepoint": "1f4aa",
+          "tag": "muscle"
+        },
+        {
+          "codepoint": "1f4aa_1f3fb",
+          "tag": "muscle"
+        },
+        {
+          "codepoint": "1f4aa_1f3fc",
+          "tag": "muscle"
+        },
+        {
+          "codepoint": "1f4aa_1f3fd",
+          "tag": "muscle"
+        },
+        {
+          "codepoint": "1f4aa_1f3fe",
+          "tag": "muscle"
+        },
+        {
+          "codepoint": "1f4aa_1f3ff",
+          "tag": "muscle"
+        },
+        {
+          "codepoint": "1f44f",
+          "tag": "clap"
+        },
+        {
+          "codepoint": "1f44f_1f3fb",
+          "tag": "clap"
+        },
+        {
+          "codepoint": "1f44f_1f3fc",
+          "tag": "clap"
+        },
+        {
+          "codepoint": "1f44f_1f3fd",
+          "tag": "clap"
+        },
+        {
+          "codepoint": "1f44f_1f3fe",
+          "tag": "clap"
+        },
+        {
+          "codepoint": "1f44f_1f3ff",
+          "tag": "clap"
+        },
+        {
+          "codepoint": "1f44d",
+          "tag": "thumbs-up"
+        },
+        {
+          "codepoint": "1f44d_1f3fb",
+          "tag": "thumbs-up"
+        },
+        {
+          "codepoint": "1f44d_1f3fc",
+          "tag": "thumbs-up"
+        },
+        {
+          "codepoint": "1f44d_1f3fd",
+          "tag": "thumbs-up"
+        },
+        {
+          "codepoint": "1f44d_1f3fe",
+          "tag": "thumbs-up"
+        },
+        {
+          "codepoint": "1f44d_1f3ff",
+          "tag": "thumbs-up"
+        },
+        {
+          "codepoint": "1f44e",
+          "tag": "thumbs-down"
+        },
+        {
+          "codepoint": "1f44e_1f3fb",
+          "tag": "thumbs-down"
+        },
+        {
+          "codepoint": "1f44e_1f3fc",
+          "tag": "thumbs-down"
+        },
+        {
+          "codepoint": "1f44e_1f3fd",
+          "tag": "thumbs-down"
+        },
+        {
+          "codepoint": "1f44e_1f3fe",
+          "tag": "thumbs-down"
+        },
+        {
+          "codepoint": "1f44e_1f3ff",
+          "tag": "thumbs-down"
+        },
+        {
+          "codepoint": "1faf6",
+          "tag": "heart-hands"
+        },
+        {
+          "codepoint": "1faf6_1f3fb",
+          "tag": "heart-hands"
+        },
+        {
+          "codepoint": "1faf6_1f3fc",
+          "tag": "heart-hands"
+        },
+        {
+          "codepoint": "1faf6_1f3fd",
+          "tag": "heart-hands"
+        },
+        {
+          "codepoint": "1faf6_1f3fe",
+          "tag": "heart-hands"
+        },
+        {
+          "codepoint": "1faf6_1f3ff",
+          "tag": "heart-hands"
+        },
+        {
+          "codepoint": "1f64c",
+          "tag": "raising-hands"
+        },
+        {
+          "codepoint": "1f64c_1f3fb",
+          "tag": "raising-hands"
+        },
+        {
+          "codepoint": "1f64c_1f3fc",
+          "tag": "raising-hands"
+        },
+        {
+          "codepoint": "1f64c_1f3fd",
+          "tag": "raising-hands"
+        },
+        {
+          "codepoint": "1f64c_1f3fe",
+          "tag": "raising-hands"
+        },
+        {
+          "codepoint": "1f64c_1f3ff",
+          "tag": "raising-hands"
+        },
+        {
+          "codepoint": "1f450",
+          "tag": "open-hands"
+        },
+        {
+          "codepoint": "1f450_1f3fb",
+          "tag": "open-hands"
+        },
+        {
+          "codepoint": "1f450_1f3fc",
+          "tag": "open-hands"
+        },
+        {
+          "codepoint": "1f450_1f3fd",
+          "tag": "open-hands"
+        },
+        {
+          "codepoint": "1f450_1f3fe",
+          "tag": "open-hands"
+        },
+        {
+          "codepoint": "1f450_1f3ff",
+          "tag": "open-hands"
+        },
+        {
+          "codepoint": "1f932",
+          "tag": "palms-up"
+        },
+        {
+          "codepoint": "1f932_1f3fb",
+          "tag": "palms-up"
+        },
+        {
+          "codepoint": "1f932_1f3fc",
+          "tag": "palms-up"
+        },
+        {
+          "codepoint": "1f932_1f3fd",
+          "tag": "palms-up"
+        },
+        {
+          "codepoint": "1f932_1f3fe",
+          "tag": "palms-up"
+        },
+        {
+          "codepoint": "1f932_1f3ff",
+          "tag": "palms-up"
+        },
+        {
+          "codepoint": "1f91c",
+          "tag": "fist-rightwards"
+        },
+        {
+          "codepoint": "1f91c_1f3fb",
+          "tag": "fist-rightwards"
+        },
+        {
+          "codepoint": "1f91c_1f3fc",
+          "tag": "fist-rightwards"
+        },
+        {
+          "codepoint": "1f91c_1f3fd",
+          "tag": "fist-rightwards"
+        },
+        {
+          "codepoint": "1f91c_1f3fe",
+          "tag": "fist-rightwards"
+        },
+        {
+          "codepoint": "1f91c_1f3ff",
+          "tag": "fist-rightwards"
+        },
+        {
+          "codepoint": "1f91b",
+          "tag": "fist-leftwards"
+        },
+        {
+          "codepoint": "1f91b_1f3fb",
+          "tag": "fist-leftwards"
+        },
+        {
+          "codepoint": "1f91b_1f3fc",
+          "tag": "fist-leftwards"
+        },
+        {
+          "codepoint": "1f91b_1f3fd",
+          "tag": "fist-leftwards"
+        },
+        {
+          "codepoint": "1f91b_1f3fe",
+          "tag": "fist-leftwards"
+        },
+        {
+          "codepoint": "1f91b_1f3ff",
+          "tag": "fist-leftwards"
+        },
+        {
+          "codepoint": "270a",
+          "tag": "raised-fist"
+        },
+        {
+          "codepoint": "270a_1f3fb",
+          "tag": "raised-fist"
+        },
+        {
+          "codepoint": "270a_1f3fc",
+          "tag": "raised-fist"
+        },
+        {
+          "codepoint": "270a_1f3fd",
+          "tag": "raised-fist"
+        },
+        {
+          "codepoint": "270a_1f3fe",
+          "tag": "raised-fist"
+        },
+        {
+          "codepoint": "270a_1f3ff",
+          "tag": "raised-fist"
+        },
+        {
+          "codepoint": "1f44a",
+          "tag": "fist"
+        },
+        {
+          "codepoint": "1f44a_1f3fb",
+          "tag": "fist"
+        },
+        {
+          "codepoint": "1f44a_1f3fc",
+          "tag": "fist"
+        },
+        {
+          "codepoint": "1f44a_1f3fd",
+          "tag": "fist"
+        },
+        {
+          "codepoint": "1f44a_1f3fe",
+          "tag": "fist"
+        },
+        {
+          "codepoint": "1f44a_1f3ff",
+          "tag": "fist"
+        },
+        {
+          "codepoint": "1faf3",
+          "tag": "palm-down"
+        },
+        {
+          "codepoint": "1faf3_1f3fb",
+          "tag": "palm-down"
+        },
+        {
+          "codepoint": "1faf3_1f3fc",
+          "tag": "palm-down"
+        },
+        {
+          "codepoint": "1faf3_1f3fd",
+          "tag": "palm-down"
+        },
+        {
+          "codepoint": "1faf3_1f3fe",
+          "tag": "palm-down"
+        },
+        {
+          "codepoint": "1faf3_1f3ff",
+          "tag": "palm-down"
+        },
+        {
+          "codepoint": "1faf4",
+          "tag": "palm-up"
+        },
+        {
+          "codepoint": "1faf4_1f3fb",
+          "tag": "palm-up"
+        },
+        {
+          "codepoint": "1faf4_1f3fc",
+          "tag": "palm-up"
+        },
+        {
+          "codepoint": "1faf4_1f3fd",
+          "tag": "palm-up"
+        },
+        {
+          "codepoint": "1faf4_1f3fe",
+          "tag": "palm-up"
+        },
+        {
+          "codepoint": "1faf4_1f3ff",
+          "tag": "palm-up"
+        },
+        {
+          "codepoint": "1faf1",
+          "tag": "rightwards-hand"
+        },
+        {
+          "codepoint": "1faf1_1f3fb",
+          "tag": "rightwards-hand"
+        },
+        {
+          "codepoint": "1faf1_1f3fc",
+          "tag": "rightwards-hand"
+        },
+        {
+          "codepoint": "1faf1_1f3fd",
+          "tag": "rightwards-hand"
+        },
+        {
+          "codepoint": "1faf1_1f3fe",
+          "tag": "rightwards-hand"
+        },
+        {
+          "codepoint": "1faf1_1f3ff",
+          "tag": "rightwards-hand"
+        },
+        {
+          "codepoint": "1faf2",
+          "tag": "leftwards-hand"
+        },
+        {
+          "codepoint": "1faf2_1f3fb",
+          "tag": "leftwards-hand"
+        },
+        {
+          "codepoint": "1faf2_1f3fc",
+          "tag": "leftwards-hand"
+        },
+        {
+          "codepoint": "1faf2_1f3fd",
+          "tag": "leftwards-hand"
+        },
+        {
+          "codepoint": "1faf2_1f3fe",
+          "tag": "leftwards-hand"
+        },
+        {
+          "codepoint": "1faf2_1f3ff",
+          "tag": "leftwards-hand"
+        },
+        {
+          "codepoint": "1faf8",
+          "tag": "push-rightwards"
+        },
+        {
+          "codepoint": "1faf8_1f3fb",
+          "tag": "push-rightwards"
+        },
+        {
+          "codepoint": "1faf8_1f3fc",
+          "tag": "push-rightwards"
+        },
+        {
+          "codepoint": "1faf8_1f3fd",
+          "tag": "push-rightwards"
+        },
+        {
+          "codepoint": "1faf8_1f3fe",
+          "tag": "push-rightwards"
+        },
+        {
+          "codepoint": "1faf8_1f3ff",
+          "tag": "push-rightwards"
+        },
+        {
+          "codepoint": "1faf7",
+          "tag": "push-leftwards"
+        },
+        {
+          "codepoint": "1faf7_1f3fb",
+          "tag": "push-leftwards"
+        },
+        {
+          "codepoint": "1faf7_1f3fc",
+          "tag": "push-leftwards"
+        },
+        {
+          "codepoint": "1faf7_1f3fd",
+          "tag": "push-leftwards"
+        },
+        {
+          "codepoint": "1faf7_1f3fe",
+          "tag": "push-leftwards"
+        },
+        {
+          "codepoint": "1faf7_1f3ff",
+          "tag": "push-leftwards"
+        },
+        {
+          "codepoint": "1f44b",
+          "tag": "wave"
+        },
+        {
+          "codepoint": "1f44b_1f3fb",
+          "tag": "wave"
+        },
+        {
+          "codepoint": "1f44b_1f3fc",
+          "tag": "wave"
+        },
+        {
+          "codepoint": "1f44b_1f3fd",
+          "tag": "wave"
+        },
+        {
+          "codepoint": "1f44b_1f3fe",
+          "tag": "wave"
+        },
+        {
+          "codepoint": "1f44b_1f3ff",
+          "tag": "wave"
+        },
+        {
+          "codepoint": "1f91a",
+          "tag": "back-hand"
+        },
+        {
+          "codepoint": "1f91a_1f3fb",
+          "tag": "back-hand"
+        },
+        {
+          "codepoint": "1f91a_1f3fc",
+          "tag": "back-hand"
+        },
+        {
+          "codepoint": "1f91a_1f3fd",
+          "tag": "back-hand"
+        },
+        {
+          "codepoint": "1f91a_1f3fe",
+          "tag": "back-hand"
+        },
+        {
+          "codepoint": "1f91a_1f3ff",
+          "tag": "back-hand"
+        },
+        {
+          "codepoint": "1f590_fe0f",
+          "tag": "palm"
+        },
+        {
+          "codepoint": "1f590_1f3fb",
+          "tag": "palm"
+        },
+        {
+          "codepoint": "1f590_1f3fc",
+          "tag": "palm"
+        },
+        {
+          "codepoint": "1f590_1f3fd",
+          "tag": "palm"
+        },
+        {
+          "codepoint": "1f590_1f3fe",
+          "tag": "palm"
+        },
+        {
+          "codepoint": "1f590_1f3ff",
+          "tag": "palm"
+        },
+        {
+          "codepoint": "270b",
+          "tag": "raised-hand"
+        },
+        {
+          "codepoint": "270b_1f3fb",
+          "tag": "raised-hand"
+        },
+        {
+          "codepoint": "270b_1f3fc",
+          "tag": "raised-hand"
+        },
+        {
+          "codepoint": "270b_1f3fd",
+          "tag": "raised-hand"
+        },
+        {
+          "codepoint": "270b_1f3fe",
+          "tag": "raised-hand"
+        },
+        {
+          "codepoint": "270b_1f3ff",
+          "tag": "raised-hand"
+        },
+        {
+          "codepoint": "1f596",
+          "tag": "vulcan"
+        },
+        {
+          "codepoint": "1f596_1f3fb",
+          "tag": "vulcan"
+        },
+        {
+          "codepoint": "1f596_1f3fc",
+          "tag": "vulcan"
+        },
+        {
+          "codepoint": "1f596_1f3fd",
+          "tag": "vulcan"
+        },
+        {
+          "codepoint": "1f596_1f3fe",
+          "tag": "vulcan"
+        },
+        {
+          "codepoint": "1f596_1f3ff",
+          "tag": "vulcan"
+        },
+        {
+          "codepoint": "1f91f",
+          "tag": "love-you-gesture"
+        },
+        {
+          "codepoint": "1f91f_1f3fb",
+          "tag": "love-you-gesture"
+        },
+        {
+          "codepoint": "1f91f_1f3fc",
+          "tag": "love-you-gesture"
+        },
+        {
+          "codepoint": "1f91f_1f3fd",
+          "tag": "love-you-gesture"
+        },
+        {
+          "codepoint": "1f91f_1f3fe",
+          "tag": "love-you-gesture"
+        },
+        {
+          "codepoint": "1f91f_1f3ff",
+          "tag": "love-you-gesture"
+        },
+        {
+          "codepoint": "1f918",
+          "tag": "metal"
+        },
+        {
+          "codepoint": "1f918_1f3fb",
+          "tag": "metal"
+        },
+        {
+          "codepoint": "1f918_1f3fc",
+          "tag": "metal"
+        },
+        {
+          "codepoint": "1f918_1f3fd",
+          "tag": "metal"
+        },
+        {
+          "codepoint": "1f918_1f3fe",
+          "tag": "metal"
+        },
+        {
+          "codepoint": "1f918_1f3ff",
+          "tag": "metal"
+        },
+        {
+          "codepoint": "270c_fe0f",
+          "tag": "victory"
+        },
+        {
+          "codepoint": "270c_1f3fb",
+          "tag": "victory"
+        },
+        {
+          "codepoint": "270c_1f3fc",
+          "tag": "victory"
+        },
+        {
+          "codepoint": "270c_1f3fd",
+          "tag": "victory"
+        },
+        {
+          "codepoint": "270c_1f3fe",
+          "tag": "victory"
+        },
+        {
+          "codepoint": "270c_1f3ff",
+          "tag": "victory"
+        },
+        {
+          "codepoint": "1f91e",
+          "tag": "crossed-fingers"
+        },
+        {
+          "codepoint": "1f91e_1f3fb",
+          "tag": "crossed-fingers"
+        },
+        {
+          "codepoint": "1f91e_1f3fc",
+          "tag": "crossed-fingers"
+        },
+        {
+          "codepoint": "1f91e_1f3fd",
+          "tag": "crossed-fingers"
+        },
+        {
+          "codepoint": "1f91e_1f3fe",
+          "tag": "crossed-fingers"
+        },
+        {
+          "codepoint": "1f91e_1f3ff",
+          "tag": "crossed-fingers"
+        },
+        {
+          "codepoint": "1faf0",
+          "tag": "hand-with-index-finger-and-thumb-crossed"
+        },
+        {
+          "codepoint": "1faf0_1f3fb",
+          "tag": "hand-with-index-finger-and-thumb-crossed"
+        },
+        {
+          "codepoint": "1faf0_1f3fc",
+          "tag": "hand-with-index-finger-and-thumb-crossed"
+        },
+        {
+          "codepoint": "1faf0_1f3fd",
+          "tag": "hand-with-index-finger-and-thumb-crossed"
+        },
+        {
+          "codepoint": "1faf0_1f3fe",
+          "tag": "hand-with-index-finger-and-thumb-crossed"
+        },
+        {
+          "codepoint": "1faf0_1f3ff",
+          "tag": "hand-with-index-finger-and-thumb-crossed"
+        },
+        {
+          "codepoint": "1f919",
+          "tag": "call-me-hand"
+        },
+        {
+          "codepoint": "1f919_1f3fb",
+          "tag": "call-me-hand"
+        },
+        {
+          "codepoint": "1f919_1f3fc",
+          "tag": "call-me-hand"
+        },
+        {
+          "codepoint": "1f919_1f3fd",
+          "tag": "call-me-hand"
+        },
+        {
+          "codepoint": "1f919_1f3fe",
+          "tag": "call-me-hand"
+        },
+        {
+          "codepoint": "1f919_1f3ff",
+          "tag": "call-me-hand"
+        },
+        {
+          "codepoint": "1f90c",
+          "tag": "pinched-fingers"
+        },
+        {
+          "codepoint": "1f90c_1f3fb",
+          "tag": "pinched-fingers"
+        },
+        {
+          "codepoint": "1f90c_1f3fc",
+          "tag": "pinched-fingers"
+        },
+        {
+          "codepoint": "1f90c_1f3fd",
+          "tag": "pinched-fingers"
+        },
+        {
+          "codepoint": "1f90c_1f3fe",
+          "tag": "pinched-fingers"
+        },
+        {
+          "codepoint": "1f90c_1f3ff",
+          "tag": "pinched-fingers"
+        },
+        {
+          "codepoint": "1f90f",
+          "tag": "pinch"
+        },
+        {
+          "codepoint": "1f90f_1f3fb",
+          "tag": "pinch"
+        },
+        {
+          "codepoint": "1f90f_1f3fc",
+          "tag": "pinch"
+        },
+        {
+          "codepoint": "1f90f_1f3fd",
+          "tag": "pinch"
+        },
+        {
+          "codepoint": "1f90f_1f3fe",
+          "tag": "pinch"
+        },
+        {
+          "codepoint": "1f90f_1f3ff",
+          "tag": "pinch"
+        },
+        {
+          "codepoint": "1f44c",
+          "tag": "ok"
+        },
+        {
+          "codepoint": "1f44c_1f3fb",
+          "tag": "ok"
+        },
+        {
+          "codepoint": "1f44c_1f3fc",
+          "tag": "ok"
+        },
+        {
+          "codepoint": "1f44c_1f3fd",
+          "tag": "ok"
+        },
+        {
+          "codepoint": "1f44c_1f3fe",
+          "tag": "ok"
+        },
+        {
+          "codepoint": "1f44c_1f3ff",
+          "tag": "ok"
+        },
+        {
+          "codepoint": "1faf5",
+          "tag": "pointing"
+        },
+        {
+          "codepoint": "1faf5_1f3fb",
+          "tag": "pointing"
+        },
+        {
+          "codepoint": "1faf5_1f3fc",
+          "tag": "pointing"
+        },
+        {
+          "codepoint": "1faf5_1f3fd",
+          "tag": "pointing"
+        },
+        {
+          "codepoint": "1faf5_1f3fe",
+          "tag": "pointing"
+        },
+        {
+          "codepoint": "1faf5_1f3ff",
+          "tag": "pointing"
+        },
+        {
+          "codepoint": "1f449",
+          "tag": "point-right"
+        },
+        {
+          "codepoint": "1f449_1f3fb",
+          "tag": "point-right"
+        },
+        {
+          "codepoint": "1f449_1f3fc",
+          "tag": "point-right"
+        },
+        {
+          "codepoint": "1f449_1f3fd",
+          "tag": "point-right"
+        },
+        {
+          "codepoint": "1f449_1f3fe",
+          "tag": "point-right"
+        },
+        {
+          "codepoint": "1f449_1f3ff",
+          "tag": "point-right"
+        },
+        {
+          "codepoint": "1f448",
+          "tag": "point-left"
+        },
+        {
+          "codepoint": "1f448_1f3fb",
+          "tag": "point-left"
+        },
+        {
+          "codepoint": "1f448_1f3fc",
+          "tag": "point-left"
+        },
+        {
+          "codepoint": "1f448_1f3fd",
+          "tag": "point-left"
+        },
+        {
+          "codepoint": "1f448_1f3fe",
+          "tag": "point-left"
+        },
+        {
+          "codepoint": "1f448_1f3ff",
+          "tag": "point-left"
+        },
+        {
+          "codepoint": "261d_fe0f",
+          "tag": "index-finger"
+        },
+        {
+          "codepoint": "261d_1f3fb",
+          "tag": "index-finger"
+        },
+        {
+          "codepoint": "261d_1f3fc",
+          "tag": "index-finger"
+        },
+        {
+          "codepoint": "261d_1f3fd",
+          "tag": "index-finger"
+        },
+        {
+          "codepoint": "261d_1f3fe",
+          "tag": "index-finger"
+        },
+        {
+          "codepoint": "261d_1f3ff",
+          "tag": "index-finger"
+        },
+        {
+          "codepoint": "1f446",
+          "tag": "point-up"
+        },
+        {
+          "codepoint": "1f446_1f3fb",
+          "tag": "point-up"
+        },
+        {
+          "codepoint": "1f446_1f3fc",
+          "tag": "point-up"
+        },
+        {
+          "codepoint": "1f446_1f3fd",
+          "tag": "point-up"
+        },
+        {
+          "codepoint": "1f446_1f3fe",
+          "tag": "point-up"
+        },
+        {
+          "codepoint": "1f446_1f3ff",
+          "tag": "point-up"
+        },
+        {
+          "codepoint": "1f447",
+          "tag": "point-down"
+        },
+        {
+          "codepoint": "1f447_1f3fb",
+          "tag": "point-down"
+        },
+        {
+          "codepoint": "1f447_1f3fc",
+          "tag": "point-down"
+        },
+        {
+          "codepoint": "1f447_1f3fd",
+          "tag": "point-down"
+        },
+        {
+          "codepoint": "1f447_1f3fe",
+          "tag": "point-down"
+        },
+        {
+          "codepoint": "1f447_1f3ff",
+          "tag": "point-down"
+        },
+        {
+          "codepoint": "1f595",
+          "tag": "middle-finger"
+        },
+        {
+          "codepoint": "1f595_1f3fb",
+          "tag": "middle-finger"
+        },
+        {
+          "codepoint": "1f595_1f3fc",
+          "tag": "middle-finger"
+        },
+        {
+          "codepoint": "1f595_1f3fd",
+          "tag": "middle-finger"
+        },
+        {
+          "codepoint": "1f595_1f3fe",
+          "tag": "middle-finger"
+        },
+        {
+          "codepoint": "1f595_1f3ff",
+          "tag": "middle-finger"
+        },
+        {
+          "codepoint": "270d_fe0f",
+          "tag": "writing-hand"
+        },
+        {
+          "codepoint": "270d_1f3fb",
+          "tag": "writing-hand"
+        },
+        {
+          "codepoint": "270d_1f3fc",
+          "tag": "writing-hand"
+        },
+        {
+          "codepoint": "270d_1f3fd",
+          "tag": "writing-hand"
+        },
+        {
+          "codepoint": "270d_1f3fe",
+          "tag": "writing-hand"
+        },
+        {
+          "codepoint": "270d_1f3ff",
+          "tag": "writing-hand"
+        },
+        {
+          "codepoint": "1f933",
+          "tag": "selfie"
+        },
+        {
+          "codepoint": "1f933_1f3fb",
+          "tag": "selfie"
+        },
+        {
+          "codepoint": "1f933_1f3fc",
+          "tag": "selfie"
+        },
+        {
+          "codepoint": "1f933_1f3fd",
+          "tag": "selfie"
+        },
+        {
+          "codepoint": "1f933_1f3fe",
+          "tag": "selfie"
+        },
+        {
+          "codepoint": "1f933_1f3ff",
+          "tag": "selfie"
+        },
+        {
+          "codepoint": "1f64f",
+          "tag": "folded-hands"
+        },
+        {
+          "codepoint": "1f64f_1f3fb",
+          "tag": "folded-hands"
+        },
+        {
+          "codepoint": "1f64f_1f3fc",
+          "tag": "folded-hands"
+        },
+        {
+          "codepoint": "1f64f_1f3fd",
+          "tag": "folded-hands"
+        },
+        {
+          "codepoint": "1f64f_1f3fe",
+          "tag": "folded-hands"
+        },
+        {
+          "codepoint": "1f64f_1f3ff",
+          "tag": "folded-hands"
+        },
+        {
+          "codepoint": "1f485",
+          "tag": "nail-care"
+        },
+        {
+          "codepoint": "1f485_1f3fb",
+          "tag": "nail-care"
+        },
+        {
+          "codepoint": "1f485_1f3fc",
+          "tag": "nail-care"
+        },
+        {
+          "codepoint": "1f485_1f3fd",
+          "tag": "nail-care"
+        },
+        {
+          "codepoint": "1f485_1f3fe",
+          "tag": "nail-care"
+        },
+        {
+          "codepoint": "1f485_1f3ff",
+          "tag": "nail-care"
+        },
+        {
+          "codepoint": "1f91d",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1f91d_1f3fb",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fb_200d_1faf2_1f3fc",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fb_200d_1faf2_1f3fd",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fb_200d_1faf2_1f3fe",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fb_200d_1faf2_1f3ff",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fc_200d_1faf2_1f3fb",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1f91d_1f3fc",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fc_200d_1faf2_1f3fd",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fc_200d_1faf2_1f3fe",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fc_200d_1faf2_1f3ff",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fd_200d_1faf2_1f3fb",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fd_200d_1faf2_1f3fc",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1f91d_1f3fd",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fd_200d_1faf2_1f3fe",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fd_200d_1faf2_1f3ff",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fe_200d_1faf2_1f3fb",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fe_200d_1faf2_1f3fc",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fe_200d_1faf2_1f3fd",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1f91d_1f3fe",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3fe_200d_1faf2_1f3ff",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3ff_200d_1faf2_1f3fb",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3ff_200d_1faf2_1f3fc",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3ff_200d_1faf2_1f3fd",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1faf1_1f3ff_200d_1faf2_1f3fe",
+          "tag": "handshake"
+        },
+        {
+          "codepoint": "1f91d_1f3ff",
+          "tag": "handshake"
+        }
+      ]
+    },
+    {
+      "id": "People",
+      "name": "People",
+      "items": [
+        {
+          "codepoint": "1fa82",
+          "tag": "parachute"
+        },
+        {
+          "codepoint": "1fac8",
+          "tag": "hairy-creature"
+        },
+        {
+          "codepoint": "1f483",
+          "tag": "dancer-woman"
+        },
+        {
+          "codepoint": "1f483_1f3fb",
+          "tag": "dancer-woman"
+        },
+        {
+          "codepoint": "1f483_1f3fc",
+          "tag": "dancer-woman"
+        },
+        {
+          "codepoint": "1f483_1f3fd",
+          "tag": "dancer-woman"
+        },
+        {
+          "codepoint": "1f483_1f3fe",
+          "tag": "dancer-woman"
+        },
+        {
+          "codepoint": "1f483_1f3ff",
+          "tag": "dancer-woman"
+        }
+      ]
+    },
+    {
+      "id": "Animals and nature",
+      "name": "Animals and nature",
+      "items": [
+        {
+          "codepoint": "1f490",
+          "tag": "bouquet"
+        },
+        {
+          "codepoint": "1f339",
+          "tag": "rose"
+        },
+        {
+          "codepoint": "1f940",
+          "tag": "wilted-flower"
+        },
+        {
+          "codepoint": "1f337",
+          "tag": "tulip"
+        },
+        {
+          "codepoint": "1fab7",
+          "tag": "lotus"
+        },
+        {
+          "codepoint": "1f338",
+          "tag": "cherry-blossom"
+        },
+        {
+          "codepoint": "1fabb",
+          "tag": "hyacinth"
+        },
+        {
+          "codepoint": "1f33c",
+          "tag": "blossom"
+        },
+        {
+          "codepoint": "1f342",
+          "tag": "fallen-leaf"
+        },
+        {
+          "codepoint": "1f341",
+          "tag": "maple-leaf"
+        },
+        {
+          "codepoint": "1f344",
+          "tag": "mushroom"
+        },
+        {
+          "codepoint": "1f33f",
+          "tag": "herb"
+        },
+        {
+          "codepoint": "1f331",
+          "tag": "plant"
+        },
+        {
+          "codepoint": "1f343",
+          "tag": "leaves"
+        },
+        {
+          "codepoint": "1f340",
+          "tag": "luck"
+        },
+        {
+          "codepoint": "1f335",
+          "tag": "cactus"
+        },
+        {
+          "codepoint": "1fabe",
+          "tag": "leafless-tree"
+        },
+        {
+          "codepoint": "1f332",
+          "tag": "evergreen-tree"
+        },
+        {
+          "codepoint": "1faa8",
+          "tag": "rock"
+        },
+        {
+          "codepoint": "1f6d8",
+          "tag": "debris"
+        },
+        {
+          "codepoint": "1f30b",
+          "tag": "volcano"
+        },
+        {
+          "codepoint": "1f3de_fe0f",
+          "tag": "national-park"
+        },
+        {
+          "codepoint": "1f305",
+          "tag": "sunrise"
+        },
+        {
+          "codepoint": "1f304",
+          "tag": "sunrise-over-mountains"
+        },
+        {
+          "codepoint": "1f30a",
+          "tag": "ocean"
+        },
+        {
+          "codepoint": "1f32c_fe0f",
+          "tag": "wind-face"
+        },
+        {
+          "codepoint": "2744_fe0f",
+          "tag": "snowflake"
+        },
+        {
+          "codepoint": "1f300",
+          "tag": "cyclone"
+        },
+        {
+          "codepoint": "1f32a_fe0f",
+          "tag": "tornado"
+        },
+        {
+          "codepoint": "1f308",
+          "tag": "rainbow"
+        },
+        {
+          "codepoint": "1f4a7",
+          "tag": "droplet"
+        },
+        {
+          "codepoint": "2601_fe0f",
+          "tag": "cloud"
+        },
+        {
+          "codepoint": "1f327_fe0f",
+          "tag": "rain-cloud"
+        },
+        {
+          "codepoint": "1f329_fe0f",
+          "tag": "cloud-with-lightning"
+        },
+        {
+          "codepoint": "26c5",
+          "tag": "partly-sunny"
+        },
+        {
+          "codepoint": "1fa90",
+          "tag": "ringed-planet"
+        },
+        {
+          "codepoint": "1f30d",
+          "tag": "globe-showing-Europe-Africa"
+        },
+        {
+          "codepoint": "1f30e",
+          "tag": "globe-showing-Americas"
+        },
+        {
+          "codepoint": "1f30f",
+          "tag": "globe-showing-Asia-Australia"
+        },
+        {
+          "codepoint": "1f30c",
+          "tag": "milky-way"
+        },
+        {
+          "codepoint": "2604_fe0f",
+          "tag": "comet"
+        },
+        {
+          "codepoint": "1f981",
+          "tag": "lion-face"
+        },
+        {
+          "codepoint": "1f43a",
+          "tag": "wolf"
+        },
+        {
+          "codepoint": "1f43b",
+          "tag": "bear-face"
+        },
+        {
+          "codepoint": "1f43c",
+          "tag": "panda"
+        },
+        {
+          "codepoint": "1f98a",
+          "tag": "fox-face"
+        },
+        {
+          "codepoint": "1f42e",
+          "tag": "cow-face"
+        },
+        {
+          "codepoint": "1f984",
+          "tag": "unicorn"
+        },
+        {
+          "codepoint": "1f98e",
+          "tag": "lizard"
+        },
+        {
+          "codepoint": "1f409",
+          "tag": "dragon"
+        },
+        {
+          "codepoint": "1f996",
+          "tag": "t-rex"
+        },
+        {
+          "codepoint": "1f995",
+          "tag": "dinosaur"
+        },
+        {
+          "codepoint": "1f422",
+          "tag": "turtle"
+        },
+        {
+          "codepoint": "1f40a",
+          "tag": "crocodile"
+        },
+        {
+          "codepoint": "1f40d",
+          "tag": "snake"
+        },
+        {
+          "codepoint": "1f438",
+          "tag": "frog"
+        },
+        {
+          "codepoint": "1f407",
+          "tag": "rabbit"
+        },
+        {
+          "codepoint": "1f400",
+          "tag": "rat"
+        },
+        {
+          "codepoint": "1f429",
+          "tag": "poodle"
+        },
+        {
+          "codepoint": "1f415",
+          "tag": "dog"
+        },
+        {
+          "codepoint": "1f9ae",
+          "tag": "guide-dog"
+        },
+        {
+          "codepoint": "1f415_200d_1f9ba",
+          "tag": "service-dog"
+        },
+        {
+          "codepoint": "1f416",
+          "tag": "pig"
+        },
+        {
+          "codepoint": "1f40e",
+          "tag": "racehorse"
+        },
+        {
+          "codepoint": "1facf",
+          "tag": "donkey"
+        },
+        {
+          "codepoint": "1f402",
+          "tag": "ox"
+        },
+        {
+          "codepoint": "1f410",
+          "tag": "goat"
+        },
+        {
+          "codepoint": "1f9a5",
+          "tag": "sloth"
+        },
+        {
+          "codepoint": "1f998",
+          "tag": "kangaroo"
+        },
+        {
+          "codepoint": "1f405",
+          "tag": "tiger"
+        },
+        {
+          "codepoint": "1f412",
+          "tag": "monkey"
+        },
+        {
+          "codepoint": "1f98d",
+          "tag": "gorilla"
+        },
+        {
+          "codepoint": "1f9a7",
+          "tag": "orangutan"
+        },
+        {
+          "codepoint": "1f43f_fe0f",
+          "tag": "chipmunk"
+        },
+        {
+          "codepoint": "1f99d",
+          "tag": "raccoon"
+        },
+        {
+          "codepoint": "1f994",
+          "tag": "hedgehog"
+        },
+        {
+          "codepoint": "1f9a6",
+          "tag": "otter"
+        },
+        {
+          "codepoint": "1f987",
+          "tag": "bat"
+        },
+        {
+          "codepoint": "1f426",
+          "tag": "bird"
+        },
+        {
+          "codepoint": "1f426_200d_2b1b",
+          "tag": "black-bird"
+        },
+        {
+          "codepoint": "1f413",
+          "tag": "rooster"
+        },
+        {
+          "codepoint": "1f423",
+          "tag": "hatching-chick"
+        },
+        {
+          "codepoint": "1f424",
+          "tag": "baby-chick"
+        },
+        {
+          "codepoint": "1f425",
+          "tag": "hatched-chick"
+        },
+        {
+          "codepoint": "1f985",
+          "tag": "eagle"
+        },
+        {
+          "codepoint": "1f989",
+          "tag": "owl"
+        },
+        {
+          "codepoint": "1f54a_fe0f",
+          "tag": "peace"
+        },
+        {
+          "codepoint": "1fabf",
+          "tag": "goose"
+        },
+        {
+          "codepoint": "1f9a9",
+          "tag": "flamingo"
+        },
+        {
+          "codepoint": "1f99a",
+          "tag": "peacock"
+        },
+        {
+          "codepoint": "1f426_200d_1f525",
+          "tag": "phoenix"
+        },
+        {
+          "codepoint": "1f427",
+          "tag": "penguin"
+        },
+        {
+          "codepoint": "1f9ad",
+          "tag": "seal"
+        },
+        {
+          "codepoint": "1f988",
+          "tag": "shark"
+        },
+        {
+          "codepoint": "1facd",
+          "tag": "orca"
+        },
+        {
+          "codepoint": "1f42c",
+          "tag": "dolphin"
+        },
+        {
+          "codepoint": "1f433",
+          "tag": "whale"
+        },
+        {
+          "codepoint": "1f41f",
+          "tag": "fish"
+        },
+        {
+          "codepoint": "1f421",
+          "tag": "blowfish"
+        },
+        {
+          "codepoint": "1f99e",
+          "tag": "lobster"
+        },
+        {
+          "codepoint": "1f980",
+          "tag": "crab"
+        },
+        {
+          "codepoint": "1f419",
+          "tag": "octopus"
+        },
+        {
+          "codepoint": "1fabc",
+          "tag": "jellyfish"
+        },
+        {
+          "codepoint": "1fae7",
+          "tag": "bubbles"
+        },
+        {
+          "codepoint": "1f982",
+          "tag": "scorpion"
+        },
+        {
+          "codepoint": "1f577_fe0f",
+          "tag": "spider"
+        },
+        {
+          "codepoint": "1f40c",
+          "tag": "snail"
+        },
+        {
+          "codepoint": "1f41c",
+          "tag": "ant"
+        },
+        {
+          "codepoint": "1f997",
+          "tag": "cricket"
+        },
+        {
+          "codepoint": "1f99f",
+          "tag": "mosquito"
+        },
+        {
+          "codepoint": "1fab3",
+          "tag": "cockroach"
+        },
+        {
+          "codepoint": "1fab0",
+          "tag": "fly"
+        },
+        {
+          "codepoint": "1f41d",
+          "tag": "bee"
+        },
+        {
+          "codepoint": "1f41e",
+          "tag": "lady-bug"
+        },
+        {
+          "codepoint": "1f98b",
+          "tag": "butterfly"
+        },
+        {
+          "codepoint": "1f41b",
+          "tag": "bug"
+        },
+        {
+          "codepoint": "1fab1",
+          "tag": "worm"
+        },
+        {
+          "codepoint": "1f43e",
+          "tag": "paw prints"
+        }
+      ]
+    },
+    {
+      "id": "Food and drink",
+      "name": "Food and drink",
+      "items": [
+        {
+          "codepoint": "1f353",
+          "tag": "strawberry"
+        },
+        {
+          "codepoint": "1f352",
+          "tag": "cherries"
+        },
+        {
+          "codepoint": "1f34e",
+          "tag": "red-apple"
+        },
+        {
+          "codepoint": "1f345",
+          "tag": "tomato"
+        },
+        {
+          "codepoint": "1f349",
+          "tag": "watermelon"
+        },
+        {
+          "codepoint": "1f34a",
+          "tag": "tangerine"
+        },
+        {
+          "codepoint": "1f955",
+          "tag": "carrot"
+        },
+        {
+          "codepoint": "1f96d",
+          "tag": "mango"
+        },
+        {
+          "codepoint": "1f34d",
+          "tag": "pineapple"
+        },
+        {
+          "codepoint": "1f33d",
+          "tag": "ear-of-corn"
+        },
+        {
+          "codepoint": "1f34b",
+          "tag": "lemon"
+        },
+        {
+          "codepoint": "1f348",
+          "tag": "melon"
+        },
+        {
+          "codepoint": "1f350",
+          "tag": "pear"
+        },
+        {
+          "codepoint": "1fadb",
+          "tag": "pea-pod"
+        },
+        {
+          "codepoint": "1f96c",
+          "tag": "leafy-green"
+        },
+        {
+          "codepoint": "1fad1",
+          "tag": "bell-pepper"
+        },
+        {
+          "codepoint": "1f95d",
+          "tag": "kiwi-fruit"
+        },
+        {
+          "codepoint": "1f951",
+          "tag": "avocado"
+        },
+        {
+          "codepoint": "1f966",
+          "tag": "broccoli"
+        },
+        {
+          "codepoint": "1f952",
+          "tag": "cucumber"
+        },
+        {
+          "codepoint": "1fad0",
+          "tag": "blueberries"
+        },
+        {
+          "codepoint": "1f347",
+          "tag": "grapes"
+        },
+        {
+          "codepoint": "1fadc",
+          "tag": "root-vegetable"
+        },
+        {
+          "codepoint": "1f954",
+          "tag": "potato"
+        },
+        {
+          "codepoint": "1f9c5",
+          "tag": "onion"
+        },
+        {
+          "codepoint": "1fada",
+          "tag": "ginger"
+        },
+        {
+          "codepoint": "1f9c4",
+          "tag": "garlic"
+        },
+        {
+          "codepoint": "1fad8",
+          "tag": "beans"
+        },
+        {
+          "codepoint": "1f35e",
+          "tag": "bread"
+        },
+        {
+          "codepoint": "1f95e",
+          "tag": "pancakes"
+        },
+        {
+          "codepoint": "1f373",
+          "tag": "cooking"
+        },
+        {
+          "codepoint": "1f9c0",
+          "tag": "cheese-wedge"
+        },
+        {
+          "codepoint": "1f953",
+          "tag": "bacon"
+        },
+        {
+          "codepoint": "1f357",
+          "tag": "poultry-leg"
+        },
+        {
+          "codepoint": "1f354",
+          "tag": "hamburger"
+        },
+        {
+          "codepoint": "1f32d",
+          "tag": "hot-dog"
+        },
+        {
+          "codepoint": "1f968",
+          "tag": "pretzel"
+        },
+        {
+          "codepoint": "1f355",
+          "tag": "pizza"
+        },
+        {
+          "codepoint": "1f32e",
+          "tag": "taco"
+        },
+        {
+          "codepoint": "1f32f",
+          "tag": "burrito"
+        },
+        {
+          "codepoint": "1f35d",
+          "tag": "spaghetti"
+        },
+        {
+          "codepoint": "1f957",
+          "tag": "green-salad"
+        },
+        {
+          "codepoint": "1f35c",
+          "tag": "steaming-bowl"
+        },
+        {
+          "codepoint": "1f362",
+          "tag": "oden"
+        },
+        {
+          "codepoint": "1f361",
+          "tag": "dango"
+        },
+        {
+          "codepoint": "1f368",
+          "tag": "ice-cream"
+        },
+        {
+          "codepoint": "1f366",
+          "tag": "soft-ice-cream"
+        },
+        {
+          "codepoint": "1f967",
+          "tag": "pie"
+        },
+        {
+          "codepoint": "1f369",
+          "tag": "doughnut"
+        },
+        {
+          "codepoint": "1f36a",
+          "tag": "cookie"
+        },
+        {
+          "codepoint": "1f9c2",
+          "tag": "salt"
+        },
+        {
+          "codepoint": "1f37f",
+          "tag": "popcorn"
+        },
+        {
+          "codepoint": "1f9cb",
+          "tag": "bubble-tea"
+        },
+        {
+          "codepoint": "1f9c3",
+          "tag": "beverage-box"
+        },
+        {
+          "codepoint": "1f37c",
+          "tag": "baby-bottle"
+        },
+        {
+          "codepoint": "1f375",
+          "tag": "teacup-without-handle"
+        },
+        {
+          "codepoint": "2615",
+          "tag": "hot-beverage"
+        },
+        {
+          "codepoint": "1fad6",
+          "tag": "teapot"
+        },
+        {
+          "codepoint": "1f9c9",
+          "tag": "mate"
+        },
+        {
+          "codepoint": "1f37b",
+          "tag": "clinking-beer-mugs"
+        },
+        {
+          "codepoint": "1f942",
+          "tag": "clinking-glasses"
+        },
+        {
+          "codepoint": "1f37e",
+          "tag": "bottle-with-popping-cork"
+        },
+        {
+          "codepoint": "1f377",
+          "tag": "wine-glass"
+        },
+        {
+          "codepoint": "1fad7",
+          "tag": "pour"
+        },
+        {
+          "codepoint": "1f379",
+          "tag": "tropical-drink"
+        },
+        {
+          "codepoint": "1f962",
+          "tag": "chopsticks"
+        },
+        {
+          "codepoint": "1f37d_fe0f",
+          "tag": "fork-and-knife-with-plate"
+        }
+      ]
+    },
+    {
+      "id": "Travel and places",
+      "name": "Travel and places",
+      "items": [
+        {
+          "codepoint": "1f6d1",
+          "tag": "stop-sign"
+        },
+        {
+          "codepoint": "1f6a7",
+          "tag": "construction"
+        },
+        {
+          "codepoint": "1f6a8",
+          "tag": "police-car-light"
+        },
+        {
+          "codepoint": "26fd",
+          "tag": "fuel-pump"
+        },
+        {
+          "codepoint": "1f6df",
+          "tag": "ring-buoy"
+        },
+        {
+          "codepoint": "2693",
+          "tag": "anchor"
+        },
+        {
+          "codepoint": "1f6a6",
+          "tag": "vertical-traffic-light"
+        },
+        {
+          "codepoint": "1f6b2",
+          "tag": "bicycle"
+        },
+        {
+          "codepoint": "1f3cd_fe0f",
+          "tag": "motorcycle"
+        },
+        {
+          "codepoint": "1f697",
+          "tag": "automobile"
+        },
+        {
+          "codepoint": "1f69a",
+          "tag": "delivery-truck"
+        },
+        {
+          "codepoint": "1f69c",
+          "tag": "tractor"
+        },
+        {
+          "codepoint": "1f3ce_fe0f",
+          "tag": "racing-car"
+        },
+        {
+          "codepoint": "1f695",
+          "tag": "taxi"
+        },
+        {
+          "codepoint": "1f68c",
+          "tag": "bus"
+        },
+        {
+          "codepoint": "1f682",
+          "tag": "locomotive"
+        },
+        {
+          "codepoint": "26f5",
+          "tag": "sailboat"
+        },
+        {
+          "codepoint": "1f6f6",
+          "tag": "canoe"
+        },
+        {
+          "codepoint": "1f6f8",
+          "tag": "flying-saucer"
+        },
+        {
+          "codepoint": "1f680",
+          "tag": "rocket"
+        },
+        {
+          "codepoint": "2708_fe0f",
+          "tag": "airplane"
+        },
+        {
+          "codepoint": "1f6eb",
+          "tag": "airplane-departure"
+        },
+        {
+          "codepoint": "1f6ec",
+          "tag": "airplane-arrival"
+        },
+        {
+          "codepoint": "1f3a2",
+          "tag": "roller-coaster"
+        },
+        {
+          "codepoint": "1f3a1",
+          "tag": "ferris-wheel"
+        },
+        {
+          "codepoint": "1f3a0",
+          "tag": "carousel-horse"
+        },
+        {
+          "codepoint": "1f5ff",
+          "tag": "moai"
+        },
+        {
+          "codepoint": "1f3da_fe0f",
+          "tag": "derelict-house"
+        },
+        {
+          "codepoint": "1f3e0",
+          "tag": "house"
+        },
+        {
+          "codepoint": "1f3d5_fe0f",
+          "tag": "camping"
+        },
+        {
+          "codepoint": "1f307",
+          "tag": "sunset"
+        }
+      ]
+    },
+    {
+      "id": "Activities and events",
+      "name": "Activities and events",
+      "items": [
+        {
+          "codepoint": "1f388",
+          "tag": "balloon"
+        },
+        {
+          "codepoint": "1f382",
+          "tag": "birthday-cake"
+        },
+        {
+          "codepoint": "1f381",
+          "tag": "wrapped-gift"
+        },
+        {
+          "codepoint": "1f386",
+          "tag": "fireworks"
+        },
+        {
+          "codepoint": "1fa94",
+          "tag": "diya-lamp"
+        },
+        {
+          "codepoint": "1fa85",
+          "tag": "piñata"
+        },
+        {
+          "codepoint": "1faa9",
+          "tag": "mirror-ball"
+        },
+        {
+          "codepoint": "1f947",
+          "tag": "gold-medal"
+        },
+        {
+          "codepoint": "1f948",
+          "tag": "silver-medal"
+        },
+        {
+          "codepoint": "1f949",
+          "tag": "bronze-medal"
+        },
+        {
+          "codepoint": "1f3c6",
+          "tag": "trophy"
+        },
+        {
+          "codepoint": "26bd",
+          "tag": "soccer-ball"
+        },
+        {
+          "codepoint": "26be",
+          "tag": "baseball"
+        },
+        {
+          "codepoint": "1f94e",
+          "tag": "softball"
+        },
+        {
+          "codepoint": "1f3c0",
+          "tag": "basketball"
+        },
+        {
+          "codepoint": "1f3c9",
+          "tag": "rugby-football"
+        },
+        {
+          "codepoint": "1f3be",
+          "tag": "tennis"
+        },
+        {
+          "codepoint": "1f3f8",
+          "tag": "badminton"
+        },
+        {
+          "codepoint": "1f94d",
+          "tag": "lacrosse"
+        },
+        {
+          "codepoint": "1f3cf",
+          "tag": "cricket-game"
+        },
+        {
+          "codepoint": "1f3d1",
+          "tag": "field-hockey"
+        },
+        {
+          "codepoint": "1f3d2",
+          "tag": "ice-hockey"
+        },
+        {
+          "codepoint": "1f3bf",
+          "tag": "skis"
+        },
+        {
+          "codepoint": "26f8_fe0f",
+          "tag": "ice-skate"
+        },
+        {
+          "codepoint": "1f6fc",
+          "tag": "roller-skates"
+        },
+        {
+          "codepoint": "1fa70",
+          "tag": "ballet-shoes"
+        },
+        {
+          "codepoint": "1f6f9",
+          "tag": "skateboard"
+        },
+        {
+          "codepoint": "26f3",
+          "tag": "flag-in-hole"
+        },
+        {
+          "codepoint": "1f3af",
+          "tag": "direct-hit"
+        },
+        {
+          "codepoint": "1f94f",
+          "tag": "flying-disc"
+        },
+        {
+          "codepoint": "1fa83",
+          "tag": "boomerang"
+        },
+        {
+          "codepoint": "1fa81",
+          "tag": "kite"
+        },
+        {
+          "codepoint": "1f3a3",
+          "tag": "fishing-pole"
+        },
+        {
+          "codepoint": "1f94b",
+          "tag": "martial-arts-uniform"
+        },
+        {
+          "codepoint": "1f3b1",
+          "tag": "8-ball"
+        },
+        {
+          "codepoint": "1f3d3",
+          "tag": "ping-pong"
+        },
+        {
+          "codepoint": "1f3b3",
+          "tag": "bowling"
+        },
+        {
+          "codepoint": "265f_fe0f",
+          "tag": "chess-pawn"
+        },
+        {
+          "codepoint": "1f3b2",
+          "tag": "die"
+        },
+        {
+          "codepoint": "1f3b0",
+          "tag": "slot-machine"
+        },
+        {
+          "codepoint": "1fa84",
+          "tag": "wand"
+        },
+        {
+          "codepoint": "1f4f7",
+          "tag": "camera"
+        },
+        {
+          "codepoint": "1f4f8",
+          "tag": "camera-flash"
+        },
+        {
+          "codepoint": "1fadf",
+          "tag": "splatter"
+        },
+        {
+          "codepoint": "1f3b7",
+          "tag": "saxophone"
+        },
+        {
+          "codepoint": "1f3ba",
+          "tag": "trumpet"
+        },
+        {
+          "codepoint": "1fa8a",
+          "tag": "trombone"
+        },
+        {
+          "codepoint": "1f3b8",
+          "tag": "guitar"
+        },
+        {
+          "codepoint": "1fa95",
+          "tag": "banjo"
+        },
+        {
+          "codepoint": "1f3bb",
+          "tag": "violin"
+        },
+        {
+          "codepoint": "1fa89",
+          "tag": "harp"
+        },
+        {
+          "codepoint": "1f941",
+          "tag": "drum"
+        },
+        {
+          "codepoint": "1fa87",
+          "tag": "maracas"
+        },
+        {
+          "codepoint": "1f4fa",
+          "tag": "television"
+        },
+        {
+          "codepoint": "1f39e_fe0f",
+          "tag": "film"
+        },
+        {
+          "codepoint": "1f3ac",
+          "tag": "clapper"
+        },
+        {
+          "codepoint": "1f3ad",
+          "tag": "performing-arts"
+        },
+        {
+          "codepoint": "1f39f_fe0f",
+          "tag": "admission-tickets"
+        }
+      ]
+    },
+    {
+      "id": "Objects",
+      "name": "Objects",
+      "items": [
+        {
+          "codepoint": "1f4df",
+          "tag": "pager"
+        },
+        {
+          "codepoint": "1f50c",
+          "tag": "electric-plug"
+        },
+        {
+          "codepoint": "1f50b",
+          "tag": "battery-full"
+        },
+        {
+          "codepoint": "1faab",
+          "tag": "battery-low"
+        },
+        {
+          "codepoint": "1f4bf",
+          "tag": "optical-disk"
+        },
+        {
+          "codepoint": "1f4bb",
+          "tag": "laptop-computer"
+        },
+        {
+          "codepoint": "1f5a8_fe0f",
+          "tag": "printer"
+        },
+        {
+          "codepoint": "1fa8e",
+          "tag": "treasure"
+        },
+        {
+          "codepoint": "1fa99",
+          "tag": "coin"
+        },
+        {
+          "codepoint": "1f48e",
+          "tag": "gem-stone"
+        },
+        {
+          "codepoint": "1f4b8",
+          "tag": "money-with-wings"
+        },
+        {
+          "codepoint": "2696_fe0f",
+          "tag": "balance-scale"
+        },
+        {
+          "codepoint": "1f6d2",
+          "tag": "shopping-cart"
+        },
+        {
+          "codepoint": "1f4a1",
+          "tag": "light-bulb"
+        },
+        {
+          "codepoint": "1f9f9",
+          "tag": "broom"
+        },
+        {
+          "codepoint": "1f9e6",
+          "tag": "socks"
+        },
+        {
+          "codepoint": "1f393",
+          "tag": "graduation-cap"
+        },
+        {
+          "codepoint": "1f451",
+          "tag": "crown"
+        },
+        {
+          "codepoint": "1f48d",
+          "tag": "ring"
+        },
+        {
+          "codepoint": "1faad",
+          "tag": "fan"
+        },
+        {
+          "codepoint": "2602_fe0f",
+          "tag": "umbrella"
+        },
+        {
+          "codepoint": "1f460",
+          "tag": "high-heeled-shoe"
+        },
+        {
+          "codepoint": "1f45f",
+          "tag": "running-shoe"
+        },
+        {
+          "codepoint": "1f321_fe0f",
+          "tag": "thermometer"
+        },
+        {
+          "codepoint": "1fa7a",
+          "tag": "stethoscope"
+        },
+        {
+          "codepoint": "1f6e0_fe0f",
+          "tag": "hammer-and-wrench"
+        },
+        {
+          "codepoint": "1fa8f",
+          "tag": "shovel"
+        },
+        {
+          "codepoint": "2699_fe0f",
+          "tag": "gear"
+        },
+        {
+          "codepoint": "26d3_fe0f_200d_1f4a5",
+          "tag": "broken-chain"
+        },
+        {
+          "codepoint": "26d3_fe0f",
+          "tag": "chains"
+        },
+        {
+          "codepoint": "1f587_fe0f",
+          "tag": "linked-paperclips"
+        },
+        {
+          "codepoint": "2702_fe0f",
+          "tag": "scissors"
+        },
+        {
+          "codepoint": "270f_fe0f",
+          "tag": "pencil"
+        },
+        {
+          "codepoint": "1f4da",
+          "tag": "books"
+        },
+        {
+          "codepoint": "1f4ca",
+          "tag": "bar-chart"
+        },
+        {
+          "codepoint": "1f4c8",
+          "tag": "chart-increasing"
+        },
+        {
+          "codepoint": "1f4c9",
+          "tag": "chart-decreasing"
+        },
+        {
+          "codepoint": "1f5d1_fe0f",
+          "tag": "wastebasket"
+        },
+        {
+          "codepoint": "1f4e6",
+          "tag": "package"
+        },
+        {
+          "codepoint": "1f5f3_fe0f",
+          "tag": "ballot-box"
+        },
+        {
+          "codepoint": "23f0",
+          "tag": "alarm-clock"
+        },
+        {
+          "codepoint": "231b",
+          "tag": "hourglass-done"
+        },
+        {
+          "codepoint": "23f3",
+          "tag": "hourglass-not-done"
+        },
+        {
+          "codepoint": "1f6ce_fe0f",
+          "tag": "bellhop-bell"
+        },
+        {
+          "codepoint": "1f514",
+          "tag": "bell"
+        },
+        {
+          "codepoint": "1f4e3",
+          "tag": "megaphone"
+        },
+        {
+          "codepoint": "1f50e",
+          "tag": "magnifying-glass-tilted-right"
+        },
+        {
+          "codepoint": "1f52e",
+          "tag": "crystal-ball"
+        },
+        {
+          "codepoint": "1f4a3",
+          "tag": "bomb"
+        },
+        {
+          "codepoint": "1faa4",
+          "tag": "mouse-trap"
+        },
+        {
+          "codepoint": "1f512",
+          "tag": "locked"
+        }
+      ]
+    },
+    {
+      "id": "Symbols",
+      "name": "Symbols",
+      "items": [
+        {
+          "codepoint": "2660_fe0f",
+          "tag": "spade"
+        },
+        {
+          "codepoint": "2648",
+          "tag": "Aries"
+        },
+        {
+          "codepoint": "2649",
+          "tag": "Taurus"
+        },
+        {
+          "codepoint": "264a",
+          "tag": "Gemini"
+        },
+        {
+          "codepoint": "264b",
+          "tag": "Cancer"
+        },
+        {
+          "codepoint": "264c",
+          "tag": "Leo"
+        },
+        {
+          "codepoint": "264d",
+          "tag": "Virgo"
+        },
+        {
+          "codepoint": "264e",
+          "tag": "Libra"
+        },
+        {
+          "codepoint": "264f",
+          "tag": "Scorpio"
+        },
+        {
+          "codepoint": "2650",
+          "tag": "Sagittarius"
+        },
+        {
+          "codepoint": "2651",
+          "tag": "Capricorn"
+        },
+        {
+          "codepoint": "2652",
+          "tag": "Aquarius"
+        },
+        {
+          "codepoint": "2653",
+          "tag": "Pisces"
+        },
+        {
+          "codepoint": "26ce",
+          "tag": "Ophiuchus"
+        },
+        {
+          "codepoint": "1f5ef_fe0f",
+          "tag": "anger-bubble"
+        },
+        {
+          "codepoint": "1f4ac",
+          "tag": "speech-bubble"
+        },
+        {
+          "codepoint": "2757",
+          "tag": "exclamation"
+        },
+        {
+          "codepoint": "2753",
+          "tag": "question"
+        },
+        {
+          "codepoint": "2049_fe0f",
+          "tag": "exclamation-question-mark"
+        },
+        {
+          "codepoint": "203c_fe0f",
+          "tag": "exclamation-double"
+        },
+        {
+          "codepoint": "274c",
+          "tag": "cross-mark"
+        },
+        {
+          "codepoint": "1f198",
+          "tag": "sos"
+        },
+        {
+          "codepoint": "2668_fe0f",
+          "tag": "hot-springs"
+        },
+        {
+          "codepoint": "1f4f4",
+          "tag": "phone-off"
+        },
+        {
+          "codepoint": "2622_fe0f",
+          "tag": "radioactive"
+        },
+        {
+          "codepoint": "2623_fe0f",
+          "tag": "biohazard"
+        },
+        {
+          "codepoint": "26a0_fe0f",
+          "tag": "warning"
+        },
+        {
+          "codepoint": "2705",
+          "tag": "check-mark"
+        },
+        {
+          "codepoint": "1f195",
+          "tag": "new"
+        },
+        {
+          "codepoint": "1f193",
+          "tag": "free"
+        },
+        {
+          "codepoint": "1f199",
+          "tag": "up!"
+        },
+        {
+          "codepoint": "1f197",
+          "tag": "ok-button"
+        },
+        {
+          "codepoint": "1f192",
+          "tag": "cool"
+        },
+        {
+          "codepoint": "1f6ae",
+          "tag": "litter"
+        },
+        {
+          "codepoint": "262e_fe0f",
+          "tag": "peace-symbol"
+        },
+        {
+          "codepoint": "262f_fe0f",
+          "tag": "yin-yang"
+        },
+        {
+          "codepoint": "267e_fe0f",
+          "tag": "infinity"
+        },
+        {
+          "codepoint": "1f3b6",
+          "tag": "musical-notes"
+        },
+        {
+          "codepoint": "2795",
+          "tag": "plus-sign"
+        },
+        {
+          "codepoint": "a9_fe0f",
+          "tag": "copyright"
+        },
+        {
+          "codepoint": "ae_fe0f",
+          "tag": "registered"
+        },
+        {
+          "codepoint": "2122_fe0f",
+          "tag": "trade-mark"
+        }
+      ]
+    },
+    {
+      "id": "Flags",
+      "name": "Flags",
+      "items": [
+        {
+          "codepoint": "1f3c1",
+          "tag": "chequered-flag"
+        },
+        {
+          "codepoint": "1f6a9",
+          "tag": "triangular-flag"
+        },
+        {
+          "codepoint": "1f3f4",
+          "tag": "black-flag"
+        },
+        {
+          "codepoint": "1f3f3_fe0f",
+          "tag": "white-flag"
+        }
+      ]
+    }
+  ]
+}

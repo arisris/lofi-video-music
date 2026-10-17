@@ -1,0 +1,136 @@
+import m from "mithril";
+import { State } from "../state";
+import { getAudioReactivity } from "../../utils/helpers";
+import { SliderControl, ToggleControl } from "./shared-controls";
+import { BaseParticle } from "./base-particle";
+
+export class SmokeParticle extends BaseParticle {
+  constructor(canvasWidth, canvasHeight) {
+    super(canvasWidth, canvasHeight);
+    this.y = Math.random() * canvasHeight;
+  }
+
+  reset() {
+    this.x = Math.random() * this.canvasWidth;
+    this.y = this.canvasHeight + 50 + Math.random() * 100;
+    this.size = 30 + Math.random() * 50;
+    this.speed = 0.5 + Math.random() * 1.0;
+    this.maxOpacity = 0.03 + Math.random() * 0.07;
+    this.opacity = 0;
+    this.life = 0;
+    this.maxLife = 200 + Math.random() * 300;
+    this.growth = 0.2 + Math.random() * 0.4;
+    this.drift = (Math.random() - 0.5) * 0.8;
+  }
+
+  update(w, h, audioLevel = 0) {
+    this.canvasWidth = w;
+    this.canvasHeight = h;
+    this.life++;
+    
+    const activeSpeed = this.speed * (1 + audioLevel * 1.5);
+    this.y -= activeSpeed;
+    
+    const activeDrift = this.drift + Math.sin(this.life * 0.02) * 0.3 + (Math.random() - 0.5) * audioLevel * 0.8;
+    this.x += activeDrift;
+    
+    const activeGrowth = this.growth * (1 + audioLevel * 2.0);
+    this.size += activeGrowth;
+    
+    // Fade in and out
+    if (this.life < 50) {
+      this.opacity = (this.life / 50) * this.maxOpacity;
+    } else if (this.life > this.maxLife - 100) {
+      this.opacity = ((this.maxLife - this.life) / 100) * this.maxOpacity;
+    } else {
+      this.opacity = this.maxOpacity;
+    }
+
+    if (this.life >= this.maxLife || this.y < -this.size) {
+      this.reset();
+    }
+  }
+
+  draw(ctx, audioLevel = 0) {
+    if (this.opacity <= 0) return;
+    
+    ctx.save();
+    ctx.globalAlpha = Math.min(1.0, this.opacity * (1 + audioLevel * 1.5));
+    const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+    grad.addColorStop(0, "rgba(200, 210, 220, 1)");
+    grad.addColorStop(1, "rgba(200, 210, 220, 0)");
+    
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+export const SmokeVFX = {
+  id: "smoke",
+  name: "Smoke Effect",
+  icon: "icon-[ri--cloud-windy-line]",
+  
+  settings: {
+    intensity: 40,
+    audioReactive: false
+  },
+
+  drawItem(ctx, w, h, settings, localTime, clip) {
+    const intensity = settings.intensity || 40;
+
+    // Initialize or resize particles array if count doesn't match
+    if (!clip.particles || clip.particles.length !== intensity || clip.canvasWidth !== w || clip.canvasHeight !== h) {
+      clip.particles = [];
+      clip.canvasWidth = w;
+      clip.canvasHeight = h;
+      for (let i = 0; i < intensity; i++) {
+        clip.particles.push(new SmokeParticle(w, h));
+      }
+    }
+
+    const audioLevel = settings.audioReactive ? getAudioReactivity(State, "bass") : 0;
+
+    clip.particles.forEach((p) => {
+      p.update(w, h, audioLevel);
+      p.draw(ctx, audioLevel);
+    });
+  },
+
+  onSettings(clip) {
+    const selectedClip = clip || State.timelineClips.find(c => c.id === State.selectedClipId && c.type === 'smoke');
+    if (!selectedClip) return null;
+
+    if (selectedClip.settings.audioReactive === undefined) selectedClip.settings.audioReactive = false;
+
+    return m("div", { class: "space-y-4 animate-in fade-in duration-300" }, [
+      // Audio Reactive Toggle
+      m(ToggleControl, {
+        label: "Audio Reactive",
+        checked: selectedClip.settings.audioReactive,
+        description: "Smoke speed, drift, growth, and density will react to music bass beats",
+        onchange: (e) => {
+          selectedClip.settings.audioReactive = e.target.checked;
+          m.redraw();
+        }
+      }),
+
+      // Intensity Slider
+      m(SliderControl, {
+        label: `Smoke Density: ${selectedClip.settings.intensity || 40}`,
+        min: 10,
+        max: 150,
+        step: 5,
+        value: selectedClip.settings.intensity || 40,
+        minLabel: "Mist",
+        maxLabel: "Thick",
+        oninput: (e) => {
+          selectedClip.settings.intensity = parseInt(e.target.value);
+          clip.particles = null; // Recreate particles with new intensity
+        }
+      })
+    ]);
+  }
+};
