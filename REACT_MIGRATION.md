@@ -94,13 +94,15 @@ src/
 
 ### Phase 2 — React entry, routing, and shell
 
-- [ ] Create `main.tsx` (`createRoot`)
-- [ ] Hash router `#!` — two routes (`/` and `/image`) calling the swap action in the store
-- [ ] Convert the shell `Editor` → JSX (`App.tsx`): 3-panel layout + audio element + record modal
-- [ ] Mount `<canvas>`, `<video>`, `<audio>` via React refs; drop `document.getElementById` init
-- [ ] Move global drag listeners & render loop startup into `useEffect` with proper cleanup
-- [ ] Re-implement HMR audio re-sync on top of the store
-- [ ] Remove legacy `main.js`; verify `bun run dev` and `bun run build`
+- [x] Create `main.tsx` (`createRoot`, mounts on `#root`)
+- [x] Hash router `#!` — two routes (`/` and `/image`) calling the swap action in the store (`applyRoute` + `hashchange` in `App.tsx`)
+- [x] Convert the shell `Editor` → JSX (`App.tsx`): 3-panel layout + audio element + record modal
+- [x] Mount `<canvas>`, `<video>`, `<audio>` via React refs; runtime binding retries until Mithril hosts render
+- [x] Move global drag listeners & render loop startup into `useEffect` with proper cleanup; rAF loop guarded against HMR double-start
+- [x] Re-implement HMR audio re-sync on top of the store
+- [x] Remove legacy `main.js`; `index.html` now loads `./src/main.tsx`
+- [x] Added `MithrilBridge` (`src/compat/mithril-bridge.tsx`) hosting legacy Mithril panels inside React during the transition
+- [x] Verified: `tsc --noEmit` clean, build passes, Playwright smoke test — boot with no console errors, canvas painted by the render loop, runtime refs bound (canvas/ctx/audioEl), mode swap `/` ⇄ `#!/image` works incl. thumbnail default clips
 
 ### Phase 3 — Component conversion (small → large, one commit per file)
 
@@ -162,6 +164,6 @@ Conversion rules:
 
 - [x] **M1** — Infrastructure: deps installed, `tsconfig.json` ready, build safe (Phase 0)
 - [x] **M2** — Zustand slices complete + video ⇄ thumbnail mode swap working (Phase 1)
-- [ ] **M3** — `main.tsx` + React shell alive in the browser (Phase 2)
+- [x] **M3** — `main.tsx` + React shell alive in the browser (Phase 2)
 - [ ] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
 - [ ] **M5** — `lib/` + `utils/` 100% `.ts`, `strict` enabled, docs updated (Phases 4–5)
