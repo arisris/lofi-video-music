@@ -1,4 +1,4 @@
-# video-editor2
+# lofi-video-music-generator
 
 To install dependencies:
 
