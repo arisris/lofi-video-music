@@ -107,7 +107,7 @@ export const App = () => {
           className={`h-auto md:h-full flex-none border-b md:border-b-0 md:border-r border-slate-800 flex flex-col bg-slate-900/20 order-2 md:order-1 transition-all duration-200 ${leftPanelCollapsed ? "w-14" : ""}`}
           style={{ width: window.innerWidth > 768 ? (leftPanelCollapsed ? "56px" : `${mediaPoolWidth || 300}px`) : "100%" }}
         >
-          <MithrilBridge render={() => m(MediaPool)} />
+          <MediaPool />
         </aside>
 
         {!leftPanelCollapsed && (

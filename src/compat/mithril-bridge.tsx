@@ -6,8 +6,9 @@ interface MithrilBridgeProps {
    * Legacy Mithril render function returning a vnode tree.
    * Called on every Mithril redraw; the closure is kept fresh via a ref so the
    * container does not remount when its render closure changes.
+   * Typed loosely (`any`) — legacy Mithril JS modules have loose vnode shapes.
    */
-  render: () => m.Vnode<any>;
+  render: () => any;
 }
 
 /**
