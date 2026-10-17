@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "types": ["node"]
+    "types": ["bun"]
   },
   "include": ["vite.config.ts"]
 }
