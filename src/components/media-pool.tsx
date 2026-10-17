@@ -74,7 +74,7 @@ export const MediaPool = () => {
       case "text":
         return m(TextPanel); // legacy (#12)
       default:
-        return m(SettingsPanel); // legacy (#5)
+        return null; // "settings" and "vfx" are React components now
     }
   };
 
@@ -110,7 +110,13 @@ export const MediaPool = () => {
         key={activeLeftTab}
         className={`flex-1 overflow-hidden transition-all duration-200 ${leftPanelCollapsed ? "opacity-0 pointer-events-none w-0" : "opacity-100 animate-tab-fade-in"}`}
       >
-        {activeLeftTab === "vfx" ? <VFXPanel /> : <MithrilBridge render={legacyPanel} />}
+        {activeLeftTab === "vfx" ? (
+          <VFXPanel />
+        ) : activeLeftTab === "settings" ? (
+          <SettingsPanel />
+        ) : (
+          <MithrilBridge render={legacyPanel} />
+        )}
       </div>
     </div>
   );
