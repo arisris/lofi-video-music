@@ -1,6 +1,6 @@
-import m from "mithril";
 import { State } from "./state";
 import { getGlobalTime } from "../utils/helpers";
+import { bumpClips } from "../store/actions/timeline-actions";
 
 const DEFAULT_TRANSFORMS = {
   x: 0,
@@ -12,7 +12,7 @@ const DEFAULT_TRANSFORMS = {
   originY: 0.5,
 };
 
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: Record<string, any> = {
   visualizer: {
     style: "bars",
     color: "#3b82f6",
@@ -149,7 +149,7 @@ export const DEFAULT_SETTINGS = {
 /**
  * Factory to create a timeline clip object.
  */
-export const createTimelineClip = (type, specificSettings = {}) => {
+export const createTimelineClip = (type: string, specificSettings: Record<string, any> = {}) => {
   const id = `clip-${Date.now()}`;
   const globalTime = getGlobalTime(State);
   const targetVisualWidth = 100;
@@ -191,10 +191,14 @@ export const createTimelineClip = (type, specificSettings = {}) => {
 /**
  * Creates and appends a clip to the global timeline state, handling standard panel transition effects.
  */
-export const addClipToTimeline = (type, specificSettings = {}, onComplete = null) => {
+export const addClipToTimeline = (
+  type: string,
+  specificSettings: Record<string, any> = {},
+  onComplete: ((clip: Record<string, any>, applyFinishedState: (clip: Record<string, any>) => void) => void) | null = null,
+) => {
   const newClip = createTimelineClip(type, specificSettings);
 
-  const applyFinishedState = (clip) => {
+  const applyFinishedState = (clip: Record<string, any>) => {
     const isThumbnailMode = State.currentRoute === "/image";
     if (isThumbnailMode && (clip.type === "background" || clip.type === "music")) {
       if (!State.videoClips) State.videoClips = [];
@@ -205,7 +209,7 @@ export const addClipToTimeline = (type, specificSettings = {}, onComplete = null
     State.selectedClipId = clip.id;
     State.activeClipTab = clip.type;
     State.timelineScrollLeft = Math.max(0, (clip.start * (State.timelineZoom || 10)) - 100);
-    m.redraw();
+    bumpClips();
   };
 
   if (onComplete) {

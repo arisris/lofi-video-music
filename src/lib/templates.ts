@@ -1,8 +1,8 @@
 import { State } from "./state";
-import m from "mithril";
 import { loadGoogleFont } from "./fonts";
+import { bumpClips } from "../store/actions/timeline-actions";
 
-export const Templates = [
+export const Templates: Array<Record<string, any>> = [
   {
     id: "midnight_jazz",
     name: "Midnight Jazz",
@@ -81,7 +81,7 @@ export const Templates = [
   }
 ];
 
-export const applyTemplate = (templateId) => {
+export const applyTemplate = (templateId: string) => {
   const template = Templates.find(t => t.id === templateId);
   if (!template) return;
 
@@ -111,6 +111,6 @@ export const applyTemplate = (templateId) => {
     State.bgTransitionStyle = template.settings.bgTransitionStyle;
   }
 
-  // Trigger redraw
-  m.redraw();
+  // Poke the store so React panels re-render after the nested mutations above
+  bumpClips();
 };

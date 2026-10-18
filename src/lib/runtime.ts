@@ -15,6 +15,7 @@ export interface RuntimeRefs {
   gainNode: GainNode;
   panner: StereoPannerNode;
   dataArray: Uint8Array<ArrayBuffer>;
+  recordedChunks: Blob[];
   mediaRecorder: MediaRecorder | null;
   canvas: HTMLCanvasElement | null;
   ctx: CanvasRenderingContext2D | null;
@@ -32,6 +33,7 @@ export const runtime: RuntimeRefs = {
   gainNode: null!,
   panner: null!,
   dataArray: null!,
+  recordedChunks: [],
   mediaRecorder: null,
   canvas: null,
   ctx: null,

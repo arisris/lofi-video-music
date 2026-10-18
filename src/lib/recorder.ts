@@ -1,10 +1,10 @@
-import m from "mithril";
 import { State } from "./state";
 import { runtime } from "./runtime";
 import { formatTime } from "../utils/helpers";
+import { bumpClips } from "../store/actions/timeline-actions";
 import { initAudioEngine, playAudio, pauseAudio } from "./audio";
 
-export const startRecording = (mode = "timeline") => {
+export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
   initAudioEngine();
   if (runtime.audioCtx.state === "suspended") {
     runtime.audioCtx.resume().catch((e) => console.warn(e));
@@ -14,7 +14,7 @@ export const startRecording = (mode = "timeline") => {
   
   let activeClip = null;
   if (mode === "clip") {
-    activeClip = State.timelineClips.find(c => 
+    activeClip = State.timelineClips.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
       State.currentTime >= c.start && 
@@ -63,7 +63,7 @@ export const startRecording = (mode = "timeline") => {
   }
 
   const fps = State.recordFps || 30;
-  const canvasStream = runtime.canvas.captureStream(fps);
+  const canvasStream = runtime.canvas!.captureStream(fps);
   const audioStream = runtime.dest.stream;
   const tracks = [...canvasStream.getTracks(), ...audioStream.getTracks()];
   const combinedStream = new MediaStream(tracks);
@@ -103,7 +103,7 @@ export const startRecording = (mode = "timeline") => {
     const ext = options.mimeType.includes("mp4") ? "mp4" : "webm";
     const duration = Date.now() - State.recordStartTime;
 
-    const processDownload = (finalBlob) => {
+    const processDownload = (finalBlob: Blob) => {
       const url = URL.createObjectURL(finalBlob);
       const a = document.createElement("a");
       a.style.display = "none";
@@ -129,7 +129,7 @@ export const startRecording = (mode = "timeline") => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         State.canvasSnaps = oldSnaps;
-        m.redraw();
+        bumpClips();
       }, 200);
     };
 
@@ -154,12 +154,12 @@ export const startRecording = (mode = "timeline") => {
     if (!State.isRecording) return;
     const diff = Math.floor((Date.now() - State.recordStartTime) / 1000);
     State.recordingTime = formatTime(diff);
-    m.redraw();
+    bumpClips();
     setTimeout(updateTimer, 1000);
   };
   updateTimer();
   if (!State.isPlaying) playAudio();
-  m.redraw();
+  bumpClips();
 };
 
 export const stopRecording = () => {
@@ -180,5 +180,5 @@ export const stopRecording = () => {
     }
   }
 
-  m.redraw();
+  bumpClips();
 };

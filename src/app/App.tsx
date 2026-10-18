@@ -82,18 +82,18 @@ export const App = () => {
     bindRuntime();
 
     // Global drag listeners (legacy app-level listeners)
-    window.addEventListener("mousemove", handleDragMove);
-    window.addEventListener("mouseup", handleDragEnd);
-    window.addEventListener("touchmove", handleDragMove, { passive: false } as AddEventListenerOptions);
-    window.addEventListener("touchend", handleDragEnd);
+    window.addEventListener("mousemove", handleDragMove as unknown as (ev: MouseEvent) => void);
+    window.addEventListener("mouseup", handleDragEnd as unknown as EventListener);
+    window.addEventListener("touchmove", handleDragMove as unknown as (ev: TouchEvent) => void, { passive: false } as AddEventListenerOptions);
+    window.addEventListener("touchend", handleDragEnd as unknown as EventListener);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("hashchange", applyRoute);
-      window.removeEventListener("mousemove", handleDragMove);
-      window.removeEventListener("mouseup", handleDragEnd);
-      window.removeEventListener("touchmove", handleDragMove as EventListener);
-      window.removeEventListener("touchend", handleDragEnd);
+      window.removeEventListener("mousemove", handleDragMove as unknown as (ev: MouseEvent) => void);
+      window.removeEventListener("mouseup", handleDragEnd as unknown as EventListener);
+      window.removeEventListener("touchmove", handleDragMove as unknown as (ev: TouchEvent) => void);
+      window.removeEventListener("touchend", handleDragEnd as unknown as EventListener);
     };
   }, []);
 

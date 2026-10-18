@@ -2,12 +2,21 @@ import { State } from "./state";
 import { runtime } from "./runtime";
 import { ClipRegistry } from "./clips/registry";
 import { getGlobalTime, getClipsToSearch, transformPoint, inverseTransformPoint, getSelectedClipInfo } from "../utils/helpers";
-import m from "mithril";
+import { bumpClips } from "../store/actions/timeline-actions";
 
-export const getEventPos = (e) => {
-  const rect = runtime.canvas.getBoundingClientRect();
-  const scaleX = runtime.canvas.width / rect.width;
-  const scaleY = runtime.canvas.height / rect.height;
+/** Minimal structural pointer event (mouse or touch). */
+export interface DragPointerEvent {
+  clientX: number;
+  clientY: number;
+  shiftKey?: boolean;
+  touches?: ArrayLike<{ clientX: number; clientY: number }>;
+}
+
+export const getEventPos = (e: DragPointerEvent) => {
+  const canvas = runtime.canvas!;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
   
   let clientX, clientY;
   if (e.touches && e.touches.length > 0) {
@@ -24,10 +33,10 @@ export const getEventPos = (e) => {
   };
 };
 
-export const findClipAtPos = (pos) => {
-  const ctx = runtime.ctx;
-  const w = runtime.canvas.width;
-  const h = runtime.canvas.height;
+export const findClipAtPos = (pos: { x: number; y: number }) => {
+  const ctx = runtime.ctx!;
+  const w = runtime.canvas!.width;
+  const h = runtime.canvas!.height;
   
   // 1. Check Timeline Clips first (they are usually on top)
   const globalTime = getGlobalTime(State);
@@ -35,7 +44,7 @@ export const findClipAtPos = (pos) => {
 
   // Sort timeline clips by track index reverse (top tracks first) and filter out background clips
   const sortedClips = [...clipsToSearch]
-    .filter(c => c.type !== 'background' && globalTime >= c.start && globalTime <= c.start + c.duration)
+    .filter((c: any) => c.type !== 'background' && globalTime >= c.start && globalTime <= c.start + c.duration)
     .reverse();
 
   for (const clip of sortedClips) {
@@ -71,7 +80,7 @@ export const findClipAtPos = (pos) => {
   return null;
 };
 
-export const findHandleAtPos = (pos, bbox, settings) => {
+export const findHandleAtPos = (pos: { x: number; y: number }, bbox: { x: number; y: number; width: number; height: number }, settings: Record<string, any>): string | null => {
   const scaleY = settings.scaleY ?? 1;
   const ptTL = transformPoint(bbox.x, bbox.y, bbox, settings);
   const ptTR = transformPoint(bbox.x + bbox.width, bbox.y, bbox, settings);
@@ -79,7 +88,7 @@ export const findHandleAtPos = (pos, bbox, settings) => {
   const ptBL = transformPoint(bbox.x, bbox.y + bbox.height, bbox, settings);
   const ptRot = transformPoint(bbox.x + bbox.width * 0.5, bbox.y - 30 / scaleY, bbox, settings);
 
-  const dist = (p1, p2) => Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+  const dist = (p1: { x: number; y: number }, p2: { x: number; y: number }) => Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
   const HANDLE_RADIUS = 12; // 12 pixels hit area
 
   if (dist(pos, ptRot) < HANDLE_RADIUS) return "rotate";
@@ -91,14 +100,14 @@ export const findHandleAtPos = (pos, bbox, settings) => {
   return null;
 };
 
-export const handleDragStart = (e) => {
+export const handleDragStart = (e: DragPointerEvent) => {
   const pos = getEventPos(e);
   State.startDragX = pos.x;
   State.startDragY = pos.y;
 
   if (State.interactionMode === 'pan') {
     const clipsToSearch = getClipsToSearch(State);
-    const selectedClip = clipsToSearch.find(c => c.id === State.selectedClipId && c.type === 'background');
+    const selectedClip = clipsToSearch.find((c: any) => c.id === State.selectedClipId && c.type === 'background');
     if (selectedClip) {
       State.isDragging = true;
       State.transformMode = 'background';
@@ -108,22 +117,22 @@ export const handleDragStart = (e) => {
   } else {
     // Check if clicked on a handle of the currently selected clip first
     const selectedInfo = getSelectedClipInfo(State);
-    let clickedHandle = null;
+    let clickedHandle: string | null = null;
     if (selectedInfo) {
       const { settings, renderer } = selectedInfo;
-      const w = runtime.canvas.width;
-      const h = runtime.canvas.height;
-      const bbox = renderer.getItemBoundingBox ? renderer.getItemBoundingBox(runtime.ctx, w, h, settings) : null;
+      const w = runtime.canvas!.width;
+      const h = runtime.canvas!.height;
+      const bbox = renderer.getItemBoundingBox ? renderer.getItemBoundingBox(runtime.ctx!, w, h, settings) : null;
       if (bbox) {
         clickedHandle = findHandleAtPos(pos, bbox, settings);
       }
     }
 
     if (clickedHandle) {
-      const { settings, renderer } = selectedInfo;
-      const w = runtime.canvas.width;
-      const h = runtime.canvas.height;
-      const bbox = renderer.getItemBoundingBox(runtime.ctx, w, h, settings);
+      const { settings, renderer } = selectedInfo!;
+      const w = runtime.canvas!.width;
+      const h = runtime.canvas!.height;
+      const bbox = renderer.getItemBoundingBox(runtime.ctx!, w, h, settings);
 
       State.isDragging = true;
       State.transformMode = clickedHandle;
@@ -185,7 +194,7 @@ export const handleDragStart = (e) => {
 
             const globalTime = getGlobalTime(State);
 
-            State.timelineClips.forEach(other => {
+            State.timelineClips.forEach((other: any) => {
               if (other.id === timelineClip.id || other.type === 'background') return;
               if (globalTime < other.start || globalTime > other.start + other.duration) return;
 
@@ -235,11 +244,11 @@ export const handleDragStart = (e) => {
       }
     }
   }
-  
-  m.redraw();
+
+  bumpClips();
 };
 
-export const handleDragMove = (e) => {
+export const handleDragMove = (e: DragPointerEvent) => {
   if (!State.isDragging) return;
   const pos = getEventPos(e);
   const dx = pos.x - State.startDragX;
@@ -247,7 +256,7 @@ export const handleDragMove = (e) => {
 
   if (State.transformMode === 'background') {
     const clipsToSearch = getClipsToSearch(State);
-    const selectedClip = clipsToSearch.find(c => c.id === State.selectedClipId && c.type === 'background');
+    const selectedClip = clipsToSearch.find((c: any) => c.id === State.selectedClipId && c.type === 'background');
     if (selectedClip) {
       selectedClip.settings.bgOffsetX = State.initialOffsetX + dx;
       selectedClip.settings.bgOffsetY = State.initialOffsetY + dy;
@@ -293,9 +302,9 @@ export const handleDragMove = (e) => {
     }
   } else if (State.transformMode === 'clip') {
     const clipsToSearch = getClipsToSearch(State);
-    const timelineClip = clipsToSearch.find(c => c.id === State.selectedClipId);
+    const timelineClip = clipsToSearch.find((c: any) => c.id === State.selectedClipId);
     if (timelineClip) {
-      const track = State.timelineTracks.find(t => t.id === timelineClip.trackId);
+      const track = State.timelineTracks.find((t: any) => t.id === timelineClip.trackId);
       if (track && track.locked) return; // Prevent drag if track is locked
 
       let targetX = State.initialOffsetX + dx;
@@ -387,8 +396,8 @@ export const handleDragMove = (e) => {
       target.y = State.initialOffsetY + dy;
     }
   }
-  
-  m.redraw();
+
+  bumpClips();
 };
 
 export const handleDragEnd = () => {
@@ -398,5 +407,5 @@ export const handleDragEnd = () => {
   State.staticSnapTargetsX = null;
   State.staticSnapTargetsY = null;
   State.canvasCursor = null;
-  m.redraw();
+  bumpClips();
 };

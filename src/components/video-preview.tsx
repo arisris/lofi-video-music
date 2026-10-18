@@ -1,4 +1,4 @@
-import { handleDragStart, getEventPos, findClipAtPos, findHandleAtPos } from "../lib/drag";
+import { handleDragStart, getEventPos, findClipAtPos, findHandleAtPos, DragPointerEvent } from "../lib/drag";
 import { getSelectedClipInfo } from "../utils/helpers";
 import { runtime } from "../lib/runtime";
 import { editorStore, useEditorStore } from "../store/editor-store";
@@ -79,7 +79,7 @@ export const VideoPreview = () => {
       onMouseMove={handleMouseMove}
       onTouchStart={(e) => {
         e.preventDefault();
-        handleDragStart(e);
+        handleDragStart(e as unknown as DragPointerEvent);
       }}
     >
       <canvas id="renderCanvas" width={width} height={height} />
