@@ -108,19 +108,19 @@ src/
 
 | # | Component | Lines | Status |
 |---|---|---|---|
-| 1 | `inspector-panel.js` | 10 | ☐ |
-| 2 | `resizer.js` | 38 | ☐ |
-| 3 | `vfx-panel.js` | 52 | ☐ |
-| 4 | `media-pool.js` | 79 | ☐ |
-| 5 | `settings-panel.js` | 95 | ☐ |
-| 6 | `ui/scrub-input.js` | ~50 | ☐ |
-| 7 | `ui/color-input.js` | ~50 | ☐ |
-| 8 | `clips-panel.js` | 139 | ☐ |
-| 9 | `video-preview.js` | 133 | ☐ |
-| 10 | `char-box.js` | 159 | ☐ |
-| 11 | `record-settings-modal.js` | 231 | ☐ |
-| 12 | `text-panel.js` | 279 | ☐ |
-| 13 | `transport-bar.js` | 301 | ☐ |
+| 1 | `inspector-panel.js` | 10 | ✅ (with #2) |
+| 2 | `resizer.js` | 38 | ✅ (with #1) |
+| 3 | `vfx-panel.js` | 52 | ✅ (with #4) |
+| 4 | `media-pool.js` | 79 | ✅ (with #3) |
+| 5 | `settings-panel.js` | 95 | ✅ |
+| 6 | `ui/scrub-input.js` | 80 | ☐ DEFERRED — used by legacy Mithril `shared-clip-settings`/`shape-clip`; convert after #15 |
+| 7 | `ui/color-input.js` | 83 | ☐ DEFERRED — same consumers as #6 |
+| 8 | `clips-panel.js` | 139 | ✅ |
+| 9 | `video-preview.js` | 133 | ✅ |
+| 10 | `char-box.js` | 159 | ☐ DEFERRED — used by legacy Mithril `text-clip` renderer |
+| 11 | `record-settings-modal.js` | 231 | ✅ |
+| 12 | `text-panel.js` | 279 | ✅ |
+| 13 | `transport-bar.js` | 301 | ✅ |
 | 14 | `shape-panel.js` | 451 | ☐ |
 | 15 | `shared-clip-settings.js` | 474 | ☐ |
 | 16 | `timeline.js` | 879 | ☐ |
