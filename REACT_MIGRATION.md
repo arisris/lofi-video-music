@@ -117,14 +117,14 @@ src/
 | 7 | `ui/color-input.js` | 83 | ☐ DEFERRED — same consumers as #6 |
 | 8 | `clips-panel.js` | 139 | ✅ |
 | 9 | `video-preview.js` | 133 | ✅ |
-| 10 | `char-box.js` | 159 | ☐ DEFERRED — used by legacy Mithril `text-clip` renderer |
+| 10 | `char-box.js` | 159 | ☐ DEFERRED → Phase 4 — used by legacy Mithril `text-clip` renderer |
 | 11 | `record-settings-modal.js` | 231 | ✅ |
 | 12 | `text-panel.js` | 279 | ✅ |
 | 13 | `transport-bar.js` | 301 | ✅ |
-| 14 | `shape-panel.js` | 451 | ☐ |
-| 15 | `shared-clip-settings.js` | 474 | ☐ |
-| 16 | `timeline.js` | 879 | ☐ |
-| 17 | `media-library-panel.js` | 1117 | ☐ |
+| 14 | `shape-panel.js` | 451 | ✅ |
+| 15 | `shared-clip-settings.js` | 474 | ☐ DEFERRED → Phase 4 — consumed in-place by all legacy clip renderers (`title-clip`, `text-clip`, `playlist-clip`, …) which return its vnode trees from their Mithril views |
+| 16 | `timeline.js` | 879 | ✅ |
+| 17 | `media-library-panel.js` | 1117 | ✅ |
 
 Conversion rules:
 
@@ -137,6 +137,7 @@ Conversion rules:
 ### Phase 4 — Typing `lib/` and `utils/`
 
 - [ ] Rename `.js` → `.ts` gradually, leaf-first order: `vfx/` → `visualizers/` → `clips/` → `render.js`, `audio.js`, `drag.js`, `recorder.js` → `utils/`
+- [ ] **First, convert the deferred clip-settings layer** (Mithril-rooted by `src/lib/clips/*` renderers): `shared-clip-settings.js`, `ui/scrub-input.js`, `ui/color-input.js`, `char-box.js` → React `.tsx`, replacing the remaining `MithrilBridge` call sites in `clips-panel.tsx` and the legacy `onSettings` render functions
 - [ ] Properly type `runtime.js` (holds refs to canvas/audio/video)
 - [ ] Tear down the legacy typed `State`; all state access goes through the typed store
 - [ ] Verify: clean build with no errors
