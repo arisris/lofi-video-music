@@ -26,7 +26,10 @@ describe("editor shell", () => {
     // in-place edit is a silent failure: the canvas draws it, the panel does
     // not.
     await withApp(async (t) => {
-      const result = await t.eval<{ sameObject: boolean; text: string }>(`(async () => {
+      const result = await t.eval<{
+        sameObject: boolean;
+        text: string;
+      }>(`(async () => {
         const e = window.__e2e;
         const actions = await import("/src/store/actions/timeline-actions.ts");
         const id = await e.addClip("text", { text: "hello" });
@@ -57,7 +60,10 @@ describe("editor shell", () => {
 
   e2e("aspect ratio switch resizes the canvas", async () => {
     await withApp(async (t) => {
-      const sizes = await t.eval<{ portrait: [number, number]; landscape: [number, number] }>(
+      const sizes = await t.eval<{
+        portrait: [number, number];
+        landscape: [number, number];
+      }>(
         `(async () => {
           const e = window.__e2e;
           await e.setState({ aspectRatio: "9:16" });

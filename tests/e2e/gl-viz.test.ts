@@ -9,14 +9,17 @@ const e2e = (name: string, body: (page: TestPage) => Promise<void>) =>
 
 afterAll(shutdown);
 
-
 describe("gl-viz shared WebGL canvas", () => {
   e2e("two visualizers each land in their own rectangle", async () => {
     // The canvas is shared, so the isolation comes from the viewport and a
     // scissored clear. Without the scissor the second visualizer's clear wipes
     // the first one's pixels and the strip renders blank.
     await withApp(async (t) => {
-      const r = await t.eval<{ inA: number; inB: number; leaked: number }>(`(async () => {
+      const r = await t.eval<{
+        inA: number;
+        inB: number;
+        leaked: number;
+      }>(`(async () => {
         const e = window.__e2e;
         const S = 1280, H = 720;
         const off = document.createElement("canvas");
@@ -52,9 +55,14 @@ describe("gl-viz shared WebGL canvas", () => {
     });
   });
 
-  e2e("the canvas is sized to the destination, not resized per draw", async () => {
-    await withApp(async (t) => {
-      const r = await t.eval<{ sizes: string[]; matches: boolean }>(`(async () => {
+  e2e(
+    "the canvas is sized to the destination, not resized per draw",
+    async () => {
+      await withApp(async (t) => {
+        const r = await t.eval<{
+          sizes: string[];
+          matches: boolean;
+        }>(`(async () => {
         const e = window.__e2e;
         // Only a draw sizes the shared canvas, so there has to be something to
         // draw before its dimensions mean anything.
@@ -66,10 +74,11 @@ describe("gl-viz shared WebGL canvas", () => {
         const c = e.canvas();
         return { sizes, matches: gl.width === c.width && gl.height === c.height };
       })()`);
-      expect(new Set(r.sizes).size).toBe(1);
-      expect(r.matches).toBe(true);
-    });
-  });
+        expect(new Set(r.sizes).size).toBe(1);
+        expect(r.matches).toBe(true);
+      });
+    },
+  );
 });
 
 describe("kaleidoscope", () => {
@@ -102,7 +111,11 @@ describe("kaleidoscope", () => {
     await withApp(async (t) => {
       // An unmistakable background colour behind the pattern: anything not
       // lime outside the circle is the square leaking through again.
-      const r = await t.eval<{ outside: number; total: number; centre: number[] }>(`(async () => {
+      const r = await t.eval<{
+        outside: number;
+        total: number;
+        centre: number[];
+      }>(`(async () => {
         const e = window.__e2e;
         const S = 300;
         const img = await e.renderDef("kaleidoscope", { background: "#00ff00ff" }, S, S, false);
@@ -136,7 +149,11 @@ describe("bars", () => {
       })()`);
 
       const r = await t.eval<{
-        baseRow: number; tallest: number; asymmetry: number; left: number; right: number;
+        baseRow: number;
+        tallest: number;
+        asymmetry: number;
+        left: number;
+        right: number;
       }>(`(async () => {
         const e = window.__e2e;
         const def = (await e.glviz()).resolveVisualizerDef("bars");
@@ -169,7 +186,9 @@ describe("bars", () => {
       expect(r.tallest).toBeLessThanOrEqual(r.baseRow);
       expect(r.asymmetry).toBeLessThanOrEqual(r.baseRow * 0.35);
       // Balanced: neither half may dominate the strip.
-      expect(Math.abs(r.left - r.right) / Math.max(1, r.left + r.right)).toBeLessThan(0.35);
+      expect(
+        Math.abs(r.left - r.right) / Math.max(1, r.left + r.right),
+      ).toBeLessThan(0.35);
     });
   });
 
@@ -183,7 +202,12 @@ describe("bars", () => {
         await e.wait(1600);
       })()`);
 
-      const r = await t.eval<{ baseRow: number; visible: number; clipped: number; spread: number }>(
+      const r = await t.eval<{
+        baseRow: number;
+        visible: number;
+        clipped: number;
+        spread: number;
+      }>(
         `(async () => {
           const e = window.__e2e;
           const def = (await e.glviz()).resolveVisualizerDef("bars");
@@ -229,7 +253,10 @@ describe("inspector fields", () => {
         await e.wait(700);
       })()`);
 
-      const r = await t.eval<{ missing?: boolean; trail?: string[] }>(`(async () => {
+      const r = await t.eval<{
+        missing?: boolean;
+        trail?: string[];
+      }>(`(async () => {
         const e = window.__e2e;
         const label = [...document.querySelectorAll("label")]
           .find(l => l.textContent?.trim().startsWith("Background"));
@@ -271,7 +298,11 @@ describe("gl-viz Aura", () => {
 
   e2e("draws a bounded silhouette, not a full-frame wash", async () => {
     await withApp(async (t) => {
-      const r = await t.eval<{ centre: number; corner: number; edge: number }>(`(async () => {
+      const r = await t.eval<{
+        centre: number;
+        corner: number;
+        edge: number;
+      }>(`(async () => {
         const e = window.__e2e;
         const N = 200;
         // Opaque fill and no glow, so the alpha channel alone says where the
@@ -290,7 +321,12 @@ describe("gl-viz Aura", () => {
 
   e2e("shows the picture at its own proportions", async () => {
     await withApp(async (t) => {
-      const r = await t.eval<{ w: number; h: number; ratio: number; lit: number }>(`(async () => {
+      const r = await t.eval<{
+        w: number;
+        h: number;
+        ratio: number;
+        lit: number;
+      }>(`(async () => {
         const e = window.__e2e;
         const N = 200;
 
@@ -386,7 +422,11 @@ describe("gl-viz Aura", () => {
 
   e2e("the halo tracks the bass", async () => {
     await withApp(async (t) => {
-      const r = await t.eval<{ still: number; reactive: number; db: number }>(`(async () => {
+      const r = await t.eval<{
+        still: number;
+        reactive: number;
+        db: number;
+      }>(`(async () => {
         const e = window.__e2e;
         const N = 200;
         const energy = (img) => {

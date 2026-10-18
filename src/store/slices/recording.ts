@@ -24,7 +24,12 @@ export interface RecordingSlice {
   recordFps: RecordFps;
 }
 
-export const createRecordingSlice: StateCreator<EditorStore, [], [], RecordingSlice> = () => ({
+export const createRecordingSlice: StateCreator<
+  EditorStore,
+  [],
+  [],
+  RecordingSlice
+> = () => ({
   isRecording: false,
   recordingMode: "timeline",
   recordStartTime: 0,

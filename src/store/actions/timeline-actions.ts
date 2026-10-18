@@ -20,15 +20,22 @@ export function updateTimelineClipSettings(
   const apply = (clips: TimelineClip[]) =>
     clips.map((c) =>
       c.id === clipId
-        ? ({ ...c, ...clipPatch, settings: { ...c.settings, ...patch } } as TimelineClip)
+        ? ({
+            ...c,
+            ...clipPatch,
+            settings: { ...c.settings, ...patch },
+          } as TimelineClip)
         : c,
     );
 
   const nextTimeline = apply(state.timelineClips);
-  const nextVideo = state.currentRoute === "/image" ? apply(state.videoClips ?? []) : undefined;
+  const nextVideo =
+    state.currentRoute === "/image" ? apply(state.videoClips ?? []) : undefined;
 
   editorStore.setState(
-    nextVideo ? { timelineClips: nextTimeline, videoClips: nextVideo } : { timelineClips: nextTimeline },
+    nextVideo
+      ? { timelineClips: nextTimeline, videoClips: nextVideo }
+      : { timelineClips: nextTimeline },
   );
 }
 
@@ -39,7 +46,9 @@ export function updateTimelineClipSettings(
  */
 export function bumpClips(): void {
   const state = editorStore.getState();
-  const patch: Record<string, unknown> = { timelineClips: [...state.timelineClips] };
+  const patch: Record<string, unknown> = {
+    timelineClips: [...state.timelineClips],
+  };
   if (state.currentRoute === "/image" && state.videoClips) {
     patch.videoClips = [...state.videoClips];
   }
@@ -55,7 +64,10 @@ export function deleteClip(clipId: string | null): void {
   if (!clipId) return;
   const state = editorStore.getState();
 
-  if (state.currentRoute === "/image" && state.videoClips?.some((c) => c.id === clipId)) {
+  if (
+    state.currentRoute === "/image" &&
+    state.videoClips?.some((c) => c.id === clipId)
+  ) {
     const dead = state.videoClips.find((c) => c.id === clipId);
     if (dead) revokeClipUrls(dead, state);
     editorStore.setState({

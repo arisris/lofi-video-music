@@ -23,7 +23,12 @@ const decimalsFor = (step?: number): number => {
   return frac ? Math.min(frac.length, 3) : 2;
 };
 
-const readNumber = (settings: Record<string, unknown>, key: string, min: number, max: number): number => {
+const readNumber = (
+  settings: Record<string, unknown>,
+  key: string,
+  min: number,
+  max: number,
+): number => {
   const raw = settings[key];
   const n = typeof raw === "number" && Number.isFinite(raw) ? raw : min;
   return Math.min(max, Math.max(min, n));
@@ -38,7 +43,8 @@ const readNumber = (settings: Record<string, unknown>, key: string, min: number,
  */
 const normaliseColor = (raw: string, withAlpha: boolean): string => {
   const h = raw.replace(/^#/, "");
-  if (withAlpha && /^[0-9a-f]{8}$/i.test(h)) return `#${h.slice(0, 8).toLowerCase()}`;
+  if (withAlpha && /^[0-9a-f]{8}$/i.test(h))
+    return `#${h.slice(0, 8).toLowerCase()}`;
   if (/^[0-9a-f]{6}$/i.test(h)) return `#${h.toLowerCase()}`;
   // An 8-digit value asked for as 6 keeps its RGB, so a swatch still shows the
   // colour that is actually stored rather than falling back to the default.
@@ -46,7 +52,11 @@ const normaliseColor = (raw: string, withAlpha: boolean): string => {
   return withAlpha ? "#00000000" : "#3b82f6";
 };
 
-const SliderField = ({ field, settings, onChange }: {
+const SliderField = ({
+  field,
+  settings,
+  onChange,
+}: {
   field: Extract<FieldSchema, { kind: "slider" }>;
   settings: Record<string, unknown>;
   onChange: FieldsProps["onChange"];
@@ -54,7 +64,7 @@ const SliderField = ({ field, settings, onChange }: {
   const value = readNumber(settings, field.key, field.min, field.max);
   return (
     <div>
-      <label className={`${LABEL} flex justify-between items-baseline`}>
+      <label className={`${LABEL} flex items-baseline justify-between`}>
         <span>{field.label}</span>
         <span className={VALUE}>
           {`${(value * (field.scale ?? 1)).toFixed(decimalsFor(field.step))}${field.unit ?? ""}`}
@@ -88,11 +98,17 @@ const alphaOf = (hex: string): number => {
  */
 const withAlpha = (hex: string, alpha01: number): string => {
   const rgb = normaliseColor(hex, false).slice(1);
-  const a = Math.round(Math.min(1, Math.max(0, alpha01)) * 255).toString(16).padStart(2, "0");
+  const a = Math.round(Math.min(1, Math.max(0, alpha01)) * 255)
+    .toString(16)
+    .padStart(2, "0");
   return `#${rgb}${a}`;
 };
 
-const ColorField = ({ field, settings, onChange }: {
+const ColorField = ({
+  field,
+  settings,
+  onChange,
+}: {
   field: Extract<FieldSchema, { kind: "color" }>;
   settings: Record<string, unknown>;
   onChange: FieldsProps["onChange"];
@@ -106,17 +122,26 @@ const ColorField = ({ field, settings, onChange }: {
 
   return (
     <div>
-      <label className={`${LABEL} flex justify-between items-baseline`}>
+      <label className={`${LABEL} flex items-baseline justify-between`}>
         <span>{field.label}</span>
-        {hasAlpha
-          ? <span className={VALUE}>{`${swatch.toUpperCase()}  ${Math.round(alpha * 100)}%`}</span>
-          : <span className={VALUE}>{swatch.toUpperCase()}</span>}
+        {hasAlpha ? (
+          <span
+            className={VALUE}
+          >{`${swatch.toUpperCase()}  ${Math.round(alpha * 100)}%`}</span>
+        ) : (
+          <span className={VALUE}>{swatch.toUpperCase()}</span>
+        )}
       </label>
       <input
         type="color"
         value={swatch}
-        className="w-full h-8 bg-transparent cursor-pointer rounded border border-slate-700"
-        onChange={(e) => onChange(field.key, hasAlpha ? withAlpha(e.target.value, alpha) : e.target.value)}
+        className="h-8 w-full cursor-pointer rounded border border-slate-700 bg-transparent"
+        onChange={(e) =>
+          onChange(
+            field.key,
+            hasAlpha ? withAlpha(e.target.value, alpha) : e.target.value,
+          )
+        }
       />
       {hasAlpha && (
         <input
@@ -125,47 +150,59 @@ const ColorField = ({ field, settings, onChange }: {
           max={1}
           step={0.01}
           value={alpha}
-          className="w-full accent-blue-500 mt-1.5"
-          onChange={(e) => onChange(field.key, withAlpha(swatch, parseFloat(e.target.value)))}
+          className="mt-1.5 w-full accent-blue-500"
+          onChange={(e) =>
+            onChange(field.key, withAlpha(swatch, parseFloat(e.target.value)))
+          }
         />
       )}
     </div>
   );
 };
 
-const ToggleField = ({ field, settings, onChange }: {
+const ToggleField = ({
+  field,
+  settings,
+  onChange,
+}: {
   field: Extract<FieldSchema, { kind: "toggle" }>;
   settings: Record<string, unknown>;
   onChange: FieldsProps["onChange"];
 }) => (
-  <label className="flex items-center gap-2 cursor-pointer select-none">
+  <label className="flex cursor-pointer items-center gap-2 select-none">
     <input
       type="checkbox"
       checked={settings[field.key] === true}
-      className="w-4 h-4 accent-blue-600 rounded"
+      className="h-4 w-4 rounded accent-blue-600"
       onChange={(e) => onChange(field.key, e.target.checked)}
     />
     <span className="text-[10px] text-slate-400">{field.label}</span>
   </label>
 );
 
-const SelectField = ({ field, settings, onChange }: {
+const SelectField = ({
+  field,
+  settings,
+  onChange,
+}: {
   field: Extract<FieldSchema, { kind: "select" }>;
   settings: Record<string, unknown>;
   onChange: FieldsProps["onChange"];
 }) => {
   const raw = settings[field.key];
-  const value = typeof raw === "string" ? raw : field.options[0]?.value ?? "";
+  const value = typeof raw === "string" ? raw : (field.options[0]?.value ?? "");
   return (
     <div>
       <label className={LABEL}>{field.label}</label>
       <select
-        className="w-full bg-slate-800 border border-slate-700 rounded px-2 h-7 text-[10px] text-slate-300 outline-none"
+        className="h-7 w-full rounded border border-slate-700 bg-slate-800 px-2 text-[10px] text-slate-300 outline-none"
         value={value}
         onChange={(e) => onChange(field.key, e.target.value)}
       >
         {field.options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
         ))}
       </select>
     </div>
@@ -179,7 +216,11 @@ const SelectField = ({ field, settings, onChange }: {
  * swaps, and a detached HTMLImageElement in the store would not survive a
  * reload; the engine resolves the URL to a texture and caches it by URL.
  */
-const ImageField = ({ field, settings, onChange }: {
+const ImageField = ({
+  field,
+  settings,
+  onChange,
+}: {
   field: Extract<FieldSchema, { kind: "image" }>;
   settings: Record<string, unknown>;
   onChange: FieldsProps["onChange"];
@@ -191,11 +232,11 @@ const ImageField = ({ field, settings, onChange }: {
 
   return (
     <div>
-      <div className={`${LABEL} flex justify-between items-baseline`}>
+      <div className={`${LABEL} flex items-baseline justify-between`}>
         <span>{field.label}</span>
         {value && (
           <button
-            className="text-[9px] text-slate-500 hover:text-rose-400 cursor-pointer"
+            className="cursor-pointer text-[9px] text-slate-500 hover:text-rose-400"
             onClick={() => onChange(field.key, "")}
           >
             Clear
@@ -203,8 +244,9 @@ const ImageField = ({ field, settings, onChange }: {
         )}
       </div>
       {images.length === 0 ? (
-        <p className="text-[9px] text-slate-600 leading-relaxed">
-          No images in the media pool. Add one from the Media tab, then pick it here.
+        <p className="text-[9px] leading-relaxed text-slate-600">
+          No images in the media pool. Add one from the Media tab, then pick it
+          here.
         </p>
       ) : (
         <div className="grid grid-cols-5 gap-1">
@@ -215,18 +257,26 @@ const ImageField = ({ field, settings, onChange }: {
               <button
                 key={img.id || img.url}
                 title={img.name || "image"}
-                className={`aspect-square rounded border overflow-hidden cursor-pointer transition ${
-                  active ? "border-blue-500 ring-1 ring-blue-500/50" : "border-slate-700 hover:border-slate-500"
+                className={`aspect-square cursor-pointer overflow-hidden rounded border transition ${
+                  active
+                    ? "border-blue-500 ring-1 ring-blue-500/50"
+                    : "border-slate-700 hover:border-slate-500"
                 }`}
                 onClick={() => onChange(field.key, img.url)}
               >
-                <img src={src} alt={img.name || ""} className="w-full h-full object-cover" />
+                <img
+                  src={src}
+                  alt={img.name || ""}
+                  className="h-full w-full object-cover"
+                />
               </button>
             );
           })}
         </div>
       )}
-      {field.hint && <p className="mt-1.5 text-[9px] text-slate-600">{field.hint}</p>}
+      {field.hint && (
+        <p className="mt-1.5 text-[9px] text-slate-600">{field.hint}</p>
+      )}
     </div>
   );
 };
@@ -239,15 +289,50 @@ export const SchemaFields = ({ fields, settings, onChange }: FieldsProps) => {
       {fields.map((field) => {
         switch (field.kind) {
           case "slider":
-            return <SliderField key={field.key} field={field} settings={settings} onChange={onChange} />;
+            return (
+              <SliderField
+                key={field.key}
+                field={field}
+                settings={settings}
+                onChange={onChange}
+              />
+            );
           case "color":
-            return <ColorField key={field.key} field={field} settings={settings} onChange={onChange} />;
+            return (
+              <ColorField
+                key={field.key}
+                field={field}
+                settings={settings}
+                onChange={onChange}
+              />
+            );
           case "toggle":
-            return <ToggleField key={field.key} field={field} settings={settings} onChange={onChange} />;
+            return (
+              <ToggleField
+                key={field.key}
+                field={field}
+                settings={settings}
+                onChange={onChange}
+              />
+            );
           case "select":
-            return <SelectField key={field.key} field={field} settings={settings} onChange={onChange} />;
+            return (
+              <SelectField
+                key={field.key}
+                field={field}
+                settings={settings}
+                onChange={onChange}
+              />
+            );
           case "image":
-            return <ImageField key={field.key} field={field} settings={settings} onChange={onChange} />;
+            return (
+              <ImageField
+                key={field.key}
+                field={field}
+                settings={settings}
+                onChange={onChange}
+              />
+            );
         }
       })}
     </div>

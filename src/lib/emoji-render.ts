@@ -1,4 +1,5 @@
-const EMOJI_REGEX = /[\u{1f300}-\u{1f5ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{1f700}-\u{1f77f}\u{1f780}-\u{1f7ff}\u{1f800}-\u{1f8ff}\u{1f900}-\u{1f9ff}\u{1fa00}-\u{1fa6f}\u{1fa70}-\u{1faff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{2300}-\u{23ff}]/gu;
+const EMOJI_REGEX =
+  /[\u{1f300}-\u{1f5ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{1f700}-\u{1f77f}\u{1f780}-\u{1f7ff}\u{1f800}-\u{1f8ff}\u{1f900}-\u{1f9ff}\u{1fa00}-\u{1fa6f}\u{1fa70}-\u{1faff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{2300}-\u{23ff}]/gu;
 
 // Cache for loaded emoji images
 const emojiCache = new Map<string, HTMLImageElement>();
@@ -8,9 +9,7 @@ const emojiCache = new Map<string, HTMLImageElement>();
  * Handles ZWJ sequences by joining them with dashes
  */
 function getEmojiHex(emoji: string) {
-  return [...emoji].map(char => 
-    char.codePointAt(0)!.toString(16)
-  ).join("-");
+  return [...emoji].map((char) => char.codePointAt(0)!.toString(16)).join("-");
 }
 
 /**
@@ -24,10 +23,17 @@ export function parseEmojiText(text: string) {
   while ((match = EMOJI_REGEX.exec(text)) !== null) {
     // Add text before emoji
     if (match.index > lastIndex) {
-      parts.push({ type: "text", content: text.substring(lastIndex, match.index) });
+      parts.push({
+        type: "text",
+        content: text.substring(lastIndex, match.index),
+      });
     }
     // Add emoji
-    parts.push({ type: "emoji", content: match[0], hex: getEmojiHex(match[0]) });
+    parts.push({
+      type: "emoji",
+      content: match[0],
+      hex: getEmojiHex(match[0]),
+    });
     lastIndex = EMOJI_REGEX.lastIndex;
   }
 
@@ -69,7 +75,7 @@ function drawSingleEmoji(
   if (img.complete && img.naturalWidth > 0) {
     const size = fontSize * 1.2;
     const offset = (size - fontSize) / 2;
-    
+
     if (strokeWidth > 0) {
       const sw = strokeWidth / 2;
       ctx.save();
@@ -79,7 +85,7 @@ function drawSingleEmoji(
     } else {
       ctx.drawImage(img, x, y - offset, size, size);
     }
-    return size + (fontSize * 0.1);
+    return size + fontSize * 0.1;
   } else {
     if (strokeWidth > 0) {
       ctx.strokeStyle = strokeColor;
@@ -108,7 +114,7 @@ export function drawEmojiText(
   const parts = parseEmojiText(text);
   let currentX = x;
 
-  parts.forEach(part => {
+  parts.forEach((part) => {
     if (part.type === "text") {
       if (strokeWidth > 0) {
         ctx.strokeStyle = strokeColor;
@@ -119,7 +125,16 @@ export function drawEmojiText(
       ctx.fillText(part.content, currentX, y);
       currentX += ctx.measureText(part.content).width;
     } else {
-      currentX += drawSingleEmoji(ctx, part, currentX, y, fontSize, strokeColor, strokeWidth, color);
+      currentX += drawSingleEmoji(
+        ctx,
+        part,
+        currentX,
+        y,
+        fontSize,
+        strokeColor,
+        strokeWidth,
+        color,
+      );
     }
   });
 }
@@ -127,10 +142,14 @@ export function drawEmojiText(
 /**
  * Calculates total width of text with emojis
  */
-export function measureEmojiText(ctx: CanvasRenderingContext2D, text: string, fontSize: number): number {
+export function measureEmojiText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  fontSize: number,
+): number {
   const parts = parseEmojiText(text);
   let totalWidth = 0;
-  parts.forEach(part => {
+  parts.forEach((part) => {
     if (part.type === "text") {
       totalWidth += ctx.measureText(part.content).width;
     } else {
@@ -158,12 +177,13 @@ export function drawWavyEmojiText(
   let currentX = x;
   let charIndex = 0;
 
-  parts.forEach(part => {
+  parts.forEach((part) => {
     if (part.type === "text") {
       const chars = [...part.content];
-      chars.forEach(char => {
-        const offsetY = Math.sin(time * frequency + charIndex * spacing) * amplitude;
-        
+      chars.forEach((char) => {
+        const offsetY =
+          Math.sin(time * frequency + charIndex * spacing) * amplitude;
+
         if (strokeWidth > 0) {
           ctx.strokeStyle = strokeColor;
           ctx.lineWidth = strokeWidth;
@@ -171,13 +191,23 @@ export function drawWavyEmojiText(
         }
         ctx.fillStyle = color;
         ctx.fillText(char, currentX, y + offsetY);
-        
+
         currentX += ctx.measureText(char).width;
         charIndex++;
       });
     } else {
-      const offsetY = Math.sin(time * frequency + charIndex * spacing) * amplitude;
-      currentX += drawSingleEmoji(ctx, part, currentX, y + offsetY, fontSize, strokeColor, strokeWidth, color);
+      const offsetY =
+        Math.sin(time * frequency + charIndex * spacing) * amplitude;
+      currentX += drawSingleEmoji(
+        ctx,
+        part,
+        currentX,
+        y + offsetY,
+        fontSize,
+        strokeColor,
+        strokeWidth,
+        color,
+      );
       charIndex++;
     }
   });

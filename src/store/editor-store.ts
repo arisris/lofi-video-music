@@ -21,7 +21,9 @@ const sliceCreators = [
   createThumbnailSlice,
 ] as unknown as StateCreator<EditorStore>[];
 
-const storeMeta = (import.meta.hot?.data as { editorState?: Partial<EditorStore> } | undefined)?.editorState;
+const storeMeta = (
+  import.meta.hot?.data as { editorState?: Partial<EditorStore> } | undefined
+)?.editorState;
 
 /**
  * Single source of truth for the whole editor.
@@ -49,8 +51,10 @@ export const editorStore = createStore<EditorStore>()((set, get, api) => {
 
 if (import.meta.hot) {
   // Persist the current state so hot reloads do not reset editor content.
-  (import.meta.hot.data as { editorState?: EditorStore }).editorState = editorStore.getState();
+  (import.meta.hot.data as { editorState?: EditorStore }).editorState =
+    editorStore.getState();
 }
 
 /** React hook for the editor store (used from Phase 3 onwards). */
-export const useEditorStore = <T,>(selector: (state: EditorStore) => T): T => useStore(editorStore, selector);
+export const useEditorStore = <T>(selector: (state: EditorStore) => T): T =>
+  useStore(editorStore, selector);

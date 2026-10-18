@@ -148,7 +148,8 @@ export const RainGPUVFX = {
     }
     clip.lastRenderTime = now;
 
-    const intensity = settings.intensity !== undefined ? settings.intensity : 200;
+    const intensity =
+      settings.intensity !== undefined ? settings.intensity : 200;
     const speed = settings.speed !== undefined ? settings.speed : 1.0;
     const size = settings.size !== undefined ? settings.size : 1.0;
     const opacity = settings.opacity !== undefined ? settings.opacity : 1.0;

@@ -9,7 +9,9 @@ export const reconnectAudioEngine = () => {
   try {
     // Focus only on connecting audio nodes, not playback control
     if (!runtime.source) {
-      runtime.source = runtime.audioCtx.createMediaElementSource(runtime.audioEl);
+      runtime.source = runtime.audioCtx.createMediaElementSource(
+        runtime.audioEl,
+      );
 
       // Connect in series: source -> eqLow -> eqMid -> eqHigh -> gainNode -> panner -> analyser
       let lastNode: AudioNode = runtime.source;
@@ -40,7 +42,9 @@ export const reconnectAudioEngine = () => {
   }
 };
 
-export const applyAudioSettings = (clip: Record<string, any> | { settings?: Record<string, any> }) => {
+export const applyAudioSettings = (
+  clip: Record<string, any> | { settings?: Record<string, any> },
+) => {
   if (!clip || !runtime.audioEl) return;
 
   const volumeVal = (clip.settings as Record<string, any>)?.volume ?? 1.0;
@@ -54,7 +58,8 @@ export const applyAudioSettings = (clip: Record<string, any> | { settings?: Reco
   }
 
   // Apply playback speed
-  runtime.audioEl.playbackRate = (clip.settings as Record<string, any>)?.playbackRate ?? 1.0;
+  runtime.audioEl.playbackRate =
+    (clip.settings as Record<string, any>)?.playbackRate ?? 1.0;
 
   // Apply EQ, Gain (Volume Boost) & Panning settings if audio engine is initialized
   if (editorStore.getState().isAudioInit && runtime.audioCtx) {
@@ -83,7 +88,8 @@ export const initAudioEngine = () => {
     return;
   }
 
-  const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
+  const AudioContextCtor =
+    window.AudioContext || (window as any).webkitAudioContext;
   runtime.audioCtx = new AudioContextCtor();
 
   runtime.analyser = runtime.audioCtx.createAnalyser();
@@ -91,7 +97,9 @@ export const initAudioEngine = () => {
   runtime.analyser.smoothingTimeConstant = 0.8;
 
   if (!runtime.source) {
-    runtime.source = runtime.audioCtx.createMediaElementSource(runtime.audioEl!);
+    runtime.source = runtime.audioCtx.createMediaElementSource(
+      runtime.audioEl!,
+    );
   }
 
   // Create 3-band EQ filters
@@ -112,7 +120,9 @@ export const initAudioEngine = () => {
   runtime.gainNode = runtime.audioCtx.createGain();
 
   // Create Stereo Panner Node
-  runtime.panner = runtime.audioCtx.createStereoPanner ? runtime.audioCtx.createStereoPanner() : (null as unknown as StereoPannerNode);
+  runtime.panner = runtime.audioCtx.createStereoPanner
+    ? runtime.audioCtx.createStereoPanner()
+    : (null as unknown as StereoPannerNode);
 
   runtime.dest = runtime.audioCtx.createMediaStreamDestination();
 
@@ -159,11 +169,12 @@ export const playAudio = () => {
   const state = editorStore.getState();
   const clipsToSearch = getClipsToSearch(state);
 
-  const activeClip = clipsToSearch.find((c: any) =>
-    c.type === 'music' &&
-    c.settings?.enabled !== false &&
-    state.currentTime >= c.start &&
-    state.currentTime <= c.start + c.duration
+  const activeClip = clipsToSearch.find(
+    (c: any) =>
+      c.type === "music" &&
+      c.settings?.enabled !== false &&
+      state.currentTime >= c.start &&
+      state.currentTime <= c.start + c.duration,
   );
 
   editorStore.setState({ isPlaying: true });
@@ -179,7 +190,9 @@ export const playAudio = () => {
     // Apply current settings (volume, speed, pan, EQ)
     applyAudioSettings(activeClip);
 
-    if (playheadTime < (activeClip.settings.audioDuration || activeClip.duration)) {
+    if (
+      playheadTime < (activeClip.settings.audioDuration || activeClip.duration)
+    ) {
       audioEl.currentTime = playheadTime;
       audioEl.play().catch((error) => {
         if (error.name !== "AbortError") {
@@ -207,12 +220,14 @@ export const skipToNextTrack = () => {
   const clipsToSearch = getClipsToSearch(editorStore.getState());
 
   const musicClips = clipsToSearch
-    .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
+    .filter((c: any) => c.type === "music" && c.settings?.enabled !== false)
     .sort((a: any, b: any) => a.start - b.start);
 
   if (musicClips.length === 0) return;
 
-  const nextClip = musicClips.find((c: any) => c.start > (editorStore.getState().currentTime || 0) + 0.1);
+  const nextClip = musicClips.find(
+    (c: any) => c.start > (editorStore.getState().currentTime || 0) + 0.1,
+  );
   if (nextClip) {
     editorStore.setState({ currentTime: nextClip.start });
   } else {
@@ -230,25 +245,31 @@ export const skipToPrevTrack = () => {
   const clipsToSearch = getClipsToSearch(editorStore.getState());
 
   const musicClips = clipsToSearch
-    .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
+    .filter((c: any) => c.type === "music" && c.settings?.enabled !== false)
     .sort((a: any, b: any) => a.start - b.start);
 
   if (musicClips.length === 0) return;
 
   const curTime = editorStore.getState().currentTime || 0;
-  const currentClipIdx = musicClips.findIndex((c: any) => curTime >= c.start && curTime <= c.start + c.duration);
+  const currentClipIdx = musicClips.findIndex(
+    (c: any) => curTime >= c.start && curTime <= c.start + c.duration,
+  );
 
   if (currentClipIdx !== -1) {
     const currentClip = musicClips[currentClipIdx];
     if (curTime - currentClip.start > 2) {
       editorStore.setState({ currentTime: currentClip.start });
     } else if (currentClipIdx > 0) {
-      editorStore.setState({ currentTime: musicClips[currentClipIdx - 1].start });
+      editorStore.setState({
+        currentTime: musicClips[currentClipIdx - 1].start,
+      });
     } else {
       editorStore.setState({ currentTime: currentClip.start });
     }
   } else {
-    const prevClip = [...musicClips].reverse().find((c: any) => c.start + c.duration < curTime);
+    const prevClip = [...musicClips]
+      .reverse()
+      .find((c: any) => c.start + c.duration < curTime);
     if (prevClip) {
       editorStore.setState({ currentTime: prevClip.start });
     } else {

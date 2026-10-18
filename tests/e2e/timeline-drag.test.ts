@@ -82,12 +82,14 @@ const e2e = (name: string, body: Parameters<typeof withApp>[0]) =>
 afterAll(shutdown);
 
 describe("timeline drag", () => {
-  e2e("clip geometry is not transitioned, so the edge tracks the cursor", async () => {
-    await withApp(async (t) => {
-      const res = await t.eval<{
-        animatesGeometry: boolean;
-        behindByPx: number;
-      }>(`(async () => {
+  e2e(
+    "clip geometry is not transitioned, so the edge tracks the cursor",
+    async () => {
+      await withApp(async (t) => {
+        const res = await t.eval<{
+          animatesGeometry: boolean;
+          behindByPx: number;
+        }>(`(async () => {
         const e = window.__e2e;
         const id = await e.addClip("shape", {});
         const { editorStore } = await e.store();
@@ -135,12 +137,13 @@ describe("timeline drag", () => {
         return { animatesGeometry, behindByPx: Math.round(paintedLeft - modelLeft) };
       })()`);
 
-      expect(res.animatesGeometry).toBe(false);
-      // A 150ms ease leaves the edge tens of pixels short. Committed geometry
-      // lands on the model within a pixel.
-      expect(Math.abs(res.behindByPx)).toBeLessThanOrEqual(1);
-    });
-  });
+        expect(res.animatesGeometry).toBe(false);
+        // A 150ms ease leaves the edge tens of pixels short. Committed geometry
+        // lands on the model within a pixel.
+        expect(Math.abs(res.behindByPx)).toBeLessThanOrEqual(1);
+      });
+    },
+  );
 
   e2e("dragging stays within a frame on a long timeline", async () => {
     // Guards the memo split. With the ruler and grid rebuilt per event this
@@ -148,7 +151,10 @@ describe("timeline drag", () => {
     // at the 16.7ms rAF floor. The bound is set well above the floor so a busy
     // machine cannot turn this into a coin flip, and well below the regression.
     await withApp(async (t) => {
-      const res = await t.eval<{ medianMs: number; over: number }>(`(async () => {
+      const res = await t.eval<{
+        medianMs: number;
+        over: number;
+      }>(`(async () => {
         const e = window.__e2e;
         const { editorStore } = await e.store();
 
@@ -213,40 +219,64 @@ describe("trimming a music clip", () => {
   // drag happened to deliver.
   const trim = (
     t: TestPage,
-    opts: { start: number; duration: number; audioDuration: number; startOffset: number; totalPx: number }
+    opts: {
+      start: number;
+      duration: number;
+      audioDuration: number;
+      startOffset: number;
+      totalPx: number;
+    },
   ) =>
     t.eval<{ start: number; duration: number; startOffset: number }>(
-      `${TRIM}(${JSON.stringify(opts)})`
+      `${TRIM}(${JSON.stringify(opts)})`,
     );
 
-  e2e("pulling the head right moves the window forward by the same amount", async () => {
-    await withApp(async (t) => {
-      const res = await trim(t, {
-        start: 10, duration: 20, audioDuration: 60, startOffset: 0, totalPx: 20,
+  e2e(
+    "pulling the head right moves the window forward by the same amount",
+    async () => {
+      await withApp(async (t) => {
+        const res = await trim(t, {
+          start: 10,
+          duration: 20,
+          audioDuration: 60,
+          startOffset: 0,
+          totalPx: 20,
+        });
+        // 20px at zoom 10 is 2s: the clip starts 2s later, so it must start 2s
+        // further into the file, and keep covering the same 20s of audio.
+        expect(res.start).toBe(12);
+        expect(res.startOffset).toBe(2);
+        expect(res.start + res.duration).toBe(30);
       });
-      // 20px at zoom 10 is 2s: the clip starts 2s later, so it must start 2s
-      // further into the file, and keep covering the same 20s of audio.
-      expect(res.start).toBe(12);
-      expect(res.startOffset).toBe(2);
-      expect(res.start + res.duration).toBe(30);
-    });
-  });
+    },
+  );
 
-  e2e("pulling the head left moves the window back by the same amount", async () => {
-    await withApp(async (t) => {
-      const res = await trim(t, {
-        start: 10, duration: 20, audioDuration: 60, startOffset: 5, totalPx: -20,
+  e2e(
+    "pulling the head left moves the window back by the same amount",
+    async () => {
+      await withApp(async (t) => {
+        const res = await trim(t, {
+          start: 10,
+          duration: 20,
+          audioDuration: 60,
+          startOffset: 5,
+          totalPx: -20,
+        });
+        expect(res.start).toBe(8);
+        expect(res.startOffset).toBe(3);
+        expect(res.start + res.duration).toBe(30);
       });
-      expect(res.start).toBe(8);
-      expect(res.startOffset).toBe(3);
-      expect(res.start + res.duration).toBe(30);
-    });
-  });
+    },
+  );
 
   e2e("the head stops at the start of the file", async () => {
     await withApp(async (t) => {
       const res = await trim(t, {
-        start: 10, duration: 20, audioDuration: 60, startOffset: 0, totalPx: -30,
+        start: 10,
+        duration: 20,
+        audioDuration: 60,
+        startOffset: 0,
+        totalPx: -30,
       });
       // Nothing exists before the beginning of the audio, so the clip refuses
       // to move rather than reporting a negative offset.
@@ -258,7 +288,11 @@ describe("trimming a music clip", () => {
   e2e("the head stops at the end of what the clip covers", async () => {
     await withApp(async (t) => {
       const res = await trim(t, {
-        start: 5, duration: 5, audioDuration: 15, startOffset: 0, totalPx: 200,
+        start: 5,
+        duration: 5,
+        audioDuration: 15,
+        startOffset: 0,
+        totalPx: 200,
       });
       // A 5s clip cannot trim its head past its own length. Bounded by the
       // 15s file alone it clamped at 14.9, which put the start at 19.9 and

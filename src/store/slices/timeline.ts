@@ -1,6 +1,10 @@
 import type { StateCreator } from "zustand";
 import type { EditorStore } from "../store-types";
-import type { TimelineClip, TimelineTrack, ClipSettings } from "../../types/clips";
+import type {
+  TimelineClip,
+  TimelineTrack,
+  ClipSettings,
+} from "../../types/clips";
 
 const DEFAULT_TRACKS: TimelineTrack[] = [
   { id: "track-1", name: "Track 1 (Music)", locked: false },
@@ -25,7 +29,12 @@ export interface TimelineSlice {
   timelineScrollTop: number;
 }
 
-export const createTimelineSlice: StateCreator<EditorStore, [], [], TimelineSlice> = () => ({
+export const createTimelineSlice: StateCreator<
+  EditorStore,
+  [],
+  [],
+  TimelineSlice
+> = () => ({
   clipSettings: {},
   effectSettings: {},
   timelineTracks: [...DEFAULT_TRACKS],

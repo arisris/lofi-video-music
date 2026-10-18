@@ -142,7 +142,7 @@ let startup: Promise<void> | null = null;
 
 const reachable = async () =>
   fetch(BASE, { signal: AbortSignal.timeout(2000) })
-    .then(r => r.ok)
+    .then((r) => r.ok)
     .catch(() => false);
 
 /**
@@ -155,11 +155,14 @@ export const ensureServer = (): Promise<void> => {
   startup ??= (async () => {
     if (await reachable()) return;
 
-    server = Bun.spawn(["bunx", "vite", "dev", "--port", String(PORT), "--strictPort"], {
-      cwd: new URL("../..", import.meta.url).pathname,
-      stdout: "pipe",
-      stderr: "pipe",
-    });
+    server = Bun.spawn(
+      ["bunx", "vite", "dev", "--port", String(PORT), "--strictPort"],
+      {
+        cwd: new URL("../..", import.meta.url).pathname,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
 
     const deadline = Date.now() + 60_000;
     while (Date.now() < deadline) {
@@ -479,8 +482,12 @@ const bootApp = async (): Promise<AppView> => {
   await view.cdp("Page.enable");
   // Both scripts have to be in place before the app's first line runs, or the
   // errors thrown during boot are the ones that go unrecorded.
-  await view.cdp("Page.addScriptToEvaluateOnNewDocument", { source: ERROR_TRAP });
-  await view.cdp("Page.addScriptToEvaluateOnNewDocument", { source: PAGE_HELPERS });
+  await view.cdp("Page.addScriptToEvaluateOnNewDocument", {
+    source: ERROR_TRAP,
+  });
+  await view.cdp("Page.addScriptToEvaluateOnNewDocument", {
+    source: PAGE_HELPERS,
+  });
   await view.navigate(BASE);
 
   // WebView has no waitForSelector, so poll for the thing actually needed:
@@ -507,8 +514,11 @@ export const app = async (): Promise<TestPage> => {
   const view = await bootApp();
   sharedPage = {
     view,
-    eval: <R,>(source: string) => view.evaluate(source) as Promise<R>,
-    errors: () => view.evaluate(`window.__errors ?? []`).catch(() => [] as string[]) as Promise<string[]>,
+    eval: <R>(source: string) => view.evaluate(source) as Promise<R>,
+    errors: () =>
+      view
+        .evaluate(`window.__errors ?? []`)
+        .catch(() => [] as string[]) as Promise<string[]>,
     errorsSince: (n) =>
       view
         .evaluate(`(window.__errors ?? []).slice(${n})`)
@@ -523,9 +533,13 @@ export const app = async (): Promise<TestPage> => {
  * errors() reports only what this test added, so a shared page does not make
  * one test's console noise look like another's failure.
  */
-export const withApp = async (body: (page: TestPage) => Promise<void>): Promise<void> => {
+export const withApp = async (
+  body: (page: TestPage) => Promise<void>,
+): Promise<void> => {
   const page = await app();
-  const mark = await page.eval<number>(`(window.__e2e.reset(), window.__errors.length)`);
+  const mark = await page.eval<number>(
+    `(window.__e2e.reset(), window.__errors.length)`,
+  );
   const scoped: TestPage = {
     view: page.view,
     eval: page.eval,

@@ -24,7 +24,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowOffsetY: 0,
       fontSize: 36,
     },
-    cssStyle: "font-family: 'Bungee', cursive; color: #ff007f; text-shadow: 0 0 10px #ff007f; -webkit-text-stroke: 0.5px #fff;",
+    cssStyle:
+      "font-family: 'Bungee', cursive; color: #ff007f; text-shadow: 0 0 10px #ff007f; -webkit-text-stroke: 0.5px #fff;",
   },
   {
     name: "Cyberpunk",
@@ -40,7 +41,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowOffsetY: 3,
       fontSize: 20,
     },
-    cssStyle: "font-family: 'Press Start 2P', cursive; color: #facc15; text-shadow: -2px 2px 0px #00ffff; -webkit-text-stroke: 1.5px #000; font-size: 10px; font-weight: bold;",
+    cssStyle:
+      "font-family: 'Press Start 2P', cursive; color: #facc15; text-shadow: -2px 2px 0px #00ffff; -webkit-text-stroke: 1.5px #000; font-size: 10px; font-weight: bold;",
   },
   {
     name: "VHS Retro",
@@ -56,7 +58,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowOffsetY: 1,
       fontSize: 32,
     },
-    cssStyle: "font-family: 'Roboto Mono', monospace; color: #fff; text-shadow: 2px 1px 0px #ff0000; -webkit-text-stroke: 1px #000; font-weight: bold;",
+    cssStyle:
+      "font-family: 'Roboto Mono', monospace; color: #fff; text-shadow: 2px 1px 0px #ff0000; -webkit-text-stroke: 1px #000; font-weight: bold;",
   },
   {
     name: "Soft Badge",
@@ -70,7 +73,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       fontWeight: "bold",
       fontSize: 24,
     },
-    cssStyle: "font-family: 'Lexend', sans-serif; color: #1e293b; background-color: #fed7aa; border-radius: 12px; padding: 4px 12px; font-weight: bold;",
+    cssStyle:
+      "font-family: 'Lexend', sans-serif; color: #1e293b; background-color: #fed7aa; border-radius: 12px; padding: 4px 12px; font-weight: bold;",
   },
   {
     name: "Retro Arcade",
@@ -86,7 +90,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowOffsetY: 0,
       fontSize: 48,
     },
-    cssStyle: "font-family: 'VT323', monospace; color: #22c55e; text-shadow: 0 0 8px #22c55e; font-size: 16px;",
+    cssStyle:
+      "font-family: 'VT323', monospace; color: #22c55e; text-shadow: 0 0 8px #22c55e; font-size: 16px;",
   },
   {
     name: "Cozy Pillow",
@@ -100,7 +105,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       fontWeight: "bold",
       fontSize: 24,
     },
-    cssStyle: "font-family: 'Comfortaa', cursive; color: #475569; background-color: #ffedd5; border-radius: 24px; padding: 4px 12px; font-weight: bold; font-size: 10px;",
+    cssStyle:
+      "font-family: 'Comfortaa', cursive; color: #475569; background-color: #ffedd5; border-radius: 24px; padding: 4px 12px; font-weight: bold; font-size: 10px;",
   },
   {
     name: "Vapor Wave",
@@ -117,7 +123,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       fontWeight: "800",
       fontSize: 32,
     },
-    cssStyle: "font-family: 'Syne', sans-serif; color: #c084fc; text-shadow: 0 0 6px #3b82f6; font-weight: 800; text-transform: uppercase; font-size: 11px;",
+    cssStyle:
+      "font-family: 'Syne', sans-serif; color: #c084fc; text-shadow: 0 0 6px #3b82f6; font-weight: 800; text-transform: uppercase; font-size: 11px;",
   },
   {
     name: "Ink Script",
@@ -133,7 +140,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowOffsetY: 1,
       fontSize: 36,
     },
-    cssStyle: "font-family: 'Satisfy', cursive; color: #f43f5e; font-size: 14px;",
+    cssStyle:
+      "font-family: 'Satisfy', cursive; color: #f43f5e; font-size: 14px;",
   },
   {
     name: "Typewriter",
@@ -146,7 +154,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       bgRadius: 2,
       fontSize: 24,
     },
-    cssStyle: "font-family: 'Courier Prime', monospace; color: #fff; background-color: #1e293b; border-radius: 2px; padding: 3px 8px; font-size: 10px;",
+    cssStyle:
+      "font-family: 'Courier Prime', monospace; color: #fff; background-color: #1e293b; border-radius: 2px; padding: 3px 8px; font-size: 10px;",
   },
   {
     name: "Editorial",
@@ -162,7 +171,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowOffsetY: 2,
       fontSize: 38,
     },
-    cssStyle: "font-family: 'Abril Fatface', serif; color: #ffffff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 12px;",
+    cssStyle:
+      "font-family: 'Abril Fatface', serif; color: #ffffff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 12px;",
   },
   {
     name: "Pop Banger",
@@ -178,7 +188,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowOffsetY: 3,
       fontSize: 36,
     },
-    cssStyle: "font-family: 'Bangers', cursive; color: #fff; -webkit-text-stroke: 1px #0284c7; text-shadow: 2px 2px 2px rgba(0,0,0,0.8);",
+    cssStyle:
+      "font-family: 'Bangers', cursive; color: #fff; -webkit-text-stroke: 1px #0284c7; text-shadow: 2px 2px 2px rgba(0,0,0,0.8);",
   },
   {
     name: "Sweet Hand",
@@ -192,7 +203,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       shadowBlur: 4,
       fontSize: 32,
     },
-    cssStyle: "font-family: 'Pacifico', cursive; color: #fda4af; -webkit-text-stroke: 0.5px #881337;",
+    cssStyle:
+      "font-family: 'Pacifico', cursive; color: #fda4af; -webkit-text-stroke: 0.5px #881337;",
   },
   {
     name: "Glass Subtitle",
@@ -205,7 +217,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       bgRadius: 6,
       fontSize: 24,
     },
-    cssStyle: "font-family: 'Inter', sans-serif; color: #fff; background-color: rgba(15, 23, 42, 0.75); border-radius: 6px; padding: 4px 10px; border: 1px solid rgba(255,255,255,0.1);",
+    cssStyle:
+      "font-family: 'Inter', sans-serif; color: #fff; background-color: rgba(15, 23, 42, 0.75); border-radius: 6px; padding: 4px 10px; border: 1px solid rgba(255,255,255,0.1);",
   },
   {
     name: "Luxury Gold",
@@ -220,7 +233,8 @@ const TEXT_TEMPLATES: TextTemplate[] = [
       fontWeight: "bold",
       fontSize: 32,
     },
-    cssStyle: "font-family: 'Playfair Display', serif; color: #fbbf24; -webkit-text-stroke: 0.5px #78350f; font-weight: bold; text-shadow: 0 0 5px rgba(251, 191, 36, 0.3);",
+    cssStyle:
+      "font-family: 'Playfair Display', serif; color: #fbbf24; -webkit-text-stroke: 0.5px #78350f; font-weight: bold; text-shadow: 0 0 5px rgba(251, 191, 36, 0.3);",
   },
 ];
 
@@ -241,43 +255,51 @@ const addDefaultText = () => {
 export const TextPanel = () => {
   useEffect(() => {
     // Load the Google fonts used by the templates.
-    TEXT_TEMPLATES.forEach((t) => loadGoogleFont(t.settings.fontFamily as string));
+    TEXT_TEMPLATES.forEach((t) =>
+      loadGoogleFont(t.settings.fontFamily as string),
+    );
   }, []);
 
   return (
-    <div className="bg-slate-900/50 p-4 flex flex-col h-full w-full overflow-hidden">
-      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-1">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-900/50 p-4">
+      <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-1">
         {/* 1. ADD BASE TEXT */}
         <div className="space-y-4">
-          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Add Text</h3>
+          <h3 className="mb-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+            Add Text
+          </h3>
           <button
-            className="w-full p-3 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 hover:border-blue-500/50 rounded-xl transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-600/20 p-3 transition-all hover:border-blue-500/50 hover:bg-blue-600/30"
             onClick={addDefaultText}
           >
-            <i className="icon-[ri--text-spacing] w-4.5 h-4.5 text-blue-400" />
-            <span className="text-xs font-bold text-slate-200">Add Default Text</span>
+            <i className="icon-[ri--text-spacing] h-4.5 w-4.5 text-blue-400" />
+            <span className="text-xs font-bold text-slate-200">
+              Add Default Text
+            </span>
           </button>
         </div>
 
         {/* 2. TEXT TEMPLATES */}
         <div className="space-y-4">
-          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Text Templates</h3>
+          <h3 className="mb-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+            Text Templates
+          </h3>
           <div className="grid grid-cols-2 gap-3">
             {TEXT_TEMPLATES.map((t) => (
               <button
                 key={t.name}
-                className="p-4 bg-slate-800/40 hover:bg-slate-850 border border-slate-700/50 hover:border-slate-600 rounded-xl transition-all flex flex-col items-center justify-center text-center gap-3 min-h-22.5 cursor-pointer group hover:scale-[1.02]"
+                className="hover:bg-slate-850 group flex min-h-22.5 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-slate-700/50 bg-slate-800/40 p-4 text-center transition-all hover:scale-[1.02] hover:border-slate-600"
                 onClick={() => addTemplateText(t)}
               >
                 <div
                   ref={(el) => {
                     if (el) el.style.cssText = t.cssStyle;
                   }}
-                  className="text-center flex items-center justify-center text-xs h-10 w-full overflow-hidden leading-none"
+                  className="flex h-10 w-full items-center justify-center overflow-hidden text-center text-xs leading-none"
                 >
                   {t.name}
                 </div>
-                <span className="text-[9px] font-medium text-slate-400 group-hover:text-slate-200 transition-colors uppercase tracking-wider">
+                <span className="text-[9px] font-medium tracking-wider text-slate-400 uppercase transition-colors group-hover:text-slate-200">
                   {t.name}
                 </span>
               </button>

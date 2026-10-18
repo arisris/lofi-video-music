@@ -29,7 +29,9 @@ const AppContent = () => {
   const mediaPoolWidth = useEditorStore((s) => s.mediaPoolWidth);
   const inspectorWidth = useEditorStore((s) => s.inspectorWidth);
   const leftPanelCollapsed = useEditorStore((s) => s.leftPanelCollapsed);
-  const showRecordSettingsModal = useEditorStore((s) => s.showRecordSettingsModal);
+  const showRecordSettingsModal = useEditorStore(
+    (s) => s.showRecordSettingsModal,
+  );
 
   const [location] = useLocation();
   const lastResolvedRouteRef = useRef<string | null>(null);
@@ -44,9 +46,13 @@ const AppContent = () => {
     // Bind the canvas/audio elements the render loop and engine need.
     let raf = 0;
     const bindRuntime = () => {
-      runtime.canvas = document.getElementById("renderCanvas") as HTMLCanvasElement | null;
+      runtime.canvas = document.getElementById(
+        "renderCanvas",
+      ) as HTMLCanvasElement | null;
       runtime.ctx = runtime.canvas?.getContext("2d") ?? null;
-      const audioEl = document.getElementById("audioElement") as HTMLAudioElement | null;
+      const audioEl = document.getElementById(
+        "audioElement",
+      ) as HTMLAudioElement | null;
       runtime.audioEl = audioEl;
 
       if (!runtime.canvas || !audioEl) {
@@ -59,16 +65,25 @@ const AppContent = () => {
       if (audioState.isAudioInit) {
         const clipsToSearch = getClipsToSearch(audioState);
         const activeClip = clipsToSearch.find(
-          (c: { type: string; start: number; duration: number; settings: { enabled?: boolean } }) =>
+          (c: {
+            type: string;
+            start: number;
+            duration: number;
+            settings: { enabled?: boolean };
+          }) =>
             c.type === "music" &&
             c.settings?.enabled !== false &&
             audioState.currentTime >= c.start &&
-            audioState.currentTime <= c.start + c.duration
+            audioState.currentTime <= c.start + c.duration,
         );
         if (activeClip) {
-          audioEl.src = (activeClip.settings as { audioUrl?: string }).audioUrl ?? "";
+          audioEl.src =
+            (activeClip.settings as { audioUrl?: string }).audioUrl ?? "";
           audioEl.currentTime =
-            audioState.currentTime - activeClip.start + ((activeClip.settings as { startOffset?: number }).startOffset || 0);
+            audioState.currentTime -
+            activeClip.start +
+            ((activeClip.settings as { startOffset?: number }).startOffset ||
+              0);
           initAudioEngine();
           applyAudioSettings(activeClip);
         }
@@ -83,7 +98,8 @@ const AppContent = () => {
 
     // Global drag listeners, bound once for the whole app.
     const touchMoveOptions: AddEventListenerOptions = { passive: false };
-    const onDragMove = (e: MouseEvent | TouchEvent) => handleDragMove(e as DragPointerEvent);
+    const onDragMove = (e: MouseEvent | TouchEvent) =>
+      handleDragMove(e as DragPointerEvent);
     window.addEventListener("mousemove", onDragMove);
     window.addEventListener("mouseup", handleDragEnd);
     window.addEventListener("touchmove", onDragMove, touchMoveOptions);
@@ -99,13 +115,20 @@ const AppContent = () => {
   }, []);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-slate-950 overflow-hidden font-sans text-slate-200">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-950 font-sans text-slate-200">
       {/* MAIN WORKSPACE */}
-      <section className="flex flex-col md:flex-row flex-1 border-b border-slate-800 min-h-0 overflow-y-auto md:overflow-hidden custom-scrollbar bg-slate-950">
+      <section className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto border-b border-slate-800 bg-slate-950 md:flex-row md:overflow-hidden">
         {/* LEFT PANEL: Media Pool */}
         <aside
-          className={`h-auto md:h-full flex-none border-b md:border-b-0 md:border-r border-slate-800 flex flex-col bg-slate-900/20 order-2 md:order-1 transition-all duration-200 ${leftPanelCollapsed ? "w-14" : ""}`}
-          style={{ width: window.innerWidth > 768 ? (leftPanelCollapsed ? "56px" : `${mediaPoolWidth || 300}px`) : "100%" }}
+          className={`order-2 flex h-auto flex-none flex-col border-b border-slate-800 bg-slate-900/20 transition-all duration-200 md:order-1 md:h-full md:border-r md:border-b-0 ${leftPanelCollapsed ? "w-14" : ""}`}
+          style={{
+            width:
+              window.innerWidth > 768
+                ? leftPanelCollapsed
+                  ? "56px"
+                  : `${mediaPoolWidth || 300}px`
+                : "100%",
+          }}
         >
           <MediaPool />
         </aside>
@@ -121,12 +144,12 @@ const AppContent = () => {
         )}
 
         {/* CENTER PANEL: Preview Player */}
-        <main className="flex-none md:flex-1 h-auto md:h-full flex flex-col bg-black relative order-1 md:order-2">
-          <div className="flex-1 flex items-center justify-center overflow-hidden relative bg-black">
+        <main className="relative order-1 flex h-auto flex-none flex-col bg-black md:order-2 md:h-full md:flex-1">
+          <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-black">
             <VideoPreview />
           </div>
           <Timeline />
-          <div className="flex-none p-2 bg-slate-900 border-t border-slate-800">
+          <div className="flex-none border-t border-slate-800 bg-slate-900 p-2">
             <PlaybackControls />
           </div>
         </main>
@@ -141,8 +164,11 @@ const AppContent = () => {
 
         {/* RIGHT PANEL: Inspector / Properties */}
         <aside
-          className="w-full h-auto md:h-full flex-none border-t md:border-t-0 md:border-l border-slate-800 flex flex-col bg-slate-900/20 order-3 md:order-3"
-          style={{ width: window.innerWidth > 768 ? `${inspectorWidth || 320}px` : "100%" }}
+          className="order-3 flex h-auto w-full flex-none flex-col border-t border-slate-800 bg-slate-900/20 md:order-3 md:h-full md:border-t-0 md:border-l"
+          style={{
+            width:
+              window.innerWidth > 768 ? `${inspectorWidth || 320}px` : "100%",
+          }}
         >
           <InspectorPanel />
         </aside>

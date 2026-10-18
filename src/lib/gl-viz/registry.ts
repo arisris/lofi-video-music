@@ -13,7 +13,8 @@ export const registerVisualizer = (def: VisualizerDef): void => {
 };
 
 /** Resolves a style id, or undefined when it was never registered or removed. */
-export const getVisualizerDef = (id: string): VisualizerDef | undefined => registry.get(id);
+export const getVisualizerDef = (id: string): VisualizerDef | undefined =>
+  registry.get(id);
 
 export const listVisualizerDefs = (): VisualizerDef[] => [...registry.values()];
 
@@ -36,7 +37,7 @@ export const resolveVisualizerDef = (id: string): VisualizerDef | undefined => {
     warned.add(id);
     console.warn(
       `[glviz] unknown visualizer "${id}", falling back to "${fallback.id}". ` +
-      `Re-register it in src/lib/gl-viz/defs/ to restore it.`,
+        `Re-register it in src/lib/gl-viz/defs/ to restore it.`,
     );
   }
   return fallback;

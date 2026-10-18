@@ -5,9 +5,15 @@ export const BlocksVisualizer = {
   id: "blocks",
   name: "Blocks (Equalizer)",
   hasReflection: true,
-  draw(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ) {
     const { color, intensity, density, rainbow, reflectionOpacity } = settings;
-    const refOpacity = reflectionOpacity !== undefined ? reflectionOpacity : 0.25;
+    const refOpacity =
+      reflectionOpacity !== undefined ? reflectionOpacity : 0.25;
 
     // Parse the custom base color HSL
     const baseHsl = hexToHSL(color || "#3b82f6");
@@ -41,16 +47,19 @@ export const BlocksVisualizer = {
       for (let j = 0; j <= fullBlocks; j++) {
         if (j === fullBlocks && fraction < 0.05) continue;
 
-        const y = baselineY - (j * (blockHeight + gapY)) - blockHeight;
+        const y = baselineY - j * (blockHeight + gapY) - blockHeight;
         const opacity = j === fullBlocks ? fraction : 1.0;
 
         let blockColor;
         const verticalRatio = j / maxBlocks;
-        const blockLightness = Math.min(90, Math.max(40, baseHsl.l + (verticalRatio * 15)));
+        const blockLightness = Math.min(
+          90,
+          Math.max(40, baseHsl.l + verticalRatio * 15),
+        );
 
         if (rainbow) {
           const horizontalRatio = i / bars;
-          const colHue = (baseHsl.h + (horizontalRatio * 360)) % 360;
+          const colHue = (baseHsl.h + horizontalRatio * 360) % 360;
           blockColor = `hsl(${colHue}, ${baseHsl.s}%, ${blockLightness}%)`;
         } else {
           blockColor = `hsl(${baseHsl.h}, ${baseHsl.s}%, ${blockLightness}%)`;
@@ -66,8 +75,9 @@ export const BlocksVisualizer = {
         ctx.fillRect(x, y, drawWidth, Math.max(1, blockHeight * 0.25));
 
         // 2. Draw Mirrored Reflection Block (fades out downwards)
-        const yReflect = baselineY + (j * (blockHeight + gapY));
-        const reflectOpacity = opacity * refOpacity * (1 - (j / Math.max(1, activeBlocksFloat)));
+        const yReflect = baselineY + j * (blockHeight + gapY);
+        const reflectOpacity =
+          opacity * refOpacity * (1 - j / Math.max(1, activeBlocksFloat));
         if (reflectOpacity > 0.01) {
           ctx.globalAlpha = originalAlpha * reflectOpacity;
           ctx.fillStyle = blockColor;

@@ -95,19 +95,28 @@ export interface ModeSlice {
   swapRoute(prev: string | null, next: EditorRoute): void;
 }
 
-export const createModeSlice: StateCreator<EditorStore, [], [], ModeSlice> = (set, get) => ({
+export const createModeSlice: StateCreator<EditorStore, [], [], ModeSlice> = (
+  set,
+  get,
+) => ({
   currentRoute: "/",
 
   initRouteState: () => {
     const s = get();
     if (s.videoClips === undefined) set({ videoClips: [...s.timelineClips] });
-    if (s.videoTracks === undefined) set({ videoTracks: [...DEFAULT_VIDEO_TRACKS] });
-    if (s.thumbnailTracks === undefined) set({ thumbnailTracks: [...DEFAULT_THUMBNAIL_TRACKS] });
-    if (s.thumbnailClips === undefined) set({ thumbnailClips: DEFAULT_THUMBNAIL_CLIPS.map((c) => ({ ...c })) });
+    if (s.videoTracks === undefined)
+      set({ videoTracks: [...DEFAULT_VIDEO_TRACKS] });
+    if (s.thumbnailTracks === undefined)
+      set({ thumbnailTracks: [...DEFAULT_THUMBNAIL_TRACKS] });
+    if (s.thumbnailClips === undefined)
+      set({ thumbnailClips: DEFAULT_THUMBNAIL_CLIPS.map((c) => ({ ...c })) });
     if (s.videoSelectedClipId === undefined) set({ videoSelectedClipId: null });
-    if (s.thumbnailSelectedClipId === undefined) set({ thumbnailSelectedClipId: "thumb-text-1" });
-    if (s.videoSelectedTrackId === undefined) set({ videoSelectedTrackId: "track-2" });
-    if (s.thumbnailSelectedTrackId === undefined) set({ thumbnailSelectedTrackId: "track-2" });
+    if (s.thumbnailSelectedClipId === undefined)
+      set({ thumbnailSelectedClipId: "thumb-text-1" });
+    if (s.videoSelectedTrackId === undefined)
+      set({ videoSelectedTrackId: "track-2" });
+    if (s.thumbnailSelectedTrackId === undefined)
+      set({ thumbnailSelectedTrackId: "track-2" });
   },
 
   swapRoute: (prev, next) => {
@@ -115,12 +124,36 @@ export const createModeSlice: StateCreator<EditorStore, [], [], ModeSlice> = (se
 
     if (prev !== next) {
       if (prev) {
-        if (prev === "/") set({ videoClips: [...get().timelineClips], videoSelectedClipId: get().selectedClipId, videoTracks: [...get().timelineTracks], videoSelectedTrackId: get().selectedTrackId });
-        else if (prev === "/image") set({ thumbnailClips: [...get().timelineClips], thumbnailSelectedClipId: get().selectedClipId, thumbnailTracks: [...get().timelineTracks], thumbnailSelectedTrackId: get().selectedTrackId });
+        if (prev === "/")
+          set({
+            videoClips: [...get().timelineClips],
+            videoSelectedClipId: get().selectedClipId,
+            videoTracks: [...get().timelineTracks],
+            videoSelectedTrackId: get().selectedTrackId,
+          });
+        else if (prev === "/image")
+          set({
+            thumbnailClips: [...get().timelineClips],
+            thumbnailSelectedClipId: get().selectedClipId,
+            thumbnailTracks: [...get().timelineTracks],
+            thumbnailSelectedTrackId: get().selectedTrackId,
+          });
       }
 
-      if (next === "/") set({ timelineClips: [...(get().videoClips ?? [])], selectedClipId: get().videoSelectedClipId ?? null, timelineTracks: [...(get().videoTracks ?? get().timelineTracks)], selectedTrackId: get().videoSelectedTrackId ?? "track-1" });
-      else if (next === "/image") set({ timelineClips: [...(get().thumbnailClips ?? [])], selectedClipId: get().thumbnailSelectedClipId ?? null, timelineTracks: [...(get().thumbnailTracks ?? get().timelineTracks)], selectedTrackId: get().thumbnailSelectedTrackId ?? "track-1" });
+      if (next === "/")
+        set({
+          timelineClips: [...(get().videoClips ?? [])],
+          selectedClipId: get().videoSelectedClipId ?? null,
+          timelineTracks: [...(get().videoTracks ?? get().timelineTracks)],
+          selectedTrackId: get().videoSelectedTrackId ?? "track-1",
+        });
+      else if (next === "/image")
+        set({
+          timelineClips: [...(get().thumbnailClips ?? [])],
+          selectedClipId: get().thumbnailSelectedClipId ?? null,
+          timelineTracks: [...(get().thumbnailTracks ?? get().timelineTracks)],
+          selectedTrackId: get().thumbnailSelectedTrackId ?? "track-1",
+        });
     }
 
     set({ currentRoute: next });

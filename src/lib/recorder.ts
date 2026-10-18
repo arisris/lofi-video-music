@@ -9,23 +9,24 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
   if (runtime.audioCtx.state === "suspended") {
     runtime.audioCtx.resume().catch((e) => console.warn(e));
   }
-  
+
   const state = editorStore.getState();
   const oldSnaps = state.canvasSnaps || [];
-  
+
   let activeClip = null;
   if (mode === "clip") {
-    activeClip = state.timelineClips.find((c: any) => 
-      c.type === 'music' && 
-      c.settings?.enabled !== false &&
-      state.currentTime >= c.start && 
-      state.currentTime <= c.start + c.duration
+    activeClip = state.timelineClips.find(
+      (c: any) =>
+        c.type === "music" &&
+        c.settings?.enabled !== false &&
+        state.currentTime >= c.start &&
+        state.currentTime <= c.start + c.duration,
     ) as any;
     if (!activeClip) {
       alert("Please place the playhead over a music clip first to record it.");
       return;
     }
-    
+
     editorStore.setState({
       recordingTargetClipEnd: activeClip.start + activeClip.duration,
       currentTime: activeClip.start,
@@ -36,7 +37,7 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
 
   editorStore.setState({ recordingMode: mode });
   runtime.recordedChunks = [];
-  
+
   // Set canvas size based on selected resolution before capture
   const resolution = state.recordResolution || "720p";
   if (runtime.canvas) {
@@ -111,9 +112,9 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
       const a = document.createElement("a");
       a.style.display = "none";
       a.href = url;
-      
+
       const timestamp = new Date().getTime();
-      
+
       let fileName = "";
       if (mode === "clip" && activeClip) {
         const trackName = activeClip.settings?.name || "lofi";
@@ -121,12 +122,12 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
       } else {
         fileName = `MusicVideo_FullTimeline_${timestamp}.${ext}`;
       }
-      
+
       a.download = fileName;
-      
+
       document.body.appendChild(a);
       a.click();
-      
+
       // Cleanup
       setTimeout(() => {
         document.body.removeChild(a);
@@ -137,14 +138,19 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
     };
 
     if (ext === "webm") {
-      import("fix-webm-duration").then(({ default: fixWebmDuration }) => {
-        fixWebmDuration(blob, duration, (fixedBlob) => {
-          processDownload(fixedBlob);
+      import("fix-webm-duration")
+        .then(({ default: fixWebmDuration }) => {
+          fixWebmDuration(blob, duration, (fixedBlob) => {
+            processDownload(fixedBlob);
+          });
+        })
+        .catch((err) => {
+          console.warn(
+            "Failed to load fix-webm-duration, downloading raw file:",
+            err,
+          );
+          processDownload(blob);
         });
-      }).catch((err) => {
-        console.warn("Failed to load fix-webm-duration, downloading raw file:", err);
-        processDownload(blob);
-      });
     } else {
       processDownload(blob);
     }

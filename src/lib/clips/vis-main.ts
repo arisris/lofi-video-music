@@ -6,7 +6,7 @@ export const VisualizerClip = {
   id: "visualizer",
   name: "Visualizer",
   icon: "icon-[ri--pulse-line]",
-  
+
   settings: {
     style: "bars",
     color: "#3b82f6",
@@ -18,7 +18,12 @@ export const VisualizerClip = {
     size: 1.0,
   },
 
-  getItemBoundingBox(_ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
+  getItemBoundingBox(
+    _ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ) {
     if (settings.style === "circle") {
       const radius = Math.min(w, h) * 0.25;
       const size = (radius + 50) * 2;
@@ -26,7 +31,7 @@ export const VisualizerClip = {
         x: w / 2 - size / 2,
         y: h / 2 - size / 2,
         width: size,
-        height: size
+        height: size,
       };
     }
     if (settings.style === "waveform") {
@@ -39,14 +44,19 @@ export const VisualizerClip = {
     return this.getItemBoundingBox(ctx, w, h, this.settings);
   },
 
-  drawItem(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
+  drawItem(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ) {
     if (!runtime.analyser) return;
-    
+
     const { style, color, opacity } = settings;
     const visualizer = getVisualizer(style);
-    
+
     const size = settings.size !== undefined ? settings.size : 1.0;
-    
+
     ctx.save();
     ctx.globalAlpha = opacity !== undefined ? opacity : 1;
     ctx.fillStyle = color;
@@ -65,7 +75,7 @@ export const VisualizerClip = {
     }
 
     visualizer.draw(ctx, w, h, settings);
-    
+
     ctx.restore();
   },
 

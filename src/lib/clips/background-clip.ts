@@ -1,4 +1,3 @@
-
 import { BackgroundSettingsView } from "../../components/clip-settings/background";
 
 export const triggerFilePicker = (onSelect: (file: File) => void) => {
@@ -21,7 +20,12 @@ export const BackgroundClip = {
 
   settings: {},
 
-  getItemBoundingBox(_ctx: CanvasRenderingContext2D, w: number, h: number, _settings: Record<string, any>) {
+  getItemBoundingBox(
+    _ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    _settings: Record<string, any>,
+  ) {
     return {
       x: 0,
       y: 0,
@@ -30,7 +34,12 @@ export const BackgroundClip = {
     };
   },
 
-  drawItem(_ctx: CanvasRenderingContext2D, _w: number, _h: number, _settings: Record<string, any>) {},
+  drawItem(
+    _ctx: CanvasRenderingContext2D,
+    _w: number,
+    _h: number,
+    _settings: Record<string, any>,
+  ) {},
 
   onSettings: BackgroundSettingsView,
 };

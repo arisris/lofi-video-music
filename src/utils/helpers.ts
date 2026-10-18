@@ -25,14 +25,19 @@ export const formatTime = (seconds: number) => {
   return `${m}:${s}`;
 };
 
-export const generateThumbnail = (source: any, isVideo = false): Promise<string> => {
+export const generateThumbnail = (
+  source: any,
+  isVideo = false,
+): Promise<string> => {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d")!;
 
     const draw = (media: any) => {
-      const mediaW = media.naturalWidth || media.videoWidth || media.width || 300;
-      const mediaH = media.naturalHeight || media.videoHeight || media.height || 200;
+      const mediaW =
+        media.naturalWidth || media.videoWidth || media.width || 300;
+      const mediaH =
+        media.naturalHeight || media.videoHeight || media.height || 200;
 
       const maxDimension = 256;
       let targetW = mediaW;
@@ -66,7 +71,10 @@ export const generateThumbnail = (source: any, isVideo = false): Promise<string>
 
 export const getTotalDuration = (clips: any[]) => {
   if (!clips || clips.length === 0) return 60;
-  const maxEnd = clips.reduce((max: number, clip: any) => Math.max(max, clip.start + clip.duration), 0);
+  const maxEnd = clips.reduce(
+    (max: number, clip: any) => Math.max(max, clip.start + clip.duration),
+    0,
+  );
   return Math.max(60, Math.ceil(maxEnd));
 };
 
@@ -75,7 +83,7 @@ export const getTotalDuration = (clips: any[]) => {
  * Decoupled from global State to be a pure utility.
  */
 export const getGlobalTime = (state: any) => {
-  return state ? (state.currentTime || 0) : 0;
+  return state ? state.currentTime || 0 : 0;
 };
 
 export const getAudioReactivity = (state: any, type = "volume") => {
@@ -177,7 +185,10 @@ export function hexToRGB(hex: string): [number, number, number] {
 export function hexToRGBA(hex: string): [number, number, number, number] {
   let h = (hex || "").replace(/^#/, "");
   if (h.length === 3 || h.length === 4) {
-    h = h.split("").map((c) => c + c).join("");
+    h = h
+      .split("")
+      .map((c) => c + c)
+      .join("");
   }
   if (!/^[0-9a-f]{6}([0-9a-f]{2})?$/i.test(h)) return [0, 0, 0, 0];
   return [
@@ -190,7 +201,7 @@ export function hexToRGBA(hex: string): [number, number, number, number] {
 
 // Helper to convert hex to HSL
 export function hexToHSL(hex: string): HSL {
-  hex = hex.replace(/^#/, '');
+  hex = hex.replace(/^#/, "");
   if (hex.length === 3) {
     hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
   }
@@ -198,16 +209,25 @@ export function hexToHSL(hex: string): HSL {
   const g = parseInt(hex.substring(2, 4), 16) / 255;
   const b = parseInt(hex.substring(4, 6), 16) / 255;
 
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0, l = (max + min) / 2;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s = 0,
+    l = (max + min) / 2;
 
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
     }
     h /= 6;
   }
@@ -260,7 +280,9 @@ export const revokeUrlIfUnused = (url: string, state: any) => {
     try {
       URL.revokeObjectURL(url);
       if (state.mediaPool) {
-        state.mediaPool = state.mediaPool.filter((asset: any) => asset.url !== url);
+        state.mediaPool = state.mediaPool.filter(
+          (asset: any) => asset.url !== url,
+        );
       }
     } catch (err) {
       console.warn("Failed to revoke object URL:", url, err);
@@ -270,10 +292,15 @@ export const revokeUrlIfUnused = (url: string, state: any) => {
 
 export const revokeClipUrls = (clip: any, state: any) => {
   const urls = getMediaUrls(clip);
-  urls.forEach(url => revokeUrlIfUnused(url, state));
+  urls.forEach((url) => revokeUrlIfUnused(url, state));
 };
 
-export const transformPoint = (px: number, py: number, bbox: BBox, settings: Record<string, any>) => {
+export const transformPoint = (
+  px: number,
+  py: number,
+  bbox: BBox,
+  settings: Record<string, any>,
+) => {
   const x = settings.x ?? 0;
   const y = settings.y ?? 0;
   const scaleX = settings.scaleX ?? 1;
@@ -291,7 +318,7 @@ export const transformPoint = (px: number, py: number, bbox: BBox, settings: Rec
   const sx = dx * scaleX;
   const sy = dy * scaleY;
 
-  const rad = rotation * Math.PI / 180;
+  const rad = (rotation * Math.PI) / 180;
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
 
@@ -304,7 +331,12 @@ export const transformPoint = (px: number, py: number, bbox: BBox, settings: Rec
   };
 };
 
-export const inverseTransformPoint = (sx: number, sy: number, bbox: BBox, settings: Record<string, any>) => {
+export const inverseTransformPoint = (
+  sx: number,
+  sy: number,
+  bbox: BBox,
+  settings: Record<string, any>,
+) => {
   const x = settings.x ?? 0;
   const y = settings.y ?? 0;
   const scaleX = settings.scaleX ?? 1;
@@ -319,7 +351,7 @@ export const inverseTransformPoint = (sx: number, sy: number, bbox: BBox, settin
   const rx = sx - cx - x;
   const ry = sy - cy - y;
 
-  const rad = -rotation * Math.PI / 180;
+  const rad = (-rotation * Math.PI) / 180;
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
 
@@ -340,9 +372,14 @@ export const getSelectedClipInfo = (state: any): any => {
   const globalTime = getGlobalTime(state);
 
   // Try to find a timeline clip
-  const timelineClip = state.timelineClips.find((c: any) => c.id === state.selectedClipId);
-  if (timelineClip && timelineClip.type !== 'background') {
-    if (globalTime >= timelineClip.start && globalTime <= timelineClip.start + timelineClip.duration) {
+  const timelineClip = state.timelineClips.find(
+    (c: any) => c.id === state.selectedClipId,
+  );
+  if (timelineClip && timelineClip.type !== "background") {
+    if (
+      globalTime >= timelineClip.start &&
+      globalTime <= timelineClip.start + timelineClip.duration
+    ) {
       const renderer = ClipRegistry.get(timelineClip.type);
       if (renderer) {
         return {

@@ -1,8 +1,14 @@
 import { editorStore } from "../../store/editor-store";
 import { getClipsToSearch } from "../../utils/helpers";
 import { processOverlayUpload } from "../../lib/clips/overlay-clip";
-import { bumpClips, updateTimelineClipSettings } from "../../store/actions/timeline-actions";
-import { SharedTransformSettingsView, SharedAnimationSettingsView } from "./shared";
+import {
+  bumpClips,
+  updateTimelineClipSettings,
+} from "../../store/actions/timeline-actions";
+import {
+  SharedTransformSettingsView,
+  SharedAnimationSettingsView,
+} from "./shared";
 
 const triggerFilePicker = (onSelect: (file: File) => void) => {
   const input = document.createElement("input");
@@ -24,14 +30,21 @@ interface ClipViewProps {
 /** Settings panel for the "overlay" timeline clip. */
 export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
   const clipsToSearch = getClipsToSearch(editorStore.getState());
-  const selectedClip = clip || clipsToSearch.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "overlay");
+  const selectedClip =
+    clip ||
+    clipsToSearch.find(
+      (c: any) =>
+        c.id === editorStore.getState().selectedClipId && c.type === "overlay",
+    );
 
   if (!selectedClip) return null;
 
   const settings = selectedClip.settings as Record<string, any>;
 
-  const update = (patch: Record<string, unknown>, clipPatch: Record<string, unknown> = {}) =>
-    updateTimelineClipSettings(selectedClip.id as string, patch, clipPatch);
+  const update = (
+    patch: Record<string, unknown>,
+    clipPatch: Record<string, unknown> = {},
+  ) => updateTimelineClipSettings(selectedClip.id as string, patch, clipPatch);
 
   const toggleLoop = () => {
     const next = settings.loop === false;
@@ -64,17 +77,24 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
         v.playbackRate = 1.0;
       });
     }
-    update({ speed: 1.0 }, settings.loop === false && settings.videoDuration ? { duration: settings.videoDuration } : {});
+    update(
+      { speed: 1.0 },
+      settings.loop === false && settings.videoDuration
+        ? { duration: settings.videoDuration }
+        : {},
+    );
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+    <div className="animate-in fade-in slide-in-from-top-2 space-y-4 duration-300">
       {/* Change File Button */}
-      <div className="bg-slate-800/40 p-4 rounded-lg border border-slate-700/50 space-y-3">
-        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Media Settings</label>
+      <div className="space-y-3 rounded-lg border border-slate-700/50 bg-slate-800/40 p-4">
+        <label className="block text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+          Media Settings
+        </label>
 
         <button
-          className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded border border-slate-700 flex items-center justify-center gap-2 transition-all"
+          className="flex w-full items-center justify-center gap-2 rounded border border-slate-700 bg-slate-800 py-2 text-xs font-semibold text-slate-200 transition-all hover:bg-slate-700"
           onClick={() => {
             triggerFilePicker((file) => {
               processOverlayUpload(file, selectedClip, () => bumpClips());
@@ -87,21 +107,25 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
 
         {/* Loop Video Option (Only for Video overlays) */}
         {settings.mediaType === "video" && (
-          <div className="flex items-center justify-between p-2.5 bg-slate-800/40 border border-slate-700/50 rounded-lg mt-2">
+          <div className="mt-2 flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/40 p-2.5">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-slate-300">Loop Video</span>
+              <span className="text-[10px] font-bold text-slate-300">
+                Loop Video
+              </span>
               <span className="text-[9px] text-slate-500">
-                {settings.loop ? "Loops continuously" : "Locks timeline clip to video length"}
+                {settings.loop
+                  ? "Loops continuously"
+                  : "Locks timeline clip to video length"}
               </span>
             </div>
             <button
-              className={`w-8 h-4 rounded-full relative transition-colors ${
+              className={`relative h-4 w-8 rounded-full transition-colors ${
                 settings.loop !== false ? "bg-blue-600" : "bg-slate-700"
               }`}
               onClick={toggleLoop}
             >
               <div
-                className={`absolute top-0.5 bottom-0.5 w-3 bg-white rounded-full transition-all ${
+                className={`absolute top-0.5 bottom-0.5 w-3 rounded-full bg-white transition-all ${
                   settings.loop !== false ? "right-0.5" : "left-0.5"
                 }`}
               />
@@ -112,9 +136,9 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
         {/* Video speed control (only if video overlay) */}
         {settings.mediaType === "video" && (
           <div className="mt-4">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
+            <label className="mb-1.5 flex justify-between text-[10px] font-bold tracking-widest text-slate-500 uppercase">
               <span>Video Speed</span>
-              <span className="text-blue-400 font-mono text-[10px]">{`${(settings.speed || 1.0).toFixed(2)}x`}</span>
+              <span className="font-mono text-[10px] text-blue-400">{`${(settings.speed || 1.0).toFixed(2)}x`}</span>
             </label>
             <div className="flex items-center gap-3">
               <input
@@ -123,11 +147,11 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
                 max={4.0}
                 step={0.05}
                 value={settings.speed || 1.0}
-                className="flex-1 h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-blue-500"
+                className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-slate-800 accent-blue-500"
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
               />
               <button
-                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded hover:text-white transition-colors text-[10px]"
+                className="rounded bg-slate-800 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
                 onClick={resetSpeed}
               >
                 Reset
@@ -138,7 +162,7 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
 
         {/* Opacity slider */}
         <div className="mt-4">
-          <label className="text-xs text-slate-400 mb-2 flex justify-between">
+          <label className="mb-2 flex justify-between text-xs text-slate-400">
             <span>Opacity</span>
             <span className="text-slate-500">
               {`${Math.round((settings.opacity !== undefined ? settings.opacity : 1.0) * 100)}%`}
@@ -156,8 +180,14 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
         </div>
       </div>
 
-      <SharedTransformSettingsView settings={settings} updateSettings={update} />
-      <SharedAnimationSettingsView settings={settings} updateSettings={update} />
+      <SharedTransformSettingsView
+        settings={settings}
+        updateSettings={update}
+      />
+      <SharedAnimationSettingsView
+        settings={settings}
+        updateSettings={update}
+      />
     </div>
   );
 };

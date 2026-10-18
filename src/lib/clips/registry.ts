@@ -4,15 +4,15 @@ export const ClipRegistry = {
   clips: [] as Record<string, any>[],
 
   register(clip: Record<string, any>) {
-    if (this.clips.some(c => c.id === clip.id)) {
+    if (this.clips.some((c) => c.id === clip.id)) {
       // Update existing clip reference
-      const idx = this.clips.findIndex(c => c.id === clip.id);
+      const idx = this.clips.findIndex((c) => c.id === clip.id);
       this.clips[idx] = clip;
     } else {
       this.clips.push(clip);
     }
 
-    const isDefaultDisabled = (clip.id === "title" || clip.id === "playlist");
+    const isDefaultDisabled = clip.id === "title" || clip.id === "playlist";
     const defaultTransform = {
       enabled: !isDefaultDisabled,
       x: 0,
@@ -21,7 +21,7 @@ export const ClipRegistry = {
       scaleY: 1,
       rotation: 0,
       originX: 0.5,
-      originY: 0.5
+      originY: 0.5,
     };
 
     // Initialize settings if not already in state
@@ -42,7 +42,9 @@ export const ClipRegistry = {
     }
 
     if (nextSettings !== existing) {
-      editorStore.setState({ clipSettings: { ...state.clipSettings, [clip.id]: nextSettings } });
+      editorStore.setState({
+        clipSettings: { ...state.clipSettings, [clip.id]: nextSettings },
+      });
     }
 
     // Bind settings to the clip object for easy access (compatibility)
@@ -54,10 +56,10 @@ export const ClipRegistry = {
   },
 
   get(id: string) {
-    return this.clips.find(c => c.id === id);
+    return this.clips.find((c) => c.id === id);
   },
 
   getAll() {
     return this.clips;
-  }
+  },
 };

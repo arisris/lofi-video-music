@@ -61,13 +61,15 @@ export const ScrubInput = ({
   return (
     <div
       className={`${
-        ghost ? "" : "bg-slate-800/40 border border-slate-700/50 rounded overflow-hidden"
-      } flex items-center h-7 transition-all group ${isEditing ? "ring-1 ring-blue-500/50" : "hover:border-slate-600"}`}
+        ghost
+          ? ""
+          : "overflow-hidden rounded border border-slate-700/50 bg-slate-800/40"
+      } group flex h-7 items-center transition-all ${isEditing ? "ring-1 ring-blue-500/50" : "hover:border-slate-600"}`}
     >
       {/* Label Area: Used for scrubbing (only shown when a label exists) */}
       {label && (
         <div
-          className="w-6 h-full flex items-center justify-center bg-slate-900/40 text-[10px] font-bold border-r border-slate-700/50 text-slate-500 cursor-ew-resize hover:text-blue-400 transition-colors select-none"
+          className="flex h-full w-6 cursor-ew-resize items-center justify-center border-r border-slate-700/50 bg-slate-900/40 text-[10px] font-bold text-slate-500 transition-colors select-none hover:text-blue-400"
           onMouseDown={startDrag}
         >
           {label}
@@ -84,7 +86,7 @@ export const ScrubInput = ({
           type="number"
           value={value}
           step={step}
-          className="flex-1 bg-slate-900 text-[11px] text-white px-2 outline-none h-full w-full font-mono"
+          className="h-full w-full flex-1 bg-slate-900 px-2 font-mono text-[11px] text-white outline-none"
           onBlur={() => setIsEditing(false)}
           onChange={(e) => commitTyped(e.target.value)}
           onKeyDown={(e) => {
@@ -94,7 +96,7 @@ export const ScrubInput = ({
         />
       ) : (
         <div
-          className="flex-1 text-[11px] text-slate-200 px-2 font-mono flex items-center h-full cursor-text select-none"
+          className="flex h-full flex-1 cursor-text items-center px-2 font-mono text-[11px] text-slate-200 select-none"
           onClick={() => setIsEditing(true)}
         >
           {Math.round(value * 100) / 100}

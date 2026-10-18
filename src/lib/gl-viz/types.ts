@@ -44,7 +44,12 @@ export type FieldSchema =
       alpha?: boolean;
     }
   | { kind: "toggle"; key: string; label: string }
-  | { kind: "select"; key: string; label: string; options: { value: string; label: string }[] }
+  | {
+      kind: "select";
+      key: string;
+      label: string;
+      options: { value: string; label: string }[];
+    }
   /** Custom image from the media pool. Stored as a URL, resolved at draw time. */
   | { kind: "image"; key: string; label: string; hint?: string };
 

@@ -22,6 +22,6 @@ ClipRegistry.register(MusicClip);
 ClipRegistry.register(ShapeClip);
 
 // Register VFX clips
-VFXRegistry.forEach(vfx => ClipRegistry.register(vfx));
+VFXRegistry.forEach((vfx) => ClipRegistry.register(vfx));
 
 export { ClipRegistry };

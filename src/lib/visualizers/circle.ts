@@ -4,7 +4,12 @@ import { hexToHSL } from "../../utils/helpers";
 export const CircleVisualizer = {
   id: "circle",
   name: "Circle",
-  draw(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ) {
     const { color, intensity, density, rainbow } = settings;
     const centerX = w / 2;
     const centerY = h / 2;
@@ -47,7 +52,7 @@ export const CircleVisualizer = {
     if (runtime.dataArray[10]) {
       const pulse = (runtime.dataArray[10] / 255) * 20;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, radius - 5 + (pulse * intensity), 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, radius - 5 + pulse * intensity, 0, Math.PI * 2);
       ctx.save();
       ctx.globalAlpha = ctx.globalAlpha * 0.3;
       ctx.fillStyle = "rgba(0,0,0,1)";

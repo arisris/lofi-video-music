@@ -47,7 +47,9 @@ export const hasIcons = async (): Promise<boolean> => {
   }
 };
 
-export const populateIcons = async (progressCallback?: (message: string) => void): Promise<void> => {
+export const populateIcons = async (
+  progressCallback?: (message: string) => void,
+): Promise<void> => {
   const db = await initDb();
 
   if (progressCallback) progressCallback("Loading Remix Icons...");
@@ -58,14 +60,17 @@ export const populateIcons = async (progressCallback?: (message: string) => void
   const mdiModule = await import("@iconify-json/mdi/icons.json");
   const mdiIcons = mdiModule.default as any;
 
-  if (progressCallback) progressCallback("Storing icons to database (this may take a few seconds)...");
+  if (progressCallback)
+    progressCallback(
+      "Storing icons to database (this may take a few seconds)...",
+    );
 
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, "readwrite");
     const store = transaction.objectStore(STORE_NAME);
 
     // Add all ri icons
-    Object.keys(riIcons.icons).forEach(name => {
+    Object.keys(riIcons.icons).forEach((name) => {
       const icon = riIcons.icons[name];
       store.put({
         id: `ri:${name}`,
@@ -78,7 +83,7 @@ export const populateIcons = async (progressCallback?: (message: string) => void
     });
 
     // Add all mdi icons
-    Object.keys(mdiIcons.icons).forEach(name => {
+    Object.keys(mdiIcons.icons).forEach((name) => {
       const icon = mdiIcons.icons[name];
       store.put({
         id: `mdi:${name}`,

@@ -20,19 +20,21 @@ export const SliderControl = ({
   maxLabel,
   onChange,
 }: SliderControlProps) => (
-  <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50">
-    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">{label}</label>
+  <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3">
+    <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
+      {label}
+    </label>
     <input
       type="range"
       min={min}
       max={max}
       step={step}
-      className="w-full cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none accent-blue-500"
+      className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-700 accent-blue-500"
       value={value}
       onChange={(e) => onChange(parseFloat(e.target.value))}
     />
     {(minLabel || maxLabel) && (
-      <div className="flex justify-between text-[9px] text-slate-500 mt-1.5 font-mono">
+      <div className="mt-1.5 flex justify-between font-mono text-[9px] text-slate-500">
         <span>{minLabel || ""}</span>
         <span>{maxLabel || ""}</span>
       </div>
@@ -48,17 +50,24 @@ export interface ToggleControlProps {
 }
 
 /** A modular toggle checkbox component. */
-export const ToggleControl = ({ label, checked, description, onChange }: ToggleControlProps) => (
-  <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50">
-    <label className="flex items-center gap-2 cursor-pointer">
+export const ToggleControl = ({
+  label,
+  checked,
+  description,
+  onChange,
+}: ToggleControlProps) => (
+  <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3">
+    <label className="flex cursor-pointer items-center gap-2">
       <input
         type="checkbox"
         checked={checked || false}
-        className="w-4 h-4 accent-blue-600 rounded"
+        className="h-4 w-4 rounded accent-blue-600"
         onChange={(e) => onChange(e.target.checked)}
       />
       <span className="text-xs font-bold text-slate-300">{label}</span>
     </label>
-    {description && <p className="text-[10px] text-slate-500 mt-1">{description}</p>}
+    {description && (
+      <p className="mt-1 text-[10px] text-slate-500">{description}</p>
+    )}
   </div>
 );

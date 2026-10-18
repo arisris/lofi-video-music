@@ -59,7 +59,12 @@ export interface MediaPoolSlice {
   pixabayPanelState: PixabayPanelState | null;
 }
 
-export const createMediaPoolSlice: StateCreator<EditorStore, [], [], MediaPoolSlice> = () => ({
+export const createMediaPoolSlice: StateCreator<
+  EditorStore,
+  [],
+  [],
+  MediaPoolSlice
+> = () => ({
   mediaPool: [],
   activeClipTab: "visualizer",
 

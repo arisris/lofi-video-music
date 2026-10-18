@@ -28,7 +28,9 @@ export const FilmGrainVFX = {
       clip.noiseCanvas = document.createElement("canvas");
       clip.noiseCanvas.width = nSize;
       clip.noiseCanvas.height = nSize;
-      const nCtx = clip.noiseCanvas.getContext("2d") as CanvasRenderingContext2D;
+      const nCtx = clip.noiseCanvas.getContext(
+        "2d",
+      ) as CanvasRenderingContext2D;
       const imgData = nCtx.createImageData(nSize, nSize);
       const data = imgData.data;
       for (let i = 0; i < data.length; i += 4) {
@@ -42,7 +44,10 @@ export const FilmGrainVFX = {
     }
 
     // 2. Draw VHS Scanlines
-    const scanlinesOpacity = settings.scanlinesOpacity !== undefined ? settings.scanlinesOpacity : 0.08;
+    const scanlinesOpacity =
+      settings.scanlinesOpacity !== undefined
+        ? settings.scanlinesOpacity
+        : 0.08;
     if (scanlinesOpacity > 0) {
       ctx.save();
       ctx.fillStyle = `rgba(0, 0, 0, ${scanlinesOpacity})`;
@@ -53,7 +58,8 @@ export const FilmGrainVFX = {
     }
 
     // 3. Draw Film Grain Overlay
-    const grainIntensity = settings.grainIntensity !== undefined ? settings.grainIntensity : 0.15;
+    const grainIntensity =
+      settings.grainIntensity !== undefined ? settings.grainIntensity : 0.15;
     if (grainIntensity > 0) {
       ctx.save();
       ctx.globalAlpha = grainIntensity;
@@ -81,7 +87,11 @@ export const FilmGrainVFX = {
 
     if (settings.audioReactive) {
       const bassLevel = getAudioReactivity(editorStore.getState(), "bass");
-      if (bassLevel > 0.68 && clip.glitchActiveFrames === 0 && clip.glitchCooldown === 0) {
+      if (
+        bassLevel > 0.68 &&
+        clip.glitchActiveFrames === 0 &&
+        clip.glitchCooldown === 0
+      ) {
         clip.glitchActiveFrames = 3 + Math.floor(Math.random() * 5); // glitch for 3-7 frames
         clip.glitchCooldown = 12; // short cooldown for fast triggers
         glitchIntensity = 0.4 + bassLevel * 0.6; // scale glitch with beat strength
@@ -90,8 +100,13 @@ export const FilmGrainVFX = {
         triggerGlitch = true;
       }
     } else {
-      const frequency = settings.glitchFrequency !== undefined ? settings.glitchFrequency : 0.3;
-      if (Math.random() < 0.015 * frequency && clip.glitchActiveFrames === 0 && clip.glitchCooldown === 0) {
+      const frequency =
+        settings.glitchFrequency !== undefined ? settings.glitchFrequency : 0.3;
+      if (
+        Math.random() < 0.015 * frequency &&
+        clip.glitchActiveFrames === 0 &&
+        clip.glitchCooldown === 0
+      ) {
         clip.glitchActiveFrames = 4 + Math.floor(Math.random() * 6);
         clip.glitchCooldown = 25;
       }

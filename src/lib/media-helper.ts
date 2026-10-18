@@ -26,7 +26,9 @@ export type MediaComplete = (item: MediaItem) => void;
  */
 const appendToHiddenContainer = (img: HTMLElement) => {
   if (typeof document === "undefined") return;
-  let container: HTMLElement | null = document.getElementById("hidden-media-container");
+  let container: HTMLElement | null = document.getElementById(
+    "hidden-media-container",
+  );
   if (!container) {
     container = document.createElement("div");
     container.id = "hidden-media-container";
@@ -49,11 +51,16 @@ const appendToHiddenContainer = (img: HTMLElement) => {
   container.appendChild(img);
 };
 
-const processStaticImageFile = (file: File, url: string, id: string, onComplete: MediaComplete) => {
+const processStaticImageFile = (
+  file: File,
+  url: string,
+  id: string,
+  onComplete: MediaComplete,
+) => {
   const img = new Image();
   appendToHiddenContainer(img);
   img.onload = () => {
-    safeGenerateThumbnail(img, false).then(thumb => {
+    safeGenerateThumbnail(img, false).then((thumb) => {
       onComplete({
         id,
         name: file.name,
@@ -65,7 +72,7 @@ const processStaticImageFile = (file: File, url: string, id: string, onComplete:
         width: img.naturalWidth,
         height: img.naturalHeight,
         element: img,
-        elements: null
+        elements: null,
       });
     });
   };
@@ -80,17 +87,23 @@ const processStaticImageFile = (file: File, url: string, id: string, onComplete:
       thumbnail: null,
       duration: 0,
       element: img,
-      elements: null
+      elements: null,
     });
   };
   img.src = url;
 };
 
-const processStaticImageUrl = (url: string, id: string, name: string, source: string, onComplete: MediaComplete) => {
+const processStaticImageUrl = (
+  url: string,
+  id: string,
+  name: string,
+  source: string,
+  onComplete: MediaComplete,
+) => {
   const img = new Image();
   appendToHiddenContainer(img);
   img.onload = () => {
-    safeGenerateThumbnail(img, false).then(thumb => {
+    safeGenerateThumbnail(img, false).then((thumb) => {
       onComplete({
         id,
         name,
@@ -102,7 +115,7 @@ const processStaticImageUrl = (url: string, id: string, name: string, source: st
         width: img.naturalWidth,
         height: img.naturalHeight,
         element: img,
-        elements: null
+        elements: null,
       });
     });
   };
@@ -117,105 +130,26 @@ const processStaticImageUrl = (url: string, id: string, name: string, source: st
       thumbnail: null,
       duration: 0,
       element: img,
-      elements: null
+      elements: null,
     });
   };
   img.crossOrigin = "anonymous";
   img.src = url;
 };
 
-const processGifFile = (file: File, url: string, id: string, onComplete: MediaComplete) => {
-  file.arrayBuffer().then(arrayBuffer => {
-    try {
-      const gif = parseGIF(arrayBuffer);
-      const decompressedFrames = decompressFrames(gif, true);
-      
-      const bakingCanvas = document.createElement("canvas");
-      bakingCanvas.width = gif.lsd.width;
-      bakingCanvas.height = gif.lsd.height;
-      const bakingCtx = bakingCanvas.getContext("2d")!;
-
-      let prevCanvasData: ImageData | null = null;
-
-      const frames = decompressedFrames.map((frame, index) => {
-        if (index > 0) {
-          const prevFrame = decompressedFrames[index - 1];
-          if (prevFrame.disposalType === 2) {
-            bakingCtx.clearRect(
-              prevFrame.dims.left,
-              prevFrame.dims.top,
-              prevFrame.dims.width,
-              prevFrame.dims.height
-            );
-          } else if (prevFrame.disposalType === 3 && prevCanvasData) {
-            bakingCtx.putImageData(prevCanvasData, 0, 0);
-          }
-        }
-
-        if (frame.disposalType === 3) {
-          prevCanvasData = bakingCtx.getImageData(0, 0, bakingCanvas.width, bakingCanvas.height);
-        }
-
-        const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = frame.dims.width;
-        tempCanvas.height = frame.dims.height;
-        const tempCtx = tempCanvas.getContext("2d")!;
-        const imageData = new ImageData(frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>, frame.dims.width, frame.dims.height);
-        tempCtx.putImageData(imageData, 0, 0);
-
-        bakingCtx.drawImage(tempCanvas, frame.dims.left, frame.dims.top);
-
-        const frameCanvas = document.createElement("canvas");
-        frameCanvas.width = bakingCanvas.width;
-        frameCanvas.height = bakingCanvas.height;
-        const frameCtx = frameCanvas.getContext("2d")!;
-        frameCtx.drawImage(bakingCanvas, 0, 0);
-
-        return {
-          canvas: frameCanvas,
-          delay: frame.delay || 100,
-          dims: { left: 0, top: 0, width: bakingCanvas.width, height: bakingCanvas.height }
-        };
-      });
-
-      const totalDurationMs = frames.reduce((acc, f) => acc + f.delay, 0);
-
-      let thumbnail = null;
-      if (frames.length > 0) {
-        thumbnail = frames[0].canvas.toDataURL("image/png");
-      }
-
-      onComplete({
-        id,
-        name: file.name,
-        type: "gif",
-        source: "upload",
-        url,
-        thumbnail,
-        duration: totalDurationMs / 1000,
-        width: gif.lsd.width,
-        height: gif.lsd.height,
-        gifFrames: frames,
-        gifDuration: totalDurationMs
-      });
-    } catch (error) {
-      console.error("Error processing GIF file:", error);
-      processStaticImageFile(file, url, id, onComplete);
-    }
-  }).catch(error => {
-    console.error("Error reading file buffer:", error);
-    processStaticImageFile(file, url, id, onComplete);
-  });
-};
-
-const processGifUrl = (url: string, id: string, name: string, source: string, onComplete: MediaComplete) => {
-  fetch(url)
-    .then(res => res.arrayBuffer())
-    .then(arrayBuffer => {
+const processGifFile = (
+  file: File,
+  url: string,
+  id: string,
+  onComplete: MediaComplete,
+) => {
+  file
+    .arrayBuffer()
+    .then((arrayBuffer) => {
       try {
         const gif = parseGIF(arrayBuffer);
         const decompressedFrames = decompressFrames(gif, true);
-        
+
         const bakingCanvas = document.createElement("canvas");
         bakingCanvas.width = gif.lsd.width;
         bakingCanvas.height = gif.lsd.height;
@@ -231,7 +165,7 @@ const processGifUrl = (url: string, id: string, name: string, source: string, on
                 prevFrame.dims.left,
                 prevFrame.dims.top,
                 prevFrame.dims.width,
-                prevFrame.dims.height
+                prevFrame.dims.height,
               );
             } else if (prevFrame.disposalType === 3 && prevCanvasData) {
               bakingCtx.putImageData(prevCanvasData, 0, 0);
@@ -239,14 +173,23 @@ const processGifUrl = (url: string, id: string, name: string, source: string, on
           }
 
           if (frame.disposalType === 3) {
-            prevCanvasData = bakingCtx.getImageData(0, 0, bakingCanvas.width, bakingCanvas.height);
+            prevCanvasData = bakingCtx.getImageData(
+              0,
+              0,
+              bakingCanvas.width,
+              bakingCanvas.height,
+            );
           }
 
           const tempCanvas = document.createElement("canvas");
           tempCanvas.width = frame.dims.width;
           tempCanvas.height = frame.dims.height;
           const tempCtx = tempCanvas.getContext("2d")!;
-          const imageData = new ImageData(frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>, frame.dims.width, frame.dims.height);
+          const imageData = new ImageData(
+            frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>,
+            frame.dims.width,
+            frame.dims.height,
+          );
           tempCtx.putImageData(imageData, 0, 0);
 
           bakingCtx.drawImage(tempCanvas, frame.dims.left, frame.dims.top);
@@ -260,7 +203,119 @@ const processGifUrl = (url: string, id: string, name: string, source: string, on
           return {
             canvas: frameCanvas,
             delay: frame.delay || 100,
-            dims: { left: 0, top: 0, width: bakingCanvas.width, height: bakingCanvas.height }
+            dims: {
+              left: 0,
+              top: 0,
+              width: bakingCanvas.width,
+              height: bakingCanvas.height,
+            },
+          };
+        });
+
+        const totalDurationMs = frames.reduce((acc, f) => acc + f.delay, 0);
+
+        let thumbnail = null;
+        if (frames.length > 0) {
+          thumbnail = frames[0].canvas.toDataURL("image/png");
+        }
+
+        onComplete({
+          id,
+          name: file.name,
+          type: "gif",
+          source: "upload",
+          url,
+          thumbnail,
+          duration: totalDurationMs / 1000,
+          width: gif.lsd.width,
+          height: gif.lsd.height,
+          gifFrames: frames,
+          gifDuration: totalDurationMs,
+        });
+      } catch (error) {
+        console.error("Error processing GIF file:", error);
+        processStaticImageFile(file, url, id, onComplete);
+      }
+    })
+    .catch((error) => {
+      console.error("Error reading file buffer:", error);
+      processStaticImageFile(file, url, id, onComplete);
+    });
+};
+
+const processGifUrl = (
+  url: string,
+  id: string,
+  name: string,
+  source: string,
+  onComplete: MediaComplete,
+) => {
+  fetch(url)
+    .then((res) => res.arrayBuffer())
+    .then((arrayBuffer) => {
+      try {
+        const gif = parseGIF(arrayBuffer);
+        const decompressedFrames = decompressFrames(gif, true);
+
+        const bakingCanvas = document.createElement("canvas");
+        bakingCanvas.width = gif.lsd.width;
+        bakingCanvas.height = gif.lsd.height;
+        const bakingCtx = bakingCanvas.getContext("2d")!;
+
+        let prevCanvasData: ImageData | null = null;
+
+        const frames = decompressedFrames.map((frame, index) => {
+          if (index > 0) {
+            const prevFrame = decompressedFrames[index - 1];
+            if (prevFrame.disposalType === 2) {
+              bakingCtx.clearRect(
+                prevFrame.dims.left,
+                prevFrame.dims.top,
+                prevFrame.dims.width,
+                prevFrame.dims.height,
+              );
+            } else if (prevFrame.disposalType === 3 && prevCanvasData) {
+              bakingCtx.putImageData(prevCanvasData, 0, 0);
+            }
+          }
+
+          if (frame.disposalType === 3) {
+            prevCanvasData = bakingCtx.getImageData(
+              0,
+              0,
+              bakingCanvas.width,
+              bakingCanvas.height,
+            );
+          }
+
+          const tempCanvas = document.createElement("canvas");
+          tempCanvas.width = frame.dims.width;
+          tempCanvas.height = frame.dims.height;
+          const tempCtx = tempCanvas.getContext("2d")!;
+          const imageData = new ImageData(
+            frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>,
+            frame.dims.width,
+            frame.dims.height,
+          );
+          tempCtx.putImageData(imageData, 0, 0);
+
+          bakingCtx.drawImage(tempCanvas, frame.dims.left, frame.dims.top);
+
+          const frameCanvas = document.createElement("canvas");
+          frameCanvas.width = bakingCanvas.width;
+          frameCanvas.height = bakingCanvas.height;
+          const frameCtx = frameCanvas.getContext("2d")!;
+          frameCtx.drawImage(bakingCanvas, 0, 0);
+
+          return {
+            canvas: frameCanvas,
+            delay: frame.delay || 100,
+            dims: {
+              left: 0,
+              top: 0,
+              width: bakingCanvas.width,
+              height: bakingCanvas.height,
+            },
           };
         });
 
@@ -282,24 +337,26 @@ const processGifUrl = (url: string, id: string, name: string, source: string, on
           width: gif.lsd.width,
           height: gif.lsd.height,
           gifFrames: frames,
-          gifDuration: totalDurationMs
+          gifDuration: totalDurationMs,
         });
       } catch (error) {
         console.error("Error processing GIF URL:", error);
         processStaticImageUrl(url, id, name, source, onComplete);
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error("Error fetching GIF URL:", error);
       processStaticImageUrl(url, id, name, source, onComplete);
     });
 };
 
-
 /**
  * Robust wrapper for generating thumbnails with CORS fallback
  */
-const safeGenerateThumbnail = (source: any, isVideo = false): Promise<string | null> => {
+const safeGenerateThumbnail = (
+  source: any,
+  isVideo = false,
+): Promise<string | null> => {
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
       resolve(null);
@@ -312,7 +369,10 @@ const safeGenerateThumbnail = (source: any, isVideo = false): Promise<string | n
       })
       .catch((err) => {
         clearTimeout(timeout);
-        console.warn("CORS or drawing error generating thumbnail, using fallback", err);
+        console.warn(
+          "CORS or drawing error generating thumbnail, using fallback",
+          err,
+        );
         resolve(null);
       });
   });
@@ -321,14 +381,19 @@ const safeGenerateThumbnail = (source: any, isVideo = false): Promise<string | n
 /**
  * Seeks to 1.0s or mid-duration to avoid black frames, then captures thumbnail.
  */
-const generateVideoThumbnail = (video: HTMLVideoElement): Promise<string | null> => {
+const generateVideoThumbnail = (
+  video: HTMLVideoElement,
+): Promise<string | null> => {
   return new Promise((resolve) => {
     const safetyTimeout = setTimeout(() => {
       safeGenerateThumbnail(video, true).then(resolve);
     }, 3000);
 
-    const seekTime = Math.min(1.0, video.duration > 0 ? video.duration / 2 : 1.0);
-    
+    const seekTime = Math.min(
+      1.0,
+      video.duration > 0 ? video.duration / 2 : 1.0,
+    );
+
     const onSeeked = () => {
       video.removeEventListener("seeked", onSeeked);
       clearTimeout(safetyTimeout);
@@ -355,11 +420,11 @@ export const processMediaFile = (file: File, onComplete: MediaComplete) => {
     const vid1 = document.createElement("video");
     const vid2 = document.createElement("video");
     let loadedCount = 0;
-    
+
     const checkLoad = () => {
       loadedCount++;
       if (loadedCount === 2) {
-        generateVideoThumbnail(vid1).then(thumb => {
+        generateVideoThumbnail(vid1).then((thumb) => {
           onComplete({
             id,
             name: file.name,
@@ -371,7 +436,7 @@ export const processMediaFile = (file: File, onComplete: MediaComplete) => {
             width: vid1.videoWidth,
             height: vid1.videoHeight,
             element: null,
-            elements: [vid1, vid2]
+            elements: [vid1, vid2],
           });
         });
       }
@@ -406,7 +471,7 @@ export const processMediaFile = (file: File, onComplete: MediaComplete) => {
         thumbnail: null,
         duration: 5,
         element: null,
-        elements: [vid1, vid2]
+        elements: [vid1, vid2],
       });
     };
   } else {
@@ -414,7 +479,13 @@ export const processMediaFile = (file: File, onComplete: MediaComplete) => {
   }
 };
 
-export const processMediaUrl = (url: string, type: string, name: string, source: string, onComplete: MediaComplete) => {
+export const processMediaUrl = (
+  url: string,
+  type: string,
+  name: string,
+  source: string,
+  onComplete: MediaComplete,
+) => {
   const id = `media-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   const isGif = url.toLowerCase().includes(".gif") || type === "gif";
@@ -431,7 +502,7 @@ export const processMediaUrl = (url: string, type: string, name: string, source:
     const checkLoad = () => {
       loadedCount++;
       if (loadedCount === 2) {
-        generateVideoThumbnail(vid1).then(thumb => {
+        generateVideoThumbnail(vid1).then((thumb) => {
           onComplete({
             id,
             name,
@@ -443,7 +514,7 @@ export const processMediaUrl = (url: string, type: string, name: string, source:
             width: vid1.videoWidth,
             height: vid1.videoHeight,
             element: null,
-            elements: [vid1, vid2]
+            elements: [vid1, vid2],
           });
         });
       }
@@ -478,7 +549,7 @@ export const processMediaUrl = (url: string, type: string, name: string, source:
         thumbnail: null,
         duration: 5,
         element: null,
-        elements: [vid1, vid2]
+        elements: [vid1, vid2],
       });
     };
   } else {

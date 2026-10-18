@@ -1,25 +1,35 @@
-
 const loadedFonts = new Set();
 
 export const loadGoogleFont = (fontFamily: string) => {
   if (!fontFamily) return;
   if (loadedFonts.has(fontFamily)) return;
-  
+
   // Skip default system fonts
-  const systemFonts = ["sans-serif", "serif", "monospace", "cursive", "fantasy"];
-  if (systemFonts.some(f => fontFamily.toLowerCase().includes(f) && !fontFamily.includes("'"))) return;
+  const systemFonts = [
+    "sans-serif",
+    "serif",
+    "monospace",
+    "cursive",
+    "fantasy",
+  ];
+  if (
+    systemFonts.some(
+      (f) => fontFamily.toLowerCase().includes(f) && !fontFamily.includes("'"),
+    )
+  )
+    return;
 
   // Extract clean font name (e.g. "'Outfit', sans-serif" -> "Outfit")
   const match = fontFamily.match(/'([^']+)'/);
   const cleanName = match ? match[1] : fontFamily.split(",")[0].trim();
-  
+
   if (loadedFonts.has(cleanName)) return;
 
   const fontUrlName = cleanName.replace(/ /g, "+");
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = `https://fonts.googleapis.com/css2?family=${fontUrlName}:wght@100;300;400;500;700;900&display=swap`;
-  
+
   link.onload = () => {
     console.log(`Font loaded: ${cleanName}`);
     // Canvas re-renders every frame, so no explicit UI poke is needed here.
@@ -72,5 +82,5 @@ export const GoogleFontsList = [
   "'DM Serif Display', serif",
   "'Abril Fatface', serif",
   "'Cinzel', serif",
-  "'Spectral', serif"
+  "'Spectral', serif",
 ];

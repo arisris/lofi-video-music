@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { addClipToTimeline } from "../lib/clip-factory";
-import { hasIcons, populateIcons, getAllIconIds, getIconFromDb } from "../utils/indexed-db";
+import {
+  hasIcons,
+  populateIcons,
+  getAllIconIds,
+  getIconFromDb,
+} from "../utils/indexed-db";
 
 interface ShapeEntry {
   name: string;
@@ -102,7 +107,8 @@ const PREMIUM_SHAPES: ShapeEntry[] = [
       width: 180,
       height: 180,
     },
-    svgStyle: "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
+    svgStyle:
+      "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 text-cyan-400 filter drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="8" /></svg>`,
   },
   {
@@ -122,7 +128,8 @@ const PREMIUM_SHAPES: ShapeEntry[] = [
       width: 240,
       height: 140,
     },
-    svgStyle: "background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(4px); border-color: rgba(255,255,255,0.15);",
+    svgStyle:
+      "background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(4px); border-color: rgba(255,255,255,0.15);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 text-white/70" fill="currentColor" stroke="rgba(255,255,255,0.4)" stroke-width="1"><rect x="3" y="5" width="18" height="14" rx="3" /></svg>`,
   },
   {
@@ -146,7 +153,8 @@ const PREMIUM_SHAPES: ShapeEntry[] = [
         audioReactive: true,
       },
     },
-    svgStyle: "background: linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(236,72,153,0.15) 100%); border-color: rgba(236,72,153,0.3);",
+    svgStyle:
+      "background: linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(236,72,153,0.15) 100%); border-color: rgba(236,72,153,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 filter drop-shadow-[0_0_6px_rgba(236,72,153,0.5)]"><defs><linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7" /><stop offset="100%" stop-color="#ec4899" /></linearGradient></defs><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#heartGrad)" /></svg>`,
   },
   {
@@ -172,7 +180,8 @@ const PREMIUM_SHAPES: ShapeEntry[] = [
         audioReactive: false,
       },
     },
-    svgStyle: "background: linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(234,179,8,0.15) 100%); border-color: rgba(234,179,8,0.3);",
+    svgStyle:
+      "background: linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(234,179,8,0.15) 100%); border-color: rgba(234,179,8,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 filter drop-shadow-[0_0_6px_rgba(249,115,22,0.5)]"><defs><linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f97316" /><stop offset="100%" stop-color="#eab308" /></linearGradient></defs><polygon points="12,2 14,8 20,8 15,12 17,18 12,14 7,18 9,12 4,8 10,8" fill="url(#starGrad)" /></svg>`,
   },
   {
@@ -197,20 +206,45 @@ const PREMIUM_SHAPES: ShapeEntry[] = [
         audioReactive: true,
       },
     },
-    svgStyle: "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
+    svgStyle:
+      "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 text-cyan-400 filter drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,4 20,19 4,19" /></svg>`,
   },
 ];
 
 const CURATED_ICONS = [
   // Music
-  "ri:music-2-fill", "ri:music-line", "ri:headphone-fill", "ri:disc-fill", "ri:equalizer-fill", "mdi:music-note", "mdi:playlist-music",
+  "ri:music-2-fill",
+  "ri:music-line",
+  "ri:headphone-fill",
+  "ri:disc-fill",
+  "ri:equalizer-fill",
+  "mdi:music-note",
+  "mdi:playlist-music",
   // Nature
-  "ri:moon-clear-fill", "ri:sun-fill", "ri:cloud-windy-fill", "ri:rainy-fill", "ri:leaf-fill", "ri:fire-fill", "mdi:weather-night",
+  "ri:moon-clear-fill",
+  "ri:sun-fill",
+  "ri:cloud-windy-fill",
+  "ri:rainy-fill",
+  "ri:leaf-fill",
+  "ri:fire-fill",
+  "mdi:weather-night",
   // Lofi
-  "ri:cup-fill", "ri:book-open-fill", "ri:zzz-fill", "ri:home-2-fill", "mdi:coffee", "mdi:laptop", "mdi:controller",
+  "ri:cup-fill",
+  "ri:book-open-fill",
+  "ri:zzz-fill",
+  "ri:home-2-fill",
+  "mdi:coffee",
+  "mdi:laptop",
+  "mdi:controller",
   // Vibes
-  "ri:heart-fill", "ri:star-fill", "ri:sparkles-fill", "ri:emotion-happy-fill", "mdi:heart", "mdi:star", "mdi:emoticon-cool",
+  "ri:heart-fill",
+  "ri:star-fill",
+  "ri:sparkles-fill",
+  "ri:emotion-happy-fill",
+  "mdi:heart",
+  "mdi:star",
+  "mdi:emoticon-cool",
 ];
 
 /** Async icon preview cell: loads the SVG body from the local icon database. */
@@ -231,11 +265,11 @@ const IconPreview = ({ iconId }: { iconId: string }) => {
   }
 
   if (!svgText) {
-    return <div className="w-6 h-6 bg-slate-800/80 animate-pulse rounded" />;
+    return <div className="h-6 w-6 animate-pulse rounded bg-slate-800/80" />;
   }
   return (
     <div
-      className="w-6 h-6 flex items-center justify-center shrink-0"
+      className="flex h-6 w-6 shrink-0 items-center justify-center"
       dangerouslySetInnerHTML={{ __html: svgText }}
     />
   );
@@ -272,7 +306,9 @@ export const ShapePanel = () => {
       })
       .catch((err: unknown) => {
         console.error("Database population failed:", err);
-        alert("Failed to initialize offline database. Please check console logs.");
+        alert(
+          "Failed to initialize offline database. Please check console logs.",
+        );
         setIsInitializing(false);
       });
   };
@@ -284,7 +320,9 @@ export const ShapePanel = () => {
       return;
     }
     const q = val.toLowerCase();
-    setSearchResults(allIconIds.filter((id) => id.toLowerCase().includes(q)).slice(0, 80));
+    setSearchResults(
+      allIconIds.filter((id) => id.toLowerCase().includes(q)).slice(0, 80),
+    );
   };
 
   useEffect(checkDb, []);
@@ -305,41 +343,48 @@ export const ShapePanel = () => {
   };
 
   return (
-    <div className="bg-slate-900/50 p-4 flex flex-col h-full w-full overflow-hidden text-slate-200">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-900/50 p-4 text-slate-200">
       {/* 1. Tab Switcher */}
-      <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800/80 mb-4 shrink-0">
-        {([["shapes", "Shapes", "icon-[ri--shapes-line]"], ["icons", "Icons", "icon-[ri--emotion-line]"]] as const).map(
-          ([id, label, icon]) => (
-            <button
-              key={id}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
-                activeTab === id ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-slate-400 hover:text-slate-200"
-              }`}
-              onClick={() => setActiveTab(id)}
-            >
-              <i className={`${icon} w-4 h-4`} />
-              {label}
-            </button>
-          ),
-        )}
+      <div className="mb-4 flex shrink-0 rounded-xl border border-slate-800/80 bg-slate-950 p-1">
+        {(
+          [
+            ["shapes", "Shapes", "icon-[ri--shapes-line]"],
+            ["icons", "Icons", "icon-[ri--emotion-line]"],
+          ] as const
+        ).map(([id, label, icon]) => (
+          <button
+            key={id}
+            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition-all ${
+              activeTab === id
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+            onClick={() => setActiveTab(id)}
+          >
+            <i className={`${icon} h-4 w-4`} />
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* 2. Tab Content Area */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         {activeTab === "shapes" ? (
-          <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-6">
+          <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-1">
             {/* Basic Shapes */}
             <div className="space-y-3">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Add Basic Shape</h3>
+              <h3 className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+                Add Basic Shape
+              </h3>
               <div className="grid grid-cols-3 gap-2">
                 {BASIC_SHAPES.map((shape) => (
                   <button
                     key={shape.name}
-                    className="p-2.5 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl transition-all flex flex-col items-center justify-center text-center gap-1.5 group cursor-pointer hover:scale-[1.03]"
+                    className="group flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-slate-700/50 bg-slate-800/40 p-2.5 text-center transition-all hover:scale-[1.03] hover:border-blue-500/30 hover:bg-blue-600/10"
                     onClick={() => addShape(shape.settings)}
                   >
                     <div dangerouslySetInnerHTML={{ __html: shape.svg }} />
-                    <span className="text-[10px] font-bold text-slate-300 group-hover:text-white transition-colors">
+                    <span className="text-[10px] font-bold text-slate-300 transition-colors group-hover:text-white">
                       {shape.name}
                     </span>
                   </button>
@@ -349,12 +394,14 @@ export const ShapePanel = () => {
 
             {/* Premium Presets */}
             <div className="space-y-3">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Premium Presets</h3>
+              <h3 className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+                Premium Presets
+              </h3>
               <div className="flex flex-col gap-3">
                 {PREMIUM_SHAPES.map((tmpl) => (
                   <button
                     key={tmpl.name}
-                    className="p-3 bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-650 rounded-xl transition-all flex items-center justify-between text-left gap-4 cursor-pointer group hover:scale-[1.01] overflow-hidden"
+                    className="hover:border-slate-650 group flex cursor-pointer items-center justify-between gap-4 overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/40 p-3 text-left transition-all hover:scale-[1.01] hover:bg-slate-800"
                     onClick={() => addShape(tmpl.settings)}
                   >
                     <div className="flex items-center gap-3">
@@ -362,18 +409,20 @@ export const ShapePanel = () => {
                         ref={(el) => {
                           if (el) el.style.cssText = tmpl.svgStyle ?? "";
                         }}
-                        className="w-16 h-16 rounded-lg border flex items-center justify-center bg-slate-950 shrink-0"
+                        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border bg-slate-950"
                       >
                         <div dangerouslySetInnerHTML={{ __html: tmpl.svg }} />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors">
+                        <span className="text-xs font-bold text-slate-200 transition-colors group-hover:text-blue-400">
                           {tmpl.name}
                         </span>
-                        <span className="text-[10px] text-slate-500 leading-snug">{tmpl.desc}</span>
+                        <span className="text-[10px] leading-snug text-slate-500">
+                          {tmpl.desc}
+                        </span>
                       </div>
                     </div>
-                    <i className="icon-[ri--add-circle-line] w-5 h-5 text-slate-600 group-hover:text-blue-400 group-hover:scale-110 transition-all shrink-0" />
+                    <i className="icon-[ri--add-circle-line] h-5 w-5 shrink-0 text-slate-600 transition-all group-hover:scale-110 group-hover:text-blue-400" />
                   </button>
                 ))}
               </div>
@@ -381,29 +430,35 @@ export const ShapePanel = () => {
           </div>
         ) : !dbInitialized ? (
           /* Database Setup Screen */
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-              <i className="icon-[ri--database-2-line] text-blue-400 w-8 h-8" />
+          <div className="flex flex-1 flex-col items-center justify-center space-y-4 p-6 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10">
+              <i className="icon-[ri--database-2-line] h-8 w-8 text-blue-400" />
             </div>
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-slate-200">Local Icon Database</h4>
-              <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
-                Load 9,000+ Remix & Material Design Icons directly from local dependencies into browser database for offline search and customization.
+              <h4 className="text-sm font-bold text-slate-200">
+                Local Icon Database
+              </h4>
+              <p className="max-w-xs text-xs leading-relaxed text-slate-500">
+                Load 9,000+ Remix & Material Design Icons directly from local
+                dependencies into browser database for offline search and
+                customization.
               </p>
             </div>
             {isInitializing ? (
-              <div className="w-full space-y-2 mt-2">
-                <div className="flex justify-between items-center text-[10px] font-bold text-blue-400 uppercase tracking-widest px-1 animate-pulse">
+              <div className="mt-2 w-full space-y-2">
+                <div className="flex animate-pulse items-center justify-between px-1 text-[10px] font-bold tracking-widest text-blue-400 uppercase">
                   <span>Initializing...</span>
                 </div>
-                <div className="w-full h-1 bg-slate-950 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 animate-in slide-in-from-left duration-1000 w-full" />
+                <div className="h-1 w-full overflow-hidden rounded-full bg-slate-950">
+                  <div className="animate-in slide-in-from-left h-full w-full bg-blue-500 duration-1000" />
                 </div>
-                <p className="text-[9px] text-slate-500 italic mt-1.5">{progressText}</p>
+                <p className="mt-1.5 text-[9px] text-slate-500 italic">
+                  {progressText}
+                </p>
               </div>
             ) : (
               <button
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-blue-600/15 cursor-pointer"
+                className="w-full cursor-pointer rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-600/15 transition-all hover:bg-blue-500"
                 onClick={initializeDb}
               >
                 Initialize Icon Library
@@ -412,21 +467,21 @@ export const ShapePanel = () => {
           </div>
         ) : (
           /* Search and Icon Browser Screen */
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-hidden">
             {/* Search Input */}
             <div className="relative mb-4 shrink-0">
               <input
                 type="text"
                 placeholder="Search 9,000+ local icons..."
-                className="w-full bg-slate-950 text-white text-xs pl-9 pr-4 py-2.5 rounded-xl border border-slate-800 focus:border-blue-500 outline-none transition-all"
+                className="w-full rounded-xl border border-slate-800 bg-slate-950 py-2.5 pr-4 pl-9 text-xs text-white transition-all outline-none focus:border-blue-500"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
               />
-              <i className="icon-[ri--search-line] absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+              <i className="absolute top-1/2 left-3 icon-[ri--search-line] h-4 w-4 -translate-y-1/2 text-slate-500" />
             </div>
 
             {/* Icon Grid */}
-            <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+            <div className="custom-scrollbar flex-1 overflow-y-auto pr-1">
               {searchQuery ? (
                 searchResults.length > 0 ? (
                   <div className="grid grid-cols-4 gap-2">
@@ -434,7 +489,7 @@ export const ShapePanel = () => {
                       <button
                         key={id}
                         title={id}
-                        className="p-2 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl flex items-center justify-center min-h-11 transition-all group cursor-pointer hover:scale-[1.05]"
+                        className="group flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-slate-700/50 bg-slate-800/40 p-2 transition-all hover:scale-[1.05] hover:border-blue-500/30 hover:bg-blue-600/10"
                         onClick={() => addIcon(id)}
                       >
                         <IconPreview iconId={id} />
@@ -442,19 +497,21 @@ export const ShapePanel = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center text-slate-500 text-xs italic py-8">
+                  <div className="py-8 text-center text-xs text-slate-500 italic">
                     No icons found matching your query.
                   </div>
                 )
               ) : (
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Popular Lofi Icons</h4>
+                  <h4 className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+                    Popular Lofi Icons
+                  </h4>
                   <div className="grid grid-cols-4 gap-2">
                     {CURATED_ICONS.map((id) => (
                       <button
                         key={id}
                         title={id}
-                        className="p-2 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl flex items-center justify-center min-h-11 transition-all group cursor-pointer hover:scale-[1.05]"
+                        className="group flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-slate-700/50 bg-slate-800/40 p-2 transition-all hover:scale-[1.05] hover:border-blue-500/30 hover:bg-blue-600/10"
                         onClick={() => addIcon(id)}
                       >
                         <IconPreview iconId={id} />

@@ -69,7 +69,11 @@ export const GlvizClip = {
       ctx.save();
       ctx.fillStyle = "rgba(239, 68, 68, 0.8)";
       ctx.font = "12px monospace";
-      ctx.fillText("WebGL not supported - Shader Visualizer disabled", 20, h - 20);
+      ctx.fillText(
+        "WebGL not supported - Shader Visualizer disabled",
+        20,
+        h - 20,
+      );
       ctx.restore();
       return;
     }
@@ -81,14 +85,24 @@ export const GlvizClip = {
     if (clip.animTime === undefined) {
       clip.animTime = 0;
     } else {
-      clip.animTime += Math.min((now - (clip.lastRenderTime || now)) / 1000, 0.1);
+      clip.animTime += Math.min(
+        (now - (clip.lastRenderTime || now)) / 1000,
+        0.1,
+      );
     }
     clip.lastRenderTime = now;
 
     const bbox = resolveBBox(def, w, h, settings);
     ctx.save();
     ctx.globalAlpha = settings.opacity !== undefined ? settings.opacity : 1;
-    drawVisualizer(def, ctx, bbox, settings, clip.animTime, editorStore.getState().isPlaying);
+    drawVisualizer(
+      def,
+      ctx,
+      bbox,
+      settings,
+      clip.animTime,
+      editorStore.getState().isPlaying,
+    );
     ctx.restore();
   },
 

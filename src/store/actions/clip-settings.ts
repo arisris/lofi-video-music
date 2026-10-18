@@ -12,7 +12,10 @@ import { ClipRegistry } from "../../lib/clips/index";
  * while swapping the object without rebinding would leave the clips reading
  * the old one. This helper does both, keeping the two in step.
  */
-export function updateClipSettings(id: string, patch: Partial<ClipSettings>): void {
+export function updateClipSettings(
+  id: string,
+  patch: Partial<ClipSettings>,
+): void {
   const state = editorStore.getState();
   const current = state.clipSettings[id];
   const next: Record<string, ClipSettings> = {

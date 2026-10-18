@@ -32,10 +32,19 @@ export const manageVideoPlayback = (
   } = options;
 
   const vids = clip.settings[elementsKey];
-  if (clip.settings[typeKey] !== typeValue || !vids || !Array.isArray(vids) || vids.length === 0 || vids.some((v: HTMLVideoElement) => !v || typeof v.pause !== "function")) return;
+  if (
+    clip.settings[typeKey] !== typeValue ||
+    !vids ||
+    !Array.isArray(vids) ||
+    vids.length === 0 ||
+    vids.some((v: HTMLVideoElement) => !v || typeof v.pause !== "function")
+  )
+    return;
 
-  const isActive = (clip.settings.enabled !== false) &&
-    (globalTime >= clip.start - activeMargin && globalTime <= clip.start + clip.duration + activeMargin);
+  const isActive =
+    clip.settings.enabled !== false &&
+    globalTime >= clip.start - activeMargin &&
+    globalTime <= clip.start + clip.duration + activeMargin;
 
   if (!isActive) {
     vids.forEach((v: HTMLVideoElement) => {
@@ -55,23 +64,38 @@ export const manageVideoPlayback = (
     if (v.playbackRate !== speed) v.playbackRate = speed;
   });
 
-  const shouldLoop = alwaysLoop ? true : (clip.settings.loop !== false);
+  const shouldLoop = alwaysLoop ? true : clip.settings.loop !== false;
   const duration = clip.settings.videoDuration || vid1.duration;
   const localTime = globalTime - clip.start;
 
   if (!duration) return;
 
   if (shouldLoop) {
-    manageLoopingPlayback(vids as HTMLVideoElement[], localTime, duration, speed);
+    manageLoopingPlayback(
+      vids as HTMLVideoElement[],
+      localTime,
+      duration,
+      speed,
+    );
   } else {
-    manageNonLoopingPlayback(vids as HTMLVideoElement[], localTime, duration, speed);
+    manageNonLoopingPlayback(
+      vids as HTMLVideoElement[],
+      localTime,
+      duration,
+      speed,
+    );
   }
 };
 
 /**
  * Handles looping playback with crossfade between two video elements.
  */
-const manageLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, duration: number, speed: number) => {
+const manageLoopingPlayback = (
+  vids: HTMLVideoElement[],
+  localTime: number,
+  duration: number,
+  speed: number,
+) => {
   const crossfadeDur = Math.min(1.5, duration / 4);
   const period = duration - crossfadeDur;
   const virtualTime = Math.max(0, localTime * speed);
@@ -88,7 +112,7 @@ const manageLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, dura
   const inCrossfade = loopTime < crossfadeDur && loopIndex > 0;
 
   const primaryTargetTime = loopTime;
-  const secondaryTargetTime = inCrossfade ? (loopTime + period) : 0;
+  const secondaryTargetTime = inCrossfade ? loopTime + period : 0;
 
   if (editorStore.getState().isPlaying) {
     // Manage primary video
@@ -104,7 +128,9 @@ const manageLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, dura
       if (secondaryVid.paused) {
         secondaryVid.currentTime = secondaryTargetTime;
         secondaryVid.play().catch(() => {});
-      } else if (Math.abs(secondaryVid.currentTime - secondaryTargetTime) > 0.5) {
+      } else if (
+        Math.abs(secondaryVid.currentTime - secondaryTargetTime) > 0.5
+      ) {
         secondaryVid.currentTime = secondaryTargetTime;
       }
     } else {
@@ -135,7 +161,12 @@ const manageLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, dura
 /**
  * Handles non-looping playback (single play through).
  */
-const manageNonLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, duration: number, speed: number) => {
+const manageNonLoopingPlayback = (
+  vids: HTMLVideoElement[],
+  localTime: number,
+  duration: number,
+  speed: number,
+) => {
   const targetTime = Math.max(0, Math.min(duration - 0.05, localTime * speed));
   const primaryVid = vids[0];
   const secondaryVid = vids[1];

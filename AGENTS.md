@@ -64,7 +64,7 @@ Always finish MCP browser work in this order:
 2. `browser_tabs({ action: "close", index })` — once per tab
 3. `browser_close()`
 
-`browser_close()` alone only releases the *current page*; every other tab stays open. Each `browser_navigate` adds one, so a run with several checks leaves several tabs, and the leftovers accumulate until the MCP server runs out of memory.
+`browser_close()` alone only releases the _current page_; every other tab stays open. Each `browser_navigate` adds one, so a run with several checks leaves several tabs, and the leftovers accumulate until the MCP server runs out of memory.
 
 Closing the last tab tears the browser down, so step 3 only works while a tab still exists. If it errors with `Target.createTarget: Failed to open a new tab`, the browser is already gone — that is the desired end state, not a failure.
 
@@ -75,6 +75,7 @@ ends a tab but leaves the browser Bun spawned running, so `shutdown()` also call
 ## Architecture
 
 **Two routes** defined in `src/app.tsx` via hashchange + regex parser:
+
 - `/` — video editor mode
 - `/image` — thumbnail editor mode
 
@@ -83,6 +84,7 @@ State is swapped between routes via the `mode` slice action (`swapRoute`). The Z
 **Entry point**: `src/app.tsx` — React shell, hash router, runtime binding
 
 **Key directories**:
+
 - `src/store/` — Zustand store, slices, and actions (`src/store/actions/`)
 - `src/types/` — shared TypeScript types (clips, media, panels)
 - `src/components/` — React components (UI panels, timeline, inspector, clip settings views)
@@ -96,6 +98,7 @@ State is swapped between routes via the `mode` slice action (`swapRoute`). The Z
 - `src/data/` — static JSON (emoji, character data)
 
 **Worker** (`worker/index.ts`): Cloudflare Worker with two API endpoints:
+
 - `/api/pexels/search` — proxies Pexels video/photo search
 - `/api/pixabay/search` — proxies Pixabay video/image search
 - Uses Cloudflare Cache API for caching responses

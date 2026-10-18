@@ -48,7 +48,8 @@ export class Drop extends BaseParticle {
 
   draw(ctx: CanvasRenderingContext2D, settings: Record<string, any>) {
     const sizeMultiplier = settings.size !== undefined ? settings.size : 1.0;
-    const opacityMultiplier = settings.opacity !== undefined ? settings.opacity : 1.0;
+    const opacityMultiplier =
+      settings.opacity !== undefined ? settings.opacity : 1.0;
 
     // (x, y) is the drop's head; the streak trails *behind* it, i.e. above,
     // and leans against the direction of travel.
@@ -90,7 +91,12 @@ export const RainVFX = {
     const intensity = settings.intensity || 200;
 
     // Initialize or resize drops array if count doesn't match
-    if (!clip.drops || clip.drops.length !== intensity || clip.canvasWidth !== w || clip.canvasHeight !== h) {
+    if (
+      !clip.drops ||
+      clip.drops.length !== intensity ||
+      clip.canvasWidth !== w ||
+      clip.canvasHeight !== h
+    ) {
       clip.drops = [];
       clip.canvasWidth = w;
       clip.canvasHeight = h;
@@ -102,7 +108,9 @@ export const RainVFX = {
       }
     }
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "volume") : 0;
+    const audioLevel = settings.audioReactive
+      ? getAudioReactivity(editorStore.getState(), "volume")
+      : 0;
 
     // Determine how many drops to draw
     const visibleCount = settings.audioReactive
@@ -113,8 +121,12 @@ export const RainVFX = {
     const activeSettings = settings.audioReactive
       ? {
           ...settings,
-          speed: (settings.speed !== undefined ? settings.speed : 1.0) * (0.4 + audioLevel * 1.6),
-          opacity: (settings.opacity !== undefined ? settings.opacity : 1.0) * (0.3 + audioLevel * 0.7),
+          speed:
+            (settings.speed !== undefined ? settings.speed : 1.0) *
+            (0.4 + audioLevel * 1.6),
+          opacity:
+            (settings.opacity !== undefined ? settings.opacity : 1.0) *
+            (0.3 + audioLevel * 0.7),
         }
       : settings;
 

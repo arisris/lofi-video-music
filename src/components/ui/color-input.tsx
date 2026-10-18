@@ -44,13 +44,13 @@ export const ColorInput = ({ label, value, onUpdate }: ColorInputProps) => {
 
   return (
     <div className="mb-4">
-      <label className="block text-[10px] text-slate-500 mb-1.5">{label}</label>
-      <div className="flex items-center bg-slate-800/40 border border-slate-700/50 rounded overflow-hidden h-7 transition-all focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/50">
+      <label className="mb-1.5 block text-[10px] text-slate-500">{label}</label>
+      <div className="flex h-7 items-center overflow-hidden rounded border border-slate-700/50 bg-slate-800/40 transition-all focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/50">
         {/* 1. Color Picker Area */}
-        <div className="relative w-10 h-full flex-none flex items-center justify-center border-r border-slate-700/50 bg-slate-900/20">
+        <div className="relative flex h-full w-10 flex-none items-center justify-center border-r border-slate-700/50 bg-slate-900/20">
           <input
             type="color"
-            className="w-6 h-5 bg-transparent cursor-pointer rounded-sm border-none p-0"
+            className="h-5 w-6 cursor-pointer rounded-sm border-none bg-transparent p-0"
             value={currentHex}
             onChange={(e) => {
               const newAlpha = currentAlpha === 0 ? 1 : currentAlpha;
@@ -58,7 +58,7 @@ export const ColorInput = ({ label, value, onUpdate }: ColorInputProps) => {
             }}
           />
           {currentAlpha < 1 && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-slate-900/40">
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-900/40">
               <i className="icon-[ri--contrast-drop-2-line] text-[10px] text-white/50" />
             </div>
           )}
@@ -67,7 +67,7 @@ export const ColorInput = ({ label, value, onUpdate }: ColorInputProps) => {
         {/* 2. Text Input */}
         <input
           type="text"
-          className={`flex-1 bg-transparent border-none px-2 h-full font-mono text-slate-300 outline-none ${
+          className={`h-full flex-1 border-none bg-transparent px-2 font-mono text-slate-300 outline-none ${
             (value ?? "").length > 15 ? "text-[9px]" : "text-[10px]"
           }`}
           value={value || "#000000"}
@@ -75,7 +75,7 @@ export const ColorInput = ({ label, value, onUpdate }: ColorInputProps) => {
         />
 
         {/* 3. Alpha Slider */}
-        <div className="w-14 h-full flex-none border-l border-slate-700/50">
+        <div className="h-full w-14 flex-none border-l border-slate-700/50">
           <ScrubInput
             label=""
             value={currentAlpha}

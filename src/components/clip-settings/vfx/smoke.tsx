@@ -9,18 +9,26 @@ interface ClipViewProps {
 /** Settings panel for the canvas "smoke" VFX clip. */
 export const SmokeSettingsView = ({ clip }: ClipViewProps) => {
   const selectedClip =
-    clip || editorStore.getState().timelineClips.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "smoke");
+    clip ||
+    editorStore
+      .getState()
+      .timelineClips.find(
+        (c: any) =>
+          c.id === editorStore.getState().selectedClipId && c.type === "smoke",
+      );
   if (!selectedClip) return null;
 
   const settings = selectedClip.settings as Record<string, any>;
 
   if (settings.audioReactive === undefined) settings.audioReactive = false;
 
-  const update = (patch: Record<string, unknown>, clipPatch: Record<string, unknown> = {}) =>
-    updateTimelineClipSettings(selectedClip.id as string, patch, clipPatch);
+  const update = (
+    patch: Record<string, unknown>,
+    clipPatch: Record<string, unknown> = {},
+  ) => updateTimelineClipSettings(selectedClip.id as string, patch, clipPatch);
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-300">
+    <div className="animate-in fade-in space-y-4 duration-300">
       {/* Audio Reactive Toggle */}
       <ToggleControl
         label="Audio Reactive"

@@ -58,7 +58,10 @@ const handleWindowMouseDownCloseMenu = (e: MouseEvent) => {
   }
 };
 
-const showContextMenu = (e: { clientX: number; clientY: number }, clipId: string) => {
+const showContextMenu = (
+  e: { clientX: number; clientY: number },
+  clipId: string,
+) => {
   contextMenu = { x: e.clientX, y: e.clientY, clipId };
   window.addEventListener("mousedown", handleWindowMouseDownCloseMenu);
   window.addEventListener("wheel", closeContextMenu, { passive: true });
@@ -79,7 +82,7 @@ const seekGlobal = (globalTime: number) => {
       c.type === "music" &&
       c.settings?.enabled !== false &&
       nextTime >= c.start &&
-      nextTime <= c.start + c.duration
+      nextTime <= c.start + c.duration,
   );
 
   if (activeClip) {
@@ -104,7 +107,10 @@ const seekGlobal = (globalTime: number) => {
       applyAudioSettings(activeClip);
 
       const onLoaded = () => {
-        if (playheadTime < (activeClip.settings.audioDuration || activeClip.duration)) {
+        if (
+          playheadTime <
+          (activeClip.settings.audioDuration || activeClip.duration)
+        ) {
           audio.currentTime = playheadTime;
           applyAudioSettings(activeClip);
           if (editorStore.getState().isPlaying) {
@@ -117,7 +123,10 @@ const seekGlobal = (globalTime: number) => {
       };
       audio.addEventListener("loadedmetadata", onLoaded);
     } else {
-      if (playheadTime < (activeClip.settings.audioDuration || activeClip.duration)) {
+      if (
+        playheadTime <
+        (activeClip.settings.audioDuration || activeClip.duration)
+      ) {
         audio.currentTime = playheadTime;
         applyAudioSettings(activeClip);
         if (editorStore.getState().isPlaying && audio.paused) {
@@ -155,12 +164,17 @@ const handleWindowMouseMove = (e: MouseEvent) => {
 
     // 1. Calculate Track Switching (Y-Axis)
     const mouseY = e.clientY - rect.top + (state.timelineScrollTop || 0);
-    const trackIndex = Math.max(0, Math.min(state.timelineTracks.length - 1, Math.floor(mouseY / 48))); // 48 is track height
+    const trackIndex = Math.max(
+      0,
+      Math.min(state.timelineTracks.length - 1, Math.floor(mouseY / 48)),
+    ); // 48 is track height
     let targetTrackId = state.timelineTracks[trackIndex].id;
 
     // 2. Calculate Time Displacement (X-Axis)
     const dx = (e.clientX - isDraggingClip.startX) / zoom;
-    const clip = state.timelineClips.find((c: any) => c.id === isDraggingClip?.clipId) as any;
+    const clip = state.timelineClips.find(
+      (c: any) => c.id === isDraggingClip?.clipId,
+    ) as any;
 
     if (clip) {
       // Work on a copy; the store is updated immutably once at the end of the drag step.
@@ -169,10 +183,16 @@ const handleWindowMouseMove = (e: MouseEvent) => {
       // frame would churn the inspector for nothing.
       const nextClip: any = { ...clip };
       const nextSnapLines: any[] = [];
-      const currentTrack = state.timelineTracks.find((t: any) => t.id === clip.trackId);
+      const currentTrack = state.timelineTracks.find(
+        (t: any) => t.id === clip.trackId,
+      );
 
       // Lock Check: Don't move if current track is locked (Track 1 is never locked from horizontal dragging)
-      if (currentTrack && currentTrack.locked && currentTrack.id !== "track-1") {
+      if (
+        currentTrack &&
+        currentTrack.locked &&
+        currentTrack.id !== "track-1"
+      ) {
         editorStore.setState({ snapLines: [] });
         return;
       }
@@ -184,7 +204,9 @@ const handleWindowMouseMove = (e: MouseEvent) => {
         targetTrackId = clip.trackId !== "track-1" ? clip.trackId : "track-2";
       }
 
-      const targetTrack = state.timelineTracks.find((t: any) => t.id === targetTrackId);
+      const targetTrack = state.timelineTracks.find(
+        (t: any) => t.id === targetTrackId,
+      );
       if (targetTrack && !targetTrack.locked) {
         nextClip.trackId = targetTrackId;
         editorStore.setState({ selectedTrackId: targetTrackId });
@@ -200,8 +222,12 @@ const handleWindowMouseMove = (e: MouseEvent) => {
           // Bounded by the audio left after the clip's own offset, taken from
           // the drag origin for the same reason the head trim is.
           const maxDur =
-            (clip.settings.audioDuration || clip.duration) - isDraggingClip.initialStartOffset;
-          newDur = Math.max(0.1, Math.min(maxDur, isDraggingClip.initialDuration + dx));
+            (clip.settings.audioDuration || clip.duration) -
+            isDraggingClip.initialStartOffset;
+          newDur = Math.max(
+            0.1,
+            Math.min(maxDur, isDraggingClip.initialDuration + dx),
+          );
         } else {
           newDur = Math.max(0.1, isDraggingClip.initialDuration + dx);
         }
@@ -226,14 +252,21 @@ const handleWindowMouseMove = (e: MouseEvent) => {
           // duration would floor at 0.1s while the start kept running, so the
           // clip jumped to a different place on the timeline entirely.
           const maxOffset =
-            Math.min(clip.settings.audioDuration || clip.duration, base + isDraggingClip.initialDuration) - 0.1;
+            Math.min(
+              clip.settings.audioDuration || clip.duration,
+              base + isDraggingClip.initialDuration,
+            ) - 0.1;
           if (newOffset > maxOffset) {
             newOffset = maxOffset;
             newStart = isDraggingClip.initialStart + (maxOffset - base);
           }
 
           nextClip.settings = { ...clip.settings, startOffset: newOffset };
-          newDur = Math.max(0.1, isDraggingClip.initialDuration - (newStart - isDraggingClip.initialStart));
+          newDur = Math.max(
+            0.1,
+            isDraggingClip.initialDuration -
+              (newStart - isDraggingClip.initialStart),
+          );
         } else {
           newStart = Math.max(0, isDraggingClip.initialStart + dx);
           const diff = clip.start - newStart;
@@ -275,10 +308,16 @@ const handleWindowMouseMove = (e: MouseEvent) => {
       if (isVideo && typeof videoDuration === "number" && videoDuration > 0) {
         const speed = clip.settings.speed || 1.0;
         const visualVideoDuration = videoDuration / speed;
-        if (typeof visualVideoDuration === "number" && visualVideoDuration > 0.05) {
+        if (
+          typeof visualVideoDuration === "number" &&
+          visualVideoDuration > 0.05
+        ) {
           const shouldLoop = clip.settings.loop !== false;
           if (shouldLoop) {
-            const maxMultiples = Math.max(5, Math.min(100, Math.ceil(300 / visualVideoDuration)));
+            const maxMultiples = Math.max(
+              5,
+              Math.min(100, Math.ceil(300 / visualVideoDuration)),
+            );
             for (let i = 1; i <= maxMultiples; i++) {
               videoSnapPoints.push(clip.start + i * visualVideoDuration);
             }
@@ -296,7 +335,9 @@ const handleWindowMouseMove = (e: MouseEvent) => {
         for (const point of videoSnapPoints) {
           if (Math.abs(newEnd - point) < SNAP_THRESHOLD) {
             newDur = point - newStart;
-            const trackIdx = state.timelineTracks.findIndex((t: any) => t.id === clip.trackId);
+            const trackIdx = state.timelineTracks.findIndex(
+              (t: any) => t.id === clip.trackId,
+            );
             nextSnapLines.push({
               time: point,
               type: "end",
@@ -311,7 +352,10 @@ const handleWindowMouseMove = (e: MouseEvent) => {
 
       // 2. Check Standard Snaps if not snapped to video duration
       if (!snapped) {
-        if (isDraggingClip?.type === "move" || isDraggingClip?.type === "resize-start") {
+        if (
+          isDraggingClip?.type === "move" ||
+          isDraggingClip?.type === "resize-start"
+        ) {
           for (const point of snapPoints) {
             if (Math.abs(newStart - point) < SNAP_THRESHOLD) {
               newStart = point;
@@ -321,12 +365,20 @@ const handleWindowMouseMove = (e: MouseEvent) => {
             }
           }
         }
-        if (!snapped && (isDraggingClip?.type === "move" || isDraggingClip?.type === "resize-end")) {
+        if (
+          !snapped &&
+          (isDraggingClip?.type === "move" ||
+            isDraggingClip?.type === "resize-end")
+        ) {
           const newEnd = newStart + newDur;
           for (const point of snapPoints) {
             if (Math.abs(newEnd - point) < SNAP_THRESHOLD) {
-              newStart = isDraggingClip?.type === "move" ? point - newDur : newStart;
-              newDur = isDraggingClip?.type === "resize-end" ? point - newStart : newDur;
+              newStart =
+                isDraggingClip?.type === "move" ? point - newDur : newStart;
+              newDur =
+                isDraggingClip?.type === "resize-end"
+                  ? point - newStart
+                  : newDur;
               nextSnapLines.push({ time: point, type: "end" });
               break;
             }
@@ -335,7 +387,11 @@ const handleWindowMouseMove = (e: MouseEvent) => {
       }
 
       // If the clip is a video overlay with loop disabled, enforce the video duration adjusted for speed!
-      if (clip.type === "overlay" && clip.settings.mediaType === "video" && clip.settings.loop === false) {
+      if (
+        clip.type === "overlay" &&
+        clip.settings.mediaType === "video" &&
+        clip.settings.loop === false
+      ) {
         const speed = clip.settings.speed || 1.0;
         newDur = (clip.settings.videoDuration || clip.duration) / speed;
       }
@@ -345,7 +401,9 @@ const handleWindowMouseMove = (e: MouseEvent) => {
 
       editorStore.setState({
         snapLines: nextSnapLines as never,
-        timelineClips: state.timelineClips.map((c) => (c.id === nextClip.id ? nextClip : c)),
+        timelineClips: state.timelineClips.map((c) =>
+          c.id === nextClip.id ? nextClip : c,
+        ),
       });
       redraw();
     }
@@ -372,7 +430,9 @@ const handleWheelNative = (e: WheelEvent) => {
   const timelineWidth = totalDuration * state.timelineZoom;
 
   const timelineArea = document.getElementById("timeline-content-area");
-  const visibleWidth = timelineArea ? timelineArea.clientWidth : window.innerWidth - 128;
+  const visibleWidth = timelineArea
+    ? timelineArea.clientWidth
+    : window.innerWidth - 128;
   const maxScrollLeft = Math.max(0, timelineWidth - visibleWidth);
 
   const totalTracksHeight = state.timelineTracks.length * 48;
@@ -387,25 +447,43 @@ const handleWheelNative = (e: WheelEvent) => {
     const centerTime = (state.timelineScrollLeft + 400) / oldZoom;
     editorStore.setState({
       timelineZoom: newZoom,
-      timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, centerTime * newZoom - 400)),
+      timelineScrollLeft: Math.max(
+        0,
+        Math.min(maxScrollLeft, centerTime * newZoom - 400),
+      ),
     });
   } else {
     if (e.shiftKey) {
       editorStore.setState({
-        timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, state.timelineScrollLeft + e.deltaY + e.deltaX)),
+        timelineScrollLeft: Math.max(
+          0,
+          Math.min(
+            maxScrollLeft,
+            state.timelineScrollLeft + e.deltaY + e.deltaX,
+          ),
+        ),
       });
     } else if (maxScrollTop === 0) {
       // If vertical scroll is not needed, route scroll wheel to horizontal
       editorStore.setState({
         timelineScrollLeft: Math.max(
           0,
-          Math.min(maxScrollLeft, state.timelineScrollLeft + e.deltaY + e.deltaX)
+          Math.min(
+            maxScrollLeft,
+            state.timelineScrollLeft + e.deltaY + e.deltaX,
+          ),
         ),
       });
     } else {
       editorStore.setState({
-        timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, state.timelineScrollLeft + e.deltaX)),
-        timelineScrollTop: Math.max(0, Math.min(maxScrollTop, state.timelineScrollTop + e.deltaY)),
+        timelineScrollLeft: Math.max(
+          0,
+          Math.min(maxScrollLeft, state.timelineScrollLeft + e.deltaX),
+        ),
+        timelineScrollTop: Math.max(
+          0,
+          Math.min(maxScrollTop, state.timelineScrollTop + e.deltaY),
+        ),
       });
     }
   }
@@ -421,7 +499,7 @@ const handleWheelNative = (e: WheelEvent) => {
 const beginClipDrag = (
   e: React.MouseEvent,
   clip: any,
-  type: DragState["type"]
+  type: DragState["type"],
 ) => {
   e.stopPropagation();
   if (type === "move") {
@@ -463,23 +541,30 @@ const RulerTicks = memo(function RulerTicks({
   scrollLeft: number;
 }) {
   const span = { left: `${-scrollLeft}px`, width: `${totalDuration * zoom}px` };
-  const valid = !isNaN(totalDuration) && isFinite(totalDuration) && totalDuration > 0;
+  const valid =
+    !isNaN(totalDuration) && isFinite(totalDuration) && totalDuration > 0;
 
   return (
     <>
-      <div className="absolute top-0 h-full flex items-end" style={span}>
-        {Array.from({ length: valid ? Math.ceil(totalDuration / 10) + 1 : 7 }).map((_, i) => (
+      <div className="absolute top-0 flex h-full items-end" style={span}>
+        {Array.from({
+          length: valid ? Math.ceil(totalDuration / 10) + 1 : 7,
+        }).map((_, i) => (
           <div
             key={`ruler-${i * 10}`}
-            className="absolute h-3 border-l border-slate-700 flex flex-col justify-end pb-1 px-1"
+            className="absolute flex h-3 flex-col justify-end border-l border-slate-700 px-1 pb-1"
             style={{ left: `${i * 10 * zoom}px` }}
           >
-            <span className="text-[8px] text-slate-500 font-mono">{formatTime(i * 10)}</span>
+            <span className="font-mono text-[8px] text-slate-500">
+              {formatTime(i * 10)}
+            </span>
           </div>
         ))}
       </div>
-      <div className="absolute top-0 h-full flex items-end" style={span}>
-        {Array.from({ length: valid ? Math.ceil(totalDuration / 2) + 1 : 31 }).map((_, i) => {
+      <div className="absolute top-0 flex h-full items-end" style={span}>
+        {Array.from({
+          length: valid ? Math.ceil(totalDuration / 2) + 1 : 31,
+        }).map((_, i) => {
           const time = i * 2;
           if (time % 10 === 0) return null;
           return (
@@ -506,7 +591,7 @@ const GridLines = memo(function GridLines({
 }) {
   return (
     <div
-      className="absolute inset-0 pointer-events-none"
+      className="pointer-events-none absolute inset-0"
       style={{ left: `${-scrollLeft}px`, width: `${totalDuration * zoom}px` }}
     >
       {Array.from({ length: Math.ceil(totalDuration / 10) + 1 }).map((_, i) => (
@@ -563,10 +648,10 @@ const Playhead = memo(function Playhead({
 }) {
   return (
     <div
-      className="absolute top-0 bottom-0 w-0.5 bg-blue-500 z-20 pointer-events-none shadow-[0_0_8px_rgba(59,130,246,0.8)]"
+      className="pointer-events-none absolute top-0 bottom-0 z-20 w-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"
       style={{ left: `${time * zoom - scrollLeft}px` }}
     >
-      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-blue-500 rotate-45" />
+      <div className="absolute -top-1 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-blue-500" />
     </div>
   );
 });
@@ -582,7 +667,9 @@ const ClipView = memo(function ClipView({
   selected: boolean;
 }) {
   const isDurationLocked =
-    clip.type === "overlay" && clip.settings.mediaType === "video" && clip.settings.loop === false;
+    clip.type === "overlay" &&
+    clip.settings.mediaType === "video" &&
+    clip.settings.loop === false;
 
   const clipClass = selected
     ? clip.type === "music"
@@ -630,7 +717,10 @@ const ClipView = memo(function ClipView({
       // animates left/width, so every drag step eased toward its
       // new position and the clip trailed the cursor by ~40%.
       className={`absolute top-2 bottom-2 rounded border transition-colors ${clipClass}`}
-      style={{ left: `${clip.start * zoom}px`, width: `${clip.duration * zoom}px` }}
+      style={{
+        left: `${clip.start * zoom}px`,
+        width: `${clip.duration * zoom}px`,
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -642,31 +732,32 @@ const ClipView = memo(function ClipView({
       {markers.map((time) => (
         <div
           key={`marker-${time}`}
-          className="absolute top-0 bottom-0 w-px border-l border-dashed border-cyan-400/60 pointer-events-none z-10"
+          className="pointer-events-none absolute top-0 bottom-0 z-10 w-px border-l border-dashed border-cyan-400/60"
           style={{ left: `${time * zoom}px` }}
         />
       ))}
       {/* Resize Handles */}
       {!isDurationLocked && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-blue-400/50 rounded-l transition-colors"
+          className="absolute top-0 bottom-0 left-0 w-1.5 cursor-ew-resize rounded-l transition-colors hover:bg-blue-400/50"
           onMouseDown={(e) => beginClipDrag(e, clip, "resize-start")}
         />
       )}
       {!isDurationLocked && (
         <div
-          className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-blue-400/50 rounded-r transition-colors"
+          className="absolute top-0 right-0 bottom-0 w-1.5 cursor-ew-resize rounded-r transition-colors hover:bg-blue-400/50"
           onMouseDown={(e) => beginClipDrag(e, clip, "resize-end")}
         />
       )}
       {/* Content Preview */}
-      <div className="flex items-center h-full px-2 gap-2 overflow-hidden pointer-events-none w-full">
+      <div className="pointer-events-none flex h-full w-full items-center gap-2 overflow-hidden px-2">
         {clip.type === "music" ? (
-          <i className="icon-[ri--music-2-line] w-3 h-3 text-emerald-400 shrink-0" />
-        ) : (clip.type === "background" || clip.type === "overlay") && clip.settings?.thumbnail ? (
+          <i className="icon-[ri--music-2-line] h-3 w-3 shrink-0 text-emerald-400" />
+        ) : (clip.type === "background" || clip.type === "overlay") &&
+          clip.settings?.thumbnail ? (
           <img
             src={clip.settings.thumbnail}
-            className="w-4 h-4 rounded object-cover border border-slate-600 shrink-0"
+            className="h-4 w-4 shrink-0 rounded border border-slate-600 object-cover"
           />
         ) : (
           <i
@@ -678,14 +769,15 @@ const ClipView = memo(function ClipView({
                   : clip.type === "glviz"
                     ? "icon-[ri--shapes-line]"
                     : "icon-[ri--image-line]"
-            } w-3 h-3 text-slate-300 shrink-0`}
+            } h-3 w-3 shrink-0 text-slate-300`}
           />
         )}
-        <span className="text-[9px] text-white font-medium truncate">
+        <span className="truncate text-[9px] font-medium text-white">
           {clip.type === "music"
             ? clip.settings?.name || "Music"
             : clip.type === "background" || clip.type === "overlay"
-              ? clip.settings?.fileName || (clip.type === "background" ? "Background" : "Overlay")
+              ? clip.settings?.fileName ||
+                (clip.type === "background" ? "Background" : "Overlay")
               : clip.type === "visualizer"
                 ? `Visualizer (${clip.settings?.style || "bars"})`
                 : clip.type === "glviz"
@@ -703,7 +795,8 @@ const ClipView = memo(function ClipView({
  * move, so reference equality on the array itself would defeat the memo and
  * redraw every clip in the project for one dragged clip.
  */
-const sameClips = (a: any[], b: any[]) => a.length === b.length && a.every((clip, i) => clip === b[i]);
+const sameClips = (a: any[], b: any[]) =>
+  a.length === b.length && a.every((clip, i) => clip === b[i]);
 
 const TrackRow = memo(
   function TrackRow({
@@ -716,9 +809,14 @@ const TrackRow = memo(
     selectedClipId: string | null;
   }) {
     return (
-      <div className="h-12 border-b border-slate-800/30 relative">
+      <div className="relative h-12 border-b border-slate-800/30">
         {clips.map((clip) => (
-          <ClipView key={clip.id} clip={clip} zoom={zoom} selected={selectedClipId === clip.id} />
+          <ClipView
+            key={clip.id}
+            clip={clip}
+            zoom={zoom}
+            selected={selectedClipId === clip.id}
+          />
         ))}
       </div>
     );
@@ -726,7 +824,7 @@ const TrackRow = memo(
   (prev, next) =>
     prev.zoom === next.zoom &&
     prev.selectedClipId === next.selectedClipId &&
-    sameClips(prev.clips, next.clips)
+    sameClips(prev.clips, next.clips),
 );
 
 /** Multi-track timeline: ruler, tracks, clips, playhead, scrollbars. */
@@ -763,12 +861,17 @@ export const Timeline = () => {
   const timelineWidth = totalDuration * zoom;
 
   const timelineArea = document.getElementById("timeline-content-area");
-  const visibleWidth = timelineArea ? timelineArea.clientWidth : window.innerWidth - 128;
+  const visibleWidth = timelineArea
+    ? timelineArea.clientWidth
+    : window.innerWidth - 128;
   const showHorizScrollbar = timelineWidth > visibleWidth;
   const maxScrollLeft = Math.max(0, timelineWidth - visibleWidth);
 
   // Clamp scrollLeft to valid bounds (stored value normalized via effect below)
-  const scrollLeft = Math.max(0, Math.min(maxScrollLeft, state.timelineScrollLeft || 0));
+  const scrollLeft = Math.max(
+    0,
+    Math.min(maxScrollLeft, state.timelineScrollLeft || 0),
+  );
 
   const totalTracksHeight = state.timelineTracks.length * 48;
   const visibleHeight = 180; // approximate visible height of tracks area
@@ -776,7 +879,10 @@ export const Timeline = () => {
   const maxScrollTop = Math.max(0, totalTracksHeight - visibleHeight);
 
   // Clamp scrollTop to valid bounds
-  const scrollTop = Math.max(0, Math.min(maxScrollTop, state.timelineScrollTop || 0));
+  const scrollTop = Math.max(
+    0,
+    Math.min(maxScrollTop, state.timelineScrollTop || 0),
+  );
 
   // Persist normalized scroll bounds back to the store after render.
   useEffect(() => {
@@ -791,30 +897,36 @@ export const Timeline = () => {
   }, [scrollTop]);
 
   return (
-    <div className="flex flex-col h-64 bg-slate-900 border-t border-slate-800 select-none overflow-hidden">
+    <div className="flex h-64 flex-col overflow-hidden border-t border-slate-800 bg-slate-900 select-none">
       {/* TIMELINE HEADER / RULER */}
-      <div className="flex-none h-8 border-b border-slate-800 flex bg-slate-950/50">
-        <div className="w-32 shrink-0 border-r border-slate-800 flex items-center justify-between px-3">
-          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Tracks</span>
+      <div className="flex h-8 flex-none border-b border-slate-800 bg-slate-950/50">
+        <div className="flex w-32 shrink-0 items-center justify-between border-r border-slate-800 px-3">
+          <span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">
+            Tracks
+          </span>
           <button
-            className="text-green-500 hover:text-white transition-colors cursor-pointer flex items-center justify-center p-0.5 rounded hover:bg-slate-800/80"
+            className="flex cursor-pointer items-center justify-center rounded p-0.5 text-green-500 transition-colors hover:bg-slate-800/80 hover:text-white"
             title="Add Track"
             onClick={() => {
               const id = `track-${Date.now()}`;
               editorStore.setState({
                 timelineTracks: [
                   ...editorStore.getState().timelineTracks,
-                  { id, name: `Track ${editorStore.getState().timelineTracks.length + 1}`, locked: false },
+                  {
+                    id,
+                    name: `Track ${editorStore.getState().timelineTracks.length + 1}`,
+                    locked: false,
+                  },
                 ],
               });
               redraw();
             }}
           >
-            <i className="icon-[ri--add-line] w-4 h-4" />
+            <i className="icon-[ri--add-line] h-4 w-4" />
           </button>
         </div>
         <div
-          className="flex-1 relative overflow-hidden cursor-crosshair"
+          className="relative flex-1 cursor-crosshair overflow-hidden"
           onMouseDown={(e) => {
             isDraggingPlayhead = true;
             window.addEventListener("mousemove", handleWindowMouseMove);
@@ -825,15 +937,22 @@ export const Timeline = () => {
           }}
         >
           {/* Ruler Markers */}
-          <RulerTicks totalDuration={totalDuration} zoom={zoom} scrollLeft={scrollLeft} />
+          <RulerTicks
+            totalDuration={totalDuration}
+            zoom={zoom}
+            scrollLeft={scrollLeft}
+          />
         </div>
       </div>
 
       {/* TRACKS AREA */}
-      <div ref={tracksAreaRef} className="flex-1 flex overflow-hidden">
+      <div ref={tracksAreaRef} className="flex flex-1 overflow-hidden">
         {/* Track Headers */}
-        <div className="w-32 shrink-0 bg-slate-900 border-r border-slate-800 relative z-10 overflow-hidden">
-          <div className="absolute left-0 right-0" style={{ top: `${-scrollTop}px` }}>
+        <div className="relative z-10 w-32 shrink-0 overflow-hidden border-r border-slate-800 bg-slate-900">
+          <div
+            className="absolute right-0 left-0"
+            style={{ top: `${-scrollTop}px` }}
+          >
             {state.timelineTracks.map((track: any, i: number) => {
               const isMusicTrack = track.id === "track-1";
               const isSelected = state.selectedTrackId === track.id;
@@ -851,7 +970,7 @@ export const Timeline = () => {
               return (
                 <div
                   key={track.id}
-                  className={`h-12 border-b border-slate-800/50 flex items-center px-3 gap-2 group transition-colors cursor-pointer ${borderClass}`}
+                  className={`group flex h-12 cursor-pointer items-center gap-2 border-b border-slate-800/50 px-3 transition-colors ${borderClass}`}
                   onClick={() => {
                     editorStore.setState({ selectedTrackId: track.id });
                     redraw();
@@ -859,7 +978,7 @@ export const Timeline = () => {
                 >
                   {isMusicTrack ? (
                     <i
-                      className="icon-[ri--music-2-line] w-3.5 h-3.5 text-emerald-500 shrink-0"
+                      className="icon-[ri--music-2-line] h-3.5 w-3.5 shrink-0 text-emerald-500"
                       title="Dedicated Music Track"
                     />
                   ) : (
@@ -873,37 +992,56 @@ export const Timeline = () => {
                       }}
                     >
                       <i
-                        className={`${track.locked ? "icon-[ri--lock-fill]" : "icon-[ri--lock-unlock-line]"} w-3.5 h-3.5`}
+                        className={`${track.locked ? "icon-[ri--lock-fill]" : "icon-[ri--lock-unlock-line]"} h-3.5 w-3.5`}
                       />
                     </button>
                   )}
 
-                  <span className={`text-[10px] font-bold uppercase tracking-tighter truncate flex-1 ${textClass}`}>
+                  <span
+                    className={`flex-1 truncate text-[10px] font-bold tracking-tighter uppercase ${textClass}`}
+                  >
                     {track.name}
                   </span>
 
                   {i > 1 && (
                     <button
-                      className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-500 transition-opacity p-1"
+                      className="p-1 text-slate-600 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
                       title="Delete Track (And its clips)"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const hasClips = state.timelineClips.some((c: any) => c.trackId === track.id);
-                        if (!hasClips || confirm(`Delete ${track.name} and all clips inside it?`)) {
-                          const clipsToDelete = state.timelineClips.filter((c: any) => c.trackId === track.id);
+                        const hasClips = state.timelineClips.some(
+                          (c: any) => c.trackId === track.id,
+                        );
+                        if (
+                          !hasClips ||
+                          confirm(
+                            `Delete ${track.name} and all clips inside it?`,
+                          )
+                        ) {
+                          const clipsToDelete = state.timelineClips.filter(
+                            (c: any) => c.trackId === track.id,
+                          );
                           editorStore.setState({
-                            timelineTracks: state.timelineTracks.filter((t: any) => t.id !== track.id),
-                            timelineClips: state.timelineClips.filter((c: any) => c.trackId !== track.id),
+                            timelineTracks: state.timelineTracks.filter(
+                              (t: any) => t.id !== track.id,
+                            ),
+                            timelineClips: state.timelineClips.filter(
+                              (c: any) => c.trackId !== track.id,
+                            ),
                           });
-                          clipsToDelete.forEach((c: any) => revokeClipUrls(c, state as never));
+                          clipsToDelete.forEach((c: any) =>
+                            revokeClipUrls(c, state as never),
+                          );
                           if (state.selectedTrackId === track.id) {
-                            editorStore.setState({ selectedTrackId: state.timelineTracks[0].id });
+                            editorStore.setState({
+                              selectedTrackId: state.timelineTracks[0].id,
+                            });
                           }
                           redraw();
                         }
                       }}
                     >
-                      <i className="icon-[ri--delete-bin-7-line] w-3.5 h-3.5" />
+                      <i className="icon-[ri--delete-bin-7-line] h-3.5 w-3.5" />
                     </button>
                   )}
                 </div>
@@ -913,7 +1051,10 @@ export const Timeline = () => {
         </div>
 
         {/* Track Content Area */}
-        <div id="timeline-content-area" className="flex-1 relative overflow-hidden bg-slate-950/40">
+        <div
+          id="timeline-content-area"
+          className="relative flex-1 overflow-hidden bg-slate-950/40"
+        >
           {/* SNAP LINES */}
           <SnapLines
             snapLines={state.snapLines}
@@ -923,17 +1064,27 @@ export const Timeline = () => {
           />
 
           {/* Grid Lines (Vertical) */}
-          <GridLines totalDuration={totalDuration} zoom={zoom} scrollLeft={scrollLeft} />
+          <GridLines
+            totalDuration={totalDuration}
+            zoom={zoom}
+            scrollLeft={scrollLeft}
+          />
 
           {/* Track Rows */}
           <div
-            className="absolute left-0 right-0"
-            style={{ left: `${-scrollLeft}px`, top: `${-scrollTop}px`, width: `${timelineWidth}px` }}
+            className="absolute right-0 left-0"
+            style={{
+              left: `${-scrollLeft}px`,
+              top: `${-scrollTop}px`,
+              width: `${timelineWidth}px`,
+            }}
           >
             {state.timelineTracks.map((track: any) => (
               <TrackRow
                 key={track.id}
-                clips={state.timelineClips.filter((c: any) => c.trackId === track.id)}
+                clips={state.timelineClips.filter(
+                  (c: any) => c.trackId === track.id,
+                )}
                 zoom={zoom}
                 selectedClipId={state.selectedClipId}
               />
@@ -946,21 +1097,32 @@ export const Timeline = () => {
           {/* VERTICAL SCROLLBAR */}
           {showScrollbar && (
             <div
-              className="absolute right-1 top-1 bottom-3 w-1.5 bg-slate-950/30 rounded-full z-40 hover:bg-slate-950/50 transition-all cursor-pointer"
+              className="absolute top-1 right-1 bottom-3 z-40 w-1.5 cursor-pointer rounded-full bg-slate-950/30 transition-all hover:bg-slate-950/50"
               onMouseDown={(e) => {
                 e.stopPropagation();
                 const rect = e.currentTarget.getBoundingClientRect();
                 const updateScroll = (clientY: number) => {
                   const clickY = clientY - rect.top;
-                  const handleHeight = Math.max(16, (visibleHeight / totalTracksHeight) * rect.height);
-                  const scrollPct = rect.height > handleHeight ? (clickY - handleHeight / 2) / (rect.height - handleHeight) : 0;
+                  const handleHeight = Math.max(
+                    16,
+                    (visibleHeight / totalTracksHeight) * rect.height,
+                  );
+                  const scrollPct =
+                    rect.height > handleHeight
+                      ? (clickY - handleHeight / 2) /
+                        (rect.height - handleHeight)
+                      : 0;
                   editorStore.setState({
-                    timelineScrollTop: Math.max(0, Math.min(maxScrollTop, scrollPct * maxScrollTop)),
+                    timelineScrollTop: Math.max(
+                      0,
+                      Math.min(maxScrollTop, scrollPct * maxScrollTop),
+                    ),
                   });
                 };
                 updateScroll(e.clientY);
 
-                const onMouseMove = (me: MouseEvent) => updateScroll(me.clientY);
+                const onMouseMove = (me: MouseEvent) =>
+                  updateScroll(me.clientY);
                 const onMouseUp = () => {
                   window.removeEventListener("mousemove", onMouseMove);
                   window.removeEventListener("mouseup", onMouseUp);
@@ -970,13 +1132,19 @@ export const Timeline = () => {
               }}
             >
               <div
-                className="w-full bg-slate-600/60 rounded-full hover:bg-slate-500/80 transition-colors absolute"
+                className="absolute w-full rounded-full bg-slate-600/60 transition-colors hover:bg-slate-500/80"
                 style={{
                   height: `${Math.max(16, (visibleHeight / totalTracksHeight) * (visibleHeight - 16))}px`,
                   top: `${
                     maxScrollTop > 0
                       ? ((scrollTop || 0) / maxScrollTop) *
-                        (visibleHeight - 16 - Math.max(16, (visibleHeight / totalTracksHeight) * (visibleHeight - 16)))
+                        (visibleHeight -
+                          16 -
+                          Math.max(
+                            16,
+                            (visibleHeight / totalTracksHeight) *
+                              (visibleHeight - 16),
+                          ))
                       : 0
                   }px`,
                 }}
@@ -987,21 +1155,31 @@ export const Timeline = () => {
           {/* HORIZONTAL SCROLLBAR */}
           {showHorizScrollbar && (
             <div
-              className="absolute left-1 right-3 bottom-1 h-1.5 bg-slate-950/30 rounded-full z-40 hover:bg-slate-950/50 transition-all cursor-pointer"
+              className="absolute right-3 bottom-1 left-1 z-40 h-1.5 cursor-pointer rounded-full bg-slate-950/30 transition-all hover:bg-slate-950/50"
               onMouseDown={(e) => {
                 e.stopPropagation();
                 const rect = e.currentTarget.getBoundingClientRect();
                 const updateScroll = (clientX: number) => {
                   const clickX = clientX - rect.left;
-                  const handleWidth = Math.max(16, (visibleWidth / timelineWidth) * rect.width);
-                  const scrollPct = rect.width > handleWidth ? (clickX - handleWidth / 2) / (rect.width - handleWidth) : 0;
+                  const handleWidth = Math.max(
+                    16,
+                    (visibleWidth / timelineWidth) * rect.width,
+                  );
+                  const scrollPct =
+                    rect.width > handleWidth
+                      ? (clickX - handleWidth / 2) / (rect.width - handleWidth)
+                      : 0;
                   editorStore.setState({
-                    timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, scrollPct * maxScrollLeft)),
+                    timelineScrollLeft: Math.max(
+                      0,
+                      Math.min(maxScrollLeft, scrollPct * maxScrollLeft),
+                    ),
                   });
                 };
                 updateScroll(e.clientX);
 
-                const onMouseMove = (me: MouseEvent) => updateScroll(me.clientX);
+                const onMouseMove = (me: MouseEvent) =>
+                  updateScroll(me.clientX);
                 const onMouseUp = () => {
                   window.removeEventListener("mousemove", onMouseMove);
                   window.removeEventListener("mouseup", onMouseUp);
@@ -1011,13 +1189,19 @@ export const Timeline = () => {
               }}
             >
               <div
-                className="h-full bg-slate-600/60 rounded-full hover:bg-slate-500/80 transition-colors absolute"
+                className="absolute h-full rounded-full bg-slate-600/60 transition-colors hover:bg-slate-500/80"
                 style={{
                   width: `${Math.max(16, (visibleWidth / timelineWidth) * (visibleWidth - 16))}px`,
                   left: `${
                     maxScrollLeft > 0
                       ? ((scrollLeft || 0) / maxScrollLeft) *
-                        (visibleWidth - 16 - Math.max(16, (visibleWidth / timelineWidth) * (visibleWidth - 16)))
+                        (visibleWidth -
+                          16 -
+                          Math.max(
+                            16,
+                            (visibleWidth / timelineWidth) *
+                              (visibleWidth - 16),
+                          ))
                       : 0
                   }px`,
                 }}
@@ -1028,13 +1212,13 @@ export const Timeline = () => {
       </div>
 
       {/* TIMELINE FOOTER / TOOLBAR */}
-      <div className="flex-none h-10 border-t border-slate-800 bg-slate-950 flex items-center px-4 justify-between">
+      <div className="flex h-10 flex-none items-center justify-between border-t border-slate-800 bg-slate-950 px-4">
         <div className="flex items-center gap-4">
           <label
-            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold rounded-md transition shadow-lg uppercase tracking-wider border border-emerald-500 cursor-pointer"
+            className="flex cursor-pointer items-center gap-2 rounded-md border border-emerald-500 bg-emerald-600 px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-lg transition hover:bg-emerald-500"
             title="Add Music Clip"
           >
-            <i className="icon-[ri--music-2-line] w-3.5 h-3.5" />
+            <i className="icon-[ri--music-2-line] h-3.5 w-3.5" />
             Add Music
             <input
               type="file"
@@ -1048,10 +1232,14 @@ export const Timeline = () => {
                   audio.src = URL.createObjectURL(file);
                   audio.onloadedmetadata = () => {
                     // Stack sequentially on Track 1
-                    const musicClips = (getClipsToSearch(editorStore.getState() as never) as any[]).filter((c) => c.type === "music");
+                    const musicClips = (
+                      getClipsToSearch(editorStore.getState() as never) as any[]
+                    ).filter((c) => c.type === "music");
                     let start = 0;
                     if (musicClips.length > 0) {
-                      start = Math.max(...musicClips.map((c) => c.start + c.duration));
+                      start = Math.max(
+                        ...musicClips.map((c) => c.start + c.duration),
+                      );
                     }
 
                     const newClip = {
@@ -1076,9 +1264,13 @@ export const Timeline = () => {
                     };
                     const isThumbnailMode = state.currentRoute === "/image";
                     if (isThumbnailMode) {
-                      editorStore.setState({ videoClips: [...(state.videoClips || []), newClip] });
+                      editorStore.setState({
+                        videoClips: [...(state.videoClips || []), newClip],
+                      });
                     } else {
-                      editorStore.setState({ timelineClips: [...state.timelineClips, newClip] });
+                      editorStore.setState({
+                        timelineClips: [...state.timelineClips, newClip],
+                      });
                     }
                     editorStore.setState({
                       selectedClipId: newClip.id,
@@ -1091,8 +1283,8 @@ export const Timeline = () => {
               }}
             />
           </label>
-          <div className="h-4 w-px bg-slate-800 mx-2" />
-          <span className="text-[10px] font-mono text-slate-400">
+          <div className="mx-2 h-4 w-px bg-slate-800" />
+          <span className="font-mono text-[10px] text-slate-400">
             <span className="text-blue-400">{formatTime(globalTime)}</span>
             {" / "}
             {formatTime(totalDuration)}
@@ -1100,13 +1292,15 @@ export const Timeline = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
-            className="text-slate-500 hover:text-white transition-colors p-1"
+            className="p-1 text-slate-500 transition-colors hover:text-white"
             onClick={() => {
-              editorStore.setState({ timelineZoom: Math.max(0.1, state.timelineZoom * 0.8) });
+              editorStore.setState({
+                timelineZoom: Math.max(0.1, state.timelineZoom * 0.8),
+              });
               redraw();
             }}
           >
-            <i className="icon-[ri--zoom-out-line] w-3.5 h-3.5" />
+            <i className="icon-[ri--zoom-out-line] h-3.5 w-3.5" />
           </button>
           <input
             type="range"
@@ -1115,19 +1309,23 @@ export const Timeline = () => {
             step={0.1}
             value={zoom}
             onChange={(e) => {
-              editorStore.setState({ timelineZoom: parseFloat(e.target.value) });
+              editorStore.setState({
+                timelineZoom: parseFloat(e.target.value),
+              });
               redraw();
             }}
-            className="w-32 h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-blue-500"
+            className="h-1 w-32 cursor-pointer appearance-none rounded-full bg-slate-800 accent-blue-500"
           />
           <button
-            className="text-slate-500 hover:text-white transition-colors p-1"
+            className="p-1 text-slate-500 transition-colors hover:text-white"
             onClick={() => {
-              editorStore.setState({ timelineZoom: Math.min(50, state.timelineZoom * 1.2) });
+              editorStore.setState({
+                timelineZoom: Math.min(50, state.timelineZoom * 1.2),
+              });
               redraw();
             }}
           >
-            <i className="icon-[ri--zoom-in-line] w-3.5 h-3.5" />
+            <i className="icon-[ri--zoom-in-line] h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -1136,29 +1334,47 @@ export const Timeline = () => {
       {contextMenu && (
         <div
           id="timeline-context-menu"
-          className="fixed bg-slate-900 border border-slate-700/80 shadow-2xl rounded-lg py-1.5 min-w-35 z-9999"
+          className="fixed z-9999 min-w-35 rounded-lg border border-slate-700/80 bg-slate-900 py-1.5 shadow-2xl"
           style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }}
           onMouseDown={(e) => e.stopPropagation()}
         >
           <button
-            className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-blue-600/20 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="flex w-full cursor-pointer items-center gap-1.5 px-3 py-1.5 text-left text-xs text-slate-300 transition-colors hover:bg-blue-600/20 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
-              const original = state.timelineClips.find((c: any) => c.id === contextMenu?.clipId);
+              const original = state.timelineClips.find(
+                (c: any) => c.id === contextMenu?.clipId,
+              );
               if (original) {
-                const settingsCopy = JSON.parse(JSON.stringify(original.settings));
+                const settingsCopy = JSON.parse(
+                  JSON.stringify(original.settings),
+                );
                 if (original.settings.mediaElement)
-                  settingsCopy.mediaElement = cloneMediaElement(original.settings.mediaElement);
-                if (original.settings.mediaElements) settingsCopy.mediaElements = cloneVids(original.settings.mediaElements);
-                if (original.settings.bgElement) settingsCopy.bgElement = cloneMediaElement(original.settings.bgElement);
-                if (original.settings.bgElements) settingsCopy.bgElements = cloneVids(original.settings.bgElements);
-                if (original.settings.gifFrames) settingsCopy.gifFrames = original.settings.gifFrames;
+                  settingsCopy.mediaElement = cloneMediaElement(
+                    original.settings.mediaElement,
+                  );
+                if (original.settings.mediaElements)
+                  settingsCopy.mediaElements = cloneVids(
+                    original.settings.mediaElements,
+                  );
+                if (original.settings.bgElement)
+                  settingsCopy.bgElement = cloneMediaElement(
+                    original.settings.bgElement,
+                  );
+                if (original.settings.bgElements)
+                  settingsCopy.bgElements = cloneVids(
+                    original.settings.bgElements,
+                  );
+                if (original.settings.gifFrames)
+                  settingsCopy.gifFrames = original.settings.gifFrames;
 
                 const duplicate = {
                   id: `clip-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
                   type: original.type,
                   trackId: original.trackId,
-                  start: Math.round((original.start + original.duration) * 100) / 100,
+                  start:
+                    Math.round((original.start + original.duration) * 100) /
+                    100,
                   duration: original.duration,
                   settings: settingsCopy,
                 };
@@ -1172,16 +1388,20 @@ export const Timeline = () => {
               closeContextMenu();
             }}
           >
-            <i className="icon-[ri--file-copy-line] w-3.5 h-3.5 text-blue-400" />
+            <i className="icon-[ri--file-copy-line] h-3.5 w-3.5 text-blue-400" />
             <span>Duplicate Clip</span>
           </button>
           <button
-            className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-red-600/20 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="flex w-full cursor-pointer items-center gap-1.5 px-3 py-1.5 text-left text-xs text-slate-300 transition-colors hover:bg-red-600/20 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
-              const clipToDelete = state.timelineClips.find((c: any) => c.id === contextMenu?.clipId);
+              const clipToDelete = state.timelineClips.find(
+                (c: any) => c.id === contextMenu?.clipId,
+              );
               editorStore.setState({
-                timelineClips: state.timelineClips.filter((c: any) => c.id !== contextMenu?.clipId),
+                timelineClips: state.timelineClips.filter(
+                  (c: any) => c.id !== contextMenu?.clipId,
+                ),
               });
               if (clipToDelete) {
                 revokeClipUrls(clipToDelete, editorStore.getState() as never);
@@ -1192,7 +1412,7 @@ export const Timeline = () => {
               closeContextMenu();
             }}
           >
-            <i className="icon-[ri--delete-bin-line] w-3.5 h-3.5 text-red-400" />
+            <i className="icon-[ri--delete-bin-line] h-3.5 w-3.5 text-red-400" />
             <span>Delete Clip</span>
           </button>
         </div>

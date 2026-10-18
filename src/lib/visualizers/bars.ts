@@ -5,9 +5,15 @@ export const BarsVisualizer = {
   id: "bars",
   name: "Bars",
   hasReflection: true,
-  draw(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ) {
     const { color, intensity, density, rainbow, reflectionOpacity } = settings;
-    const refOpacity = reflectionOpacity !== undefined ? reflectionOpacity : 0.25;
+    const refOpacity =
+      reflectionOpacity !== undefined ? reflectionOpacity : 0.25;
     const freqCount = Math.floor(runtime.analyser.frequencyBinCount * 0.8);
     const bars = Math.max(4, Math.floor(freqCount / density));
     const baseHsl = hexToHSL(color || "#3b82f6");
@@ -45,18 +51,32 @@ export const BarsVisualizer = {
       // 2. Draw Reflection Bar (downwards from baseline, fading out)
       ctx.save();
       const reflectionHeight = barHeight * refOpacity;
-      const reflectGrad = ctx.createLinearGradient(0, baselineY, 0, baselineY + reflectionHeight);
+      const reflectGrad = ctx.createLinearGradient(
+        0,
+        baselineY,
+        0,
+        baselineY + reflectionHeight,
+      );
 
       if (rainbow) {
         const hue = (baseHsl.h + (i / bars) * 360) % 360;
         const s = Math.max(70, baseHsl.s);
         const l = Math.max(45, Math.min(65, baseHsl.l));
-        reflectGrad.addColorStop(0, `hsla(${hue}, ${s}%, ${l}%, ${refOpacity})`);
+        reflectGrad.addColorStop(
+          0,
+          `hsla(${hue}, ${s}%, ${l}%, ${refOpacity})`,
+        );
         reflectGrad.addColorStop(1, `hsla(${hue}, ${s}%, ${l}%, 0.0)`);
       } else {
         // Safe HSL mapping to avoid slicing bugs
-        reflectGrad.addColorStop(0, `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, ${refOpacity})`);
-        reflectGrad.addColorStop(1, `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, 0.0)`);
+        reflectGrad.addColorStop(
+          0,
+          `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, ${refOpacity})`,
+        );
+        reflectGrad.addColorStop(
+          1,
+          `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, 0.0)`,
+        );
       }
 
       ctx.fillStyle = reflectGrad;

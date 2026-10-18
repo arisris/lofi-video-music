@@ -35,7 +35,11 @@ export const FlashVFX = {
       const bassLevel = getAudioReactivity(editorStore.getState(), "bass");
       const threshold = 0.85 - (settings.frequency || 0.5) * 0.35;
 
-      if (bassLevel > threshold && clip.flashOpacity <= 0 && clip.flashCooldown === 0) {
+      if (
+        bassLevel > threshold &&
+        clip.flashOpacity <= 0 &&
+        clip.flashCooldown === 0
+      ) {
         clip.flashOpacity = 0.2 + Math.random() * 0.3; // opacity of flash
         clip.flashCooldown = 30; // ~0.5s cooldown at 60fps
       }

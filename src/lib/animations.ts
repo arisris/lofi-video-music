@@ -3,7 +3,7 @@ import { runtime } from "./runtime";
 
 /**
  * Handles Pre-built In/Out Transitions and Dynamic Animations.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} ctx
  * @param {Object} settings - Clip settings containing animation info
  * @param {Number} localTime - Time in seconds since the clip started
  * @param {Number} duration - Total clip duration in seconds
@@ -17,7 +17,15 @@ export const applyClipAnimations = (
 ) => {
   const isThumbnailMode = editorStore.getState().currentRoute === "/image";
   if (isThumbnailMode) {
-    const vfxTypes = ["rain", "smoke", "flash", "snow", "fireflies", "filmgrain", "vignette"];
+    const vfxTypes = [
+      "rain",
+      "smoke",
+      "flash",
+      "snow",
+      "fireflies",
+      "filmgrain",
+      "vignette",
+    ];
     if (!clipType || !vfxTypes.includes(clipType)) {
       return;
     }
@@ -31,7 +39,7 @@ export const applyClipAnimations = (
   const effectType = anim.type || "none";
 
   const TRANS_DUR = 0.6; // Fixed duration for all transitions
-  
+
   let opacity = 1;
   let transX = 0;
   let transY = 0;
@@ -40,7 +48,8 @@ export const applyClipAnimations = (
   // 1. IN TRANSITIONS
   if (localTime < TRANS_DUR) {
     const p = localTime / TRANS_DUR; // 0 to 1
-    const easeOutBack = (x: number) => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
+    const easeOutBack = (x: number) =>
+      1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
     const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 
     if (inType === "fade") {
@@ -61,7 +70,7 @@ export const applyClipAnimations = (
   }
 
   // 2. OUT TRANSITIONS
-  if (localTime > (duration - TRANS_DUR)) {
+  if (localTime > duration - TRANS_DUR) {
     const p = (duration - localTime) / TRANS_DUR; // 1 to 0
     const easeInCubic = (x: number) => x * x * x;
 
@@ -75,7 +84,7 @@ export const applyClipAnimations = (
       transY += (1 - easeInCubic(p)) * 50;
     } else if (outType === "zoom-out") {
       opacity = Math.min(opacity, easeInCubic(p));
-      transScale *= (0.5 + easeInCubic(p) * 0.5);
+      transScale *= 0.5 + easeInCubic(p) * 0.5;
     }
   }
 
@@ -86,7 +95,7 @@ export const applyClipAnimations = (
 
   // 3. CONTINUOUS ANIMATIONS (Smooth 60fps using performance.now)
   const time = performance.now() / 1000;
-  
+
   // Calculate Audio Boost (if enabled)
   let audioBoost = 1.0;
   if (anim.audioReactive && runtime.dataArray) {
@@ -101,18 +110,15 @@ export const applyClipAnimations = (
   if (effectType === "pulse") {
     const scale = 1 + Math.sin(time * Math.PI * 2 * 0.8) * 0.05 * audioBoost;
     ctx.scale(scale, scale);
-  } 
-  else if (effectType === "float") {
+  } else if (effectType === "float") {
     const offsetY = Math.sin(time * Math.PI * 2 * 0.5) * 8 * audioBoost;
     ctx.translate(0, offsetY);
-  }
-  else if (effectType === "shake") {
+  } else if (effectType === "shake") {
     const intensity = 3 * audioBoost;
     const offsetX = (Math.random() - 0.5) * intensity;
     const offsetY = (Math.random() - 0.5) * intensity;
     ctx.translate(offsetX, offsetY);
-  }
-  else if (effectType === "swing") {
+  } else if (effectType === "swing") {
     const rotation = Math.sin(time * Math.PI * 2 * 0.4) * 0.05 * audioBoost;
     ctx.rotate(rotation);
   }

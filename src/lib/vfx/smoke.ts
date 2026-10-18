@@ -41,7 +41,10 @@ export class SmokeParticle extends BaseParticle {
     const activeSpeed = this.speed * (1 + audioLevel * 1.5);
     this.y -= activeSpeed;
 
-    const activeDrift = this.drift + Math.sin(this.life * 0.02) * 0.3 + (Math.random() - 0.5) * audioLevel * 0.8;
+    const activeDrift =
+      this.drift +
+      Math.sin(this.life * 0.02) * 0.3 +
+      (Math.random() - 0.5) * audioLevel * 0.8;
     this.x += activeDrift;
 
     const activeGrowth = this.growth * (1 + audioLevel * 2.0);
@@ -66,7 +69,14 @@ export class SmokeParticle extends BaseParticle {
 
     ctx.save();
     ctx.globalAlpha = Math.min(1.0, this.opacity * (1 + audioLevel * 1.5));
-    const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+    const grad = ctx.createRadialGradient(
+      this.x,
+      this.y,
+      0,
+      this.x,
+      this.y,
+      this.size,
+    );
     grad.addColorStop(0, "rgba(200, 210, 220, 1)");
     grad.addColorStop(1, "rgba(200, 210, 220, 0)");
 
@@ -99,7 +109,12 @@ export const SmokeVFX = {
     const intensity = settings.intensity || 40;
 
     // Initialize or resize particles array if count doesn't match
-    if (!clip.particles || clip.particles.length !== intensity || clip.canvasWidth !== w || clip.canvasHeight !== h) {
+    if (
+      !clip.particles ||
+      clip.particles.length !== intensity ||
+      clip.canvasWidth !== w ||
+      clip.canvasHeight !== h
+    ) {
       clip.particles = [];
       clip.canvasWidth = w;
       clip.canvasHeight = h;
@@ -108,7 +123,9 @@ export const SmokeVFX = {
       }
     }
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "bass") : 0;
+    const audioLevel = settings.audioReactive
+      ? getAudioReactivity(editorStore.getState(), "bass")
+      : 0;
 
     clip.particles.forEach((p: SmokeParticle) => {
       p.update(w, h, audioLevel);

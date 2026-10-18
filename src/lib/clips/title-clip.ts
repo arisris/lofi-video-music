@@ -1,13 +1,17 @@
 import { editorStore } from "../../store/editor-store";
 import { getClipsToSearch } from "../../utils/helpers";
 import { TitleSettingsView } from "../../components/clip-settings/title";
-import { drawEmojiText, measureEmojiText, drawWavyEmojiText } from "../emoji-render";
+import {
+  drawEmojiText,
+  measureEmojiText,
+  drawWavyEmojiText,
+} from "../emoji-render";
 
 export const TitleClip = {
   id: "title",
   name: "Track Title",
   icon: "icon-[ri--heading]",
-  
+
   settings: {
     fontFamily: "'Inter', sans-serif",
     fontSize: 36,
@@ -30,29 +34,34 @@ export const TitleClip = {
     typewriterOut: true,
     wavyAmplitude: 6,
     wavyFrequency: 4,
-    wavySpacing: 0.15
+    wavySpacing: 0.15,
   },
 
   getBoundingBox(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const padding = 40;
     const settings = this.settings;
-    
+
     ctx.save();
     ctx.font = `${settings.fontWeight} ${settings.fontSize}px ${settings.fontFamily}`;
     const clipsToSearch = getClipsToSearch(editorStore.getState());
-    const activeClip = clipsToSearch.find((c: any) => 
-      c.type === 'music' && 
-      c.settings?.enabled !== false &&
-      editorStore.getState().currentTime >= c.start && 
-      editorStore.getState().currentTime <= c.start + c.duration
+    const activeClip = clipsToSearch.find(
+      (c: any) =>
+        c.type === "music" &&
+        c.settings?.enabled !== false &&
+        editorStore.getState().currentTime >= c.start &&
+        editorStore.getState().currentTime <= c.start + c.duration,
     );
-    const text = activeClip ? (activeClip.settings?.name || "") : "No Music Playing";
+    const text = activeClip
+      ? activeClip.settings?.name || ""
+      : "No Music Playing";
     const width = measureEmojiText(ctx, text, settings.fontSize);
     ctx.restore();
 
-    const boxWidth = width + (settings.bgPadding || 0) * 2; 
-    const height = settings.fontSize * (settings.lineHeight || 1.2) + (settings.bgPadding || 0) * 2;
-    
+    const boxWidth = width + (settings.bgPadding || 0) * 2;
+    const height =
+      settings.fontSize * (settings.lineHeight || 1.2) +
+      (settings.bgPadding || 0) * 2;
+
     let x: number, y: number;
     if (editorStore.getState().aspectRatio === "16:9") {
       x = padding;
@@ -64,17 +73,18 @@ export const TitleClip = {
       this.settings.originX = 0.5;
     }
     this.settings.originY = 1;
-    
+
     return { x, y, width: boxWidth, height };
   },
 
   draw(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const clipsToSearch = getClipsToSearch(editorStore.getState());
-    const activeClip = clipsToSearch.find((c: any) => 
-      c.type === 'music' && 
-      c.settings?.enabled !== false &&
-      editorStore.getState().currentTime >= c.start && 
-      editorStore.getState().currentTime <= c.start + c.duration
+    const activeClip = clipsToSearch.find(
+      (c: any) =>
+        c.type === "music" &&
+        c.settings?.enabled !== false &&
+        editorStore.getState().currentTime >= c.start &&
+        editorStore.getState().currentTime <= c.start + c.duration,
     );
     if (!activeClip) return;
 
@@ -88,7 +98,7 @@ export const TitleClip = {
       const speed = settings.typewriterSpeed || 15;
       const localTime = editorStore.getState().currentTime - activeClip.start;
       let charCount = Math.floor(localTime * speed);
-      
+
       const duration = activeClip.duration;
       if (settings.typewriterOut !== false && isFinite(duration)) {
         const eraseCount = Math.floor((duration - localTime) * speed);
@@ -100,28 +110,45 @@ export const TitleClip = {
 
     ctx.save();
     ctx.globalAlpha *= opacity;
-    
-    const size = editorStore.getState().aspectRatio === "9:16" ? settings.fontSize * 0.8 : settings.fontSize;
+
+    const size =
+      editorStore.getState().aspectRatio === "9:16"
+        ? settings.fontSize * 0.8
+        : settings.fontSize;
     ctx.font = `${settings.fontWeight} ${size}px ${settings.fontFamily}`;
-    
+
     // Shadow
-    if (settings.shadowBlur > 0 || settings.shadowOffsetX !== 0 || settings.shadowOffsetY !== 0) {
-        ctx.shadowColor = settings.shadowColor || "rgba(0,0,0,0.8)";
-        ctx.shadowBlur = settings.shadowBlur || 0;
-        ctx.shadowOffsetX = settings.shadowOffsetX || 0;
-        ctx.shadowOffsetY = settings.shadowOffsetY || 0;
+    if (
+      settings.shadowBlur > 0 ||
+      settings.shadowOffsetX !== 0 ||
+      settings.shadowOffsetY !== 0
+    ) {
+      ctx.shadowColor = settings.shadowColor || "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = settings.shadowBlur || 0;
+      ctx.shadowOffsetX = settings.shadowOffsetX || 0;
+      ctx.shadowOffsetY = settings.shadowOffsetY || 0;
     }
 
     // Background Box
     if (settings.bgColor && settings.bgColor !== "transparent") {
-        ctx.fillStyle = settings.bgColor;
-        ctx.beginPath();
-        ctx.roundRect(bbox.x, bbox.y, bbox.width, bbox.height, settings.bgRadius || 0);
-        ctx.fill();
+      ctx.fillStyle = settings.bgColor;
+      ctx.beginPath();
+      ctx.roundRect(
+        bbox.x,
+        bbox.y,
+        bbox.width,
+        bbox.height,
+        settings.bgRadius || 0,
+      );
+      ctx.fill();
     }
 
     // Keep shadow active for text drawing if shadow is set, otherwise reset it
-    if (!(settings.shadowBlur > 0 || settings.shadowOffsetX !== 0 || settings.shadowOffsetY !== 0)) {
+    if (!(
+      settings.shadowBlur > 0 ||
+      settings.shadowOffsetX !== 0 ||
+      settings.shadowOffsetY !== 0
+    )) {
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
@@ -130,7 +157,8 @@ export const TitleClip = {
 
     // Text Alignment Logic
     const textWidth = measureEmojiText(ctx, textToDraw, size);
-    const textAlign = (editorStore.getState().aspectRatio === "16:9") ? "left" : "center";
+    const textAlign =
+      editorStore.getState().aspectRatio === "16:9" ? "left" : "center";
     ctx.textBaseline = "middle";
 
     let textX = bbox.x + (settings.bgPadding || 0);
@@ -153,7 +181,7 @@ export const TitleClip = {
         time,
         settings.wavyAmplitude !== undefined ? settings.wavyAmplitude : 6,
         settings.wavyFrequency !== undefined ? settings.wavyFrequency : 4,
-        settings.wavySpacing !== undefined ? settings.wavySpacing : 0.15
+        settings.wavySpacing !== undefined ? settings.wavySpacing : 0.15,
       );
     } else {
       drawEmojiText(
@@ -164,10 +192,10 @@ export const TitleClip = {
         size,
         settings.textColor,
         settings.strokeColor || "#000000",
-        settings.strokeWidth || 0
+        settings.strokeWidth || 0,
       );
     }
-    
+
     ctx.restore();
   },
 

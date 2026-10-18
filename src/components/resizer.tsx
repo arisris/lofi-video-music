@@ -21,7 +21,8 @@ export const Resizer = ({ side, onResize, order = "" }: ResizerProps) => {
     setIsResizing(true);
     const startX = e.clientX;
     const state = editorStore.getState();
-    const startWidth = side === "left" ? state.mediaPoolWidth : state.inspectorWidth;
+    const startWidth =
+      side === "left" ? state.mediaPoolWidth : state.inspectorWidth;
 
     const onMouseMove = (me: MouseEvent) => {
       const dx = me.clientX - startX;
@@ -43,7 +44,7 @@ export const Resizer = ({ side, onResize, order = "" }: ResizerProps) => {
 
   return (
     <div
-      className={`hidden md:flex flex-none w-1 h-full bg-transparent hover:bg-blue-500/30 cursor-col-resize transition-all z-100 items-center justify-center ${order} ${isResizing ? "bg-blue-500/50 w-1.5" : ""}`}
+      className={`z-100 hidden h-full w-1 flex-none cursor-col-resize items-center justify-center bg-transparent transition-all hover:bg-blue-500/30 md:flex ${order} ${isResizing ? "w-1.5 bg-blue-500/50" : ""}`}
       onMouseDown={handleMouseDown}
     />
   );

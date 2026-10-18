@@ -12,10 +12,15 @@ const TRANSITION_STYLES: Array<[TransitionStyle, string]> = [
 export const SettingsPanel = () => {
   const transitionStyle = useEditorStore((s) => s.bgTransitionStyle);
   const selectedClipId = useEditorStore((s) => s.selectedClipId);
-  const titleEnabled = useEditorStore((s) => s.clipSettings["title"]?.enabled !== false);
-  const playlistEnabled = useEditorStore((s) => s.clipSettings["playlist"]?.enabled !== false);
+  const titleEnabled = useEditorStore(
+    (s) => s.clipSettings["title"]?.enabled !== false,
+  );
+  const playlistEnabled = useEditorStore(
+    (s) => s.clipSettings["playlist"]?.enabled !== false,
+  );
 
-  const setStyle = (style: TransitionStyle) => editorStore.setState({ bgTransitionStyle: style });
+  const setStyle = (style: TransitionStyle) =>
+    editorStore.setState({ bgTransitionStyle: style });
 
   const toggleGlobalLayer = (e: React.MouseEvent, id: "title" | "playlist") => {
     e.stopPropagation();
@@ -29,16 +34,18 @@ export const SettingsPanel = () => {
     editorStore.setState({ selectedClipId: id, activeClipTab: id });
 
   return (
-    <div className="bg-slate-900 p-5 flex flex-col h-full w-full overflow-hidden">
-      <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-900 p-5">
+      <div className="custom-scrollbar flex-1 overflow-y-auto pr-1">
         {/* Transition Settings */}
         <div className="mb-4">
-          <label className="block text-xs text-slate-400 mb-2">Transition Style</label>
+          <label className="mb-2 block text-xs text-slate-400">
+            Transition Style
+          </label>
           <div className="flex gap-2">
             {TRANSITION_STYLES.map(([style, label]) => (
               <button
                 key={style}
-                className={`flex-1 py-1.5 rounded text-xs transition ${transitionStyle === style ? "bg-blue-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300"}`}
+                className={`flex-1 rounded py-1.5 text-xs transition ${transitionStyle === style ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
                 onClick={() => setStyle(style)}
               >
                 {label}
@@ -49,48 +56,59 @@ export const SettingsPanel = () => {
 
         {/* Global Overlays Settings */}
         <div className="mb-6">
-          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Global Overlays</h3>
+          <h3 className="mb-3 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+            Global Overlays
+          </h3>
           <div className="space-y-2">
             {/* Track Title Layer */}
             <div
-              className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer ${selectedClipId === "title" ? "bg-blue-600/20 border-blue-500/50" : "bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60"}`}
+              className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${selectedClipId === "title" ? "border-blue-500/50 bg-blue-600/20" : "border-slate-700/50 bg-slate-800/40 hover:bg-slate-800/60"}`}
               onClick={() => selectLayer("title")}
             >
               <div className="flex items-center gap-3">
-                <i className="icon-[ri--heading] w-4 h-4 text-slate-400" />
-                <span className="text-xs font-bold text-slate-200">Track Title overlay</span>
+                <i className="icon-[ri--heading] h-4 w-4 text-slate-400" />
+                <span className="text-xs font-bold text-slate-200">
+                  Track Title overlay
+                </span>
               </div>
               <button
-                className={`p-1 rounded-md transition-colors ${titleEnabled ? "text-blue-400 hover:text-blue-300" : "text-slate-600 hover:text-slate-500"}`}
+                className={`rounded-md p-1 transition-colors ${titleEnabled ? "text-blue-400 hover:text-blue-300" : "text-slate-600 hover:text-slate-500"}`}
                 onClick={(e) => toggleGlobalLayer(e, "title")}
               >
-                <i className={`${titleEnabled ? "icon-[ri--eye-line]" : "icon-[ri--eye-off-line]"} w-4 h-4`} />
+                <i
+                  className={`${titleEnabled ? "icon-[ri--eye-line]" : "icon-[ri--eye-off-line]"} h-4 w-4`}
+                />
               </button>
             </div>
 
             {/* Playlist Overlay Layer */}
             <div
-              className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer ${selectedClipId === "playlist" ? "bg-blue-600/20 border-blue-500/50" : "bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60"}`}
+              className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${selectedClipId === "playlist" ? "border-blue-500/50 bg-blue-600/20" : "border-slate-700/50 bg-slate-800/40 hover:bg-slate-800/60"}`}
               onClick={() => selectLayer("playlist")}
             >
               <div className="flex items-center gap-3">
-                <i className="icon-[ri--list-unordered] w-4 h-4 text-slate-400" />
-                <span className="text-xs font-bold text-slate-200">Playlist Overlay</span>
+                <i className="icon-[ri--list-unordered] h-4 w-4 text-slate-400" />
+                <span className="text-xs font-bold text-slate-200">
+                  Playlist Overlay
+                </span>
               </div>
               <button
-                className={`p-1 rounded-md transition-colors ${playlistEnabled ? "text-blue-400 hover:text-blue-300" : "text-slate-600 hover:text-slate-500"}`}
+                className={`rounded-md p-1 transition-colors ${playlistEnabled ? "text-blue-400 hover:text-blue-300" : "text-slate-600 hover:text-slate-500"}`}
                 onClick={(e) => toggleGlobalLayer(e, "playlist")}
               >
-                <i className={`${playlistEnabled ? "icon-[ri--eye-line]" : "icon-[ri--eye-off-line]"} w-4 h-4`} />
+                <i
+                  className={`${playlistEnabled ? "icon-[ri--eye-line]" : "icon-[ri--eye-off-line]"} h-4 w-4`}
+                />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 p-3 bg-blue-900/10 border border-blue-900/30 rounded-lg">
-          <p className="text-[10px] text-blue-300 leading-relaxed italic">
-            <i className="icon-[ri--information-line] inline w-3 h-3 mr-1" />
-            Tip: You can drag the image/video in the preview to adjust its composition.
+        <div className="mt-6 rounded-lg border border-blue-900/30 bg-blue-900/10 p-3">
+          <p className="text-[10px] leading-relaxed text-blue-300 italic">
+            <i className="mr-1 icon-[ri--information-line] inline h-3 w-3" />
+            Tip: You can drag the image/video in the preview to adjust its
+            composition.
           </p>
         </div>
       </div>

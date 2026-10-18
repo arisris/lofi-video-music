@@ -4,7 +4,12 @@ import { hexToHSL } from "../../utils/helpers";
 export const WaveformVisualizer = {
   id: "waveform",
   name: "Waveform",
-  draw(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ) {
     const { color, intensity, density, rainbow } = settings;
     const centerY = h / 2;
     runtime.analyser.getByteTimeDomainData(runtime.dataArray);

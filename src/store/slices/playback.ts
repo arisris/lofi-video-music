@@ -19,7 +19,12 @@ export interface PlaybackSlice {
   transitionDuration: number;
 }
 
-export const createPlaybackSlice: StateCreator<EditorStore, [], [], PlaybackSlice> = () => ({
+export const createPlaybackSlice: StateCreator<
+  EditorStore,
+  [],
+  [],
+  PlaybackSlice
+> = () => ({
   currentTime: 0,
   isPlaying: false,
 

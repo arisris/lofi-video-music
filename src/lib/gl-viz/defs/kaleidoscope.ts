@@ -94,19 +94,54 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
     opacity: 1,
   },
   fields: [
-    { kind: "slider", key: "segments", label: "Segments", min: 2, max: 24, step: 1 },
+    {
+      kind: "slider",
+      key: "segments",
+      label: "Segments",
+      min: 2,
+      max: 24,
+      step: 1,
+    },
     { kind: "slider", key: "spin", label: "Spin", min: 0, max: 2, step: 0.01 },
-    { kind: "slider", key: "zoom", label: "Zoom", min: 0.2, max: 4, step: 0.05 },
+    {
+      kind: "slider",
+      key: "zoom",
+      label: "Zoom",
+      min: 0.2,
+      max: 4,
+      step: 0.05,
+    },
     { kind: "slider", key: "bands", label: "Rings", min: 1, max: 24, step: 1 },
     // Capped at the quad's edge midpoint radius (0.5), not its corner radius
     // (0.707). The falloff has to finish before the quad runs out, otherwise
     // the pattern is still at full strength where the square stops and the
     // disc turns back into a box.
-    { kind: "slider", key: "radius", label: "Radius", min: 0.15, max: 0.5, step: 0.01 },
+    {
+      kind: "slider",
+      key: "radius",
+      label: "Radius",
+      min: 0.15,
+      max: 0.5,
+      step: 0.01,
+    },
     { kind: "color", key: "color", label: "Tint" },
     { kind: "color", key: "background", label: "Background", alpha: true },
-    { kind: "image", key: "image", label: "Image", hint: "Optional. Warps a picture; without one it renders as light only." },
-    { kind: "slider", key: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, scale: 100, unit: "%" },
+    {
+      kind: "image",
+      key: "image",
+      label: "Image",
+      hint: "Optional. Warps a picture; without one it renders as light only.",
+    },
+    {
+      kind: "slider",
+      key: "opacity",
+      label: "Opacity",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      scale: 100,
+      unit: "%",
+    },
   ],
   // A radial visual wants a square box; the default lower-half strip leaves it
   // stretched, so this is the first definition to use the bbox hook.

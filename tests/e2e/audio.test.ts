@@ -38,8 +38,7 @@ describe("analyser", () => {
             if (v > -110) loud++;
           }
           return { present: true, max, min, loud };
-        })()`,
-      );
+        })()`);
 
       expect(r.present).toBe(true);
       expect(r.max!).toBeGreaterThan(-60);
@@ -90,7 +89,11 @@ describe("peak hold", () => {
         await e.wait(2600);
       })()`);
 
-      const r = await t.eval<{ caps: number; frames: number; bars: number }>(`(async () => {
+      const r = await t.eval<{
+        caps: number;
+        frames: number;
+        bars: number;
+      }>(`(async () => {
         const e = window.__e2e;
         const def = (await e.glviz()).resolveVisualizerDef("bars");
         const W = 1280, H = 360, baseRow = Math.round(H * 0.32);

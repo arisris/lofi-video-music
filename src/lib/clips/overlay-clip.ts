@@ -1,10 +1,17 @@
 import { editorStore } from "../../store/editor-store";
 import { bumpClips } from "../../store/actions/timeline-actions";
 import { OverlaySettingsView } from "../../components/clip-settings/overlay";
-import { generateThumbnail, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
+import {
+  generateThumbnail,
+  getMediaUrls,
+  revokeUrlIfUnused,
+} from "../../utils/helpers";
 
-
-export const processOverlayUpload = (file: File, clip: Record<string, any>, onComplete?: () => void) => {
+export const processOverlayUpload = (
+  file: File,
+  clip: Record<string, any>,
+  onComplete?: () => void,
+) => {
   const oldUrls = getMediaUrls(clip);
   const url = URL.createObjectURL(file);
 
@@ -31,7 +38,7 @@ export const processOverlayUpload = (file: File, clip: Record<string, any>, onCo
         clip.settings.mediaType = "video";
         clip.settings.activeVidIndex = 0;
         clip.settings.videoDuration = vid1.duration;
-        
+
         // Loop video defaults to true
         if (clip.settings.loop === undefined) {
           clip.settings.loop = true;
@@ -42,7 +49,7 @@ export const processOverlayUpload = (file: File, clip: Record<string, any>, onCo
           clip.duration = vid1.duration / (clip.settings.speed || 1.0);
         }
 
-        generateThumbnail(vid1, true).then(thumb => {
+        generateThumbnail(vid1, true).then((thumb) => {
           clip.settings.thumbnail = thumb;
           if (onComplete) onComplete();
           bumpClips();
@@ -51,7 +58,9 @@ export const processOverlayUpload = (file: File, clip: Record<string, any>, onCo
         bumpClips();
 
         // Revoke old URLs after replacing elements
-        oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, editorStore.getState()));
+        oldUrls.forEach((oldUrl) =>
+          revokeUrlIfUnused(oldUrl, editorStore.getState()),
+        );
       }
     };
     [vid1, vid2].forEach((vid) => {
@@ -76,7 +85,7 @@ export const processOverlayUpload = (file: File, clip: Record<string, any>, onCo
       clip.settings.videoDuration = 0;
       clip.settings.loop = undefined;
 
-      generateThumbnail(img).then(thumb => {
+      generateThumbnail(img).then((thumb) => {
         clip.settings.thumbnail = thumb;
         if (onComplete) onComplete();
         bumpClips();
@@ -85,7 +94,9 @@ export const processOverlayUpload = (file: File, clip: Record<string, any>, onCo
       bumpClips();
 
       // Revoke old URLs after replacing elements
-      oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, editorStore.getState()));
+      oldUrls.forEach((oldUrl) =>
+        revokeUrlIfUnused(oldUrl, editorStore.getState()),
+      );
     };
     img.src = url;
   }
@@ -101,33 +112,68 @@ export const OverlayClip = {
     loop: true,
   },
 
-  getItemBoundingBox(_ctx: CanvasRenderingContext2D, _w: number, _h: number, settings: Record<string, any>) {
+  getItemBoundingBox(
+    _ctx: CanvasRenderingContext2D,
+    _w: number,
+    _h: number,
+    settings: Record<string, any>,
+  ) {
     if (settings.mediaType === "image" && settings.mediaElement) {
       const img = settings.mediaElement;
-      return { x: 0, y: 0, width: img.naturalWidth || 300, height: img.naturalHeight || 200 };
+      return {
+        x: 0,
+        y: 0,
+        width: img.naturalWidth || 300,
+        height: img.naturalHeight || 200,
+      };
     }
-    if (settings.mediaType === "gif" && settings.gifFrames && settings.gifFrames.length > 0) {
+    if (
+      settings.mediaType === "gif" &&
+      settings.gifFrames &&
+      settings.gifFrames.length > 0
+    ) {
       const frame = settings.gifFrames[0];
-      return { x: 0, y: 0, width: frame.dims.width || 300, height: frame.dims.height || 200 };
+      return {
+        x: 0,
+        y: 0,
+        width: frame.dims.width || 300,
+        height: frame.dims.height || 200,
+      };
     }
     if (settings.mediaType === "video" && settings.mediaElements) {
       const vid = settings.mediaElements[0];
-      return { x: 0, y: 0, width: vid.videoWidth || 300, height: vid.videoHeight || 200 };
+      return {
+        x: 0,
+        y: 0,
+        width: vid.videoWidth || 300,
+        height: vid.videoHeight || 200,
+      };
     }
     return { x: 0, y: 0, width: 300, height: 200 };
   },
 
-  drawItem(ctx: CanvasRenderingContext2D, _w: number, _h: number, settings: Record<string, any>, localTime: number) {
-    const { mediaType, mediaElement, mediaElements, loop, videoDuration } = settings;
+  drawItem(
+    ctx: CanvasRenderingContext2D,
+    _w: number,
+    _h: number,
+    settings: Record<string, any>,
+    localTime: number,
+  ) {
+    const { mediaType, mediaElement, mediaElements, loop, videoDuration } =
+      settings;
     const opacity = settings.opacity !== undefined ? settings.opacity : 1.0;
     ctx.globalAlpha = ctx.globalAlpha * opacity;
 
     if (mediaType === "image" && mediaElement) {
       ctx.drawImage(mediaElement, 0, 0);
-    } else if (mediaType === "gif" && settings.gifFrames && settings.gifFrames.length > 0) {
+    } else if (
+      mediaType === "gif" &&
+      settings.gifFrames &&
+      settings.gifFrames.length > 0
+    ) {
       const frames = settings.gifFrames;
       const duration = Math.max(1, settings.gifDuration || 1000);
-      
+
       const timeMs = Math.max(0, (localTime * 1000) % duration);
       let accumulatedTime = 0;
       let frameIdx = frames.length - 1;
@@ -138,7 +184,7 @@ export const OverlayClip = {
           break;
         }
       }
-      
+
       const frame = frames[frameIdx];
       if (frame && frame.canvas) {
         ctx.drawImage(frame.canvas, frame.dims.left, frame.dims.top);

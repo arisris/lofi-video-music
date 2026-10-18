@@ -2,19 +2,22 @@ import { getIconFromDb } from "../../utils/indexed-db";
 import { ShapeSettingsView } from "../../components/clip-settings/shape";
 
 const iconDataCache: Record<string, any> = {};
-const iconImageCache: Record<string, { img: HTMLImageElement; loaded: boolean }> = {};
+const iconImageCache: Record<
+  string,
+  { img: HTMLImageElement; loaded: boolean }
+> = {};
 
 // Asynchronously fetch icon data and cache it
 const getIconDataAsync = (iconName: string): any => {
   if (iconDataCache[iconName] !== undefined) {
     return iconDataCache[iconName];
   }
-  
+
   iconDataCache[iconName] = null;
-  getIconFromDb(iconName).then(data => {
+  getIconFromDb(iconName).then((data) => {
     iconDataCache[iconName] = data;
   });
-  
+
   return null;
 };
 
@@ -102,7 +105,12 @@ export const ShapeClip = {
     opacity: 1.0,
   },
 
-  getItemBoundingBox(_ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
+  getItemBoundingBox(
+    _ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ) {
     const width = settings.width || 150;
     const height = settings.height || 150;
     return {
@@ -113,7 +121,14 @@ export const ShapeClip = {
     };
   },
 
-  drawItem(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>, _localTime = 0, _clip: Record<string, any> | null = null) {
+  drawItem(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+    _localTime = 0,
+    _clip: Record<string, any> | null = null,
+  ) {
     ctx.save();
 
     const width = settings.width || 150;
@@ -128,7 +143,11 @@ export const ShapeClip = {
     ctx.globalAlpha = ctx.globalAlpha * opacity;
 
     // Apply Shadow
-    if (settings.shadowBlur > 0 || settings.shadowOffsetX !== 0 || settings.shadowOffsetY !== 0) {
+    if (
+      settings.shadowBlur > 0 ||
+      settings.shadowOffsetX !== 0 ||
+      settings.shadowOffsetY !== 0
+    ) {
       ctx.shadowColor = settings.shadowColor || "rgba(0,0,0,0.5)";
       ctx.shadowBlur = settings.shadowBlur || 0;
       ctx.shadowOffsetX = settings.shadowOffsetX || 0;
@@ -136,7 +155,7 @@ export const ShapeClip = {
     }
 
     const type = settings.shapeType || "rectangle";
-    
+
     if (type === "icon" && settings.iconName) {
       const iconData = getIconDataAsync(settings.iconName);
       if (iconData) {
@@ -147,7 +166,7 @@ export const ShapeClip = {
           settings.fillColor2 || "#8b5cf6",
           settings.fillType,
           settings.strokeColor || "#ffffff",
-          settings.strokeWidth || 0
+          settings.strokeWidth || 0,
         );
         if (state.loaded) {
           ctx.drawImage(state.img, x, y, width, height);
@@ -220,7 +239,7 @@ export const ShapeClip = {
           centerX - width * 0.35,
           centerY - height * 0.5,
           centerX,
-          topY
+          topY,
         );
         ctx.bezierCurveTo(
           centerX + width * 0.35,
@@ -228,7 +247,7 @@ export const ShapeClip = {
           centerX + width * 0.6,
           centerY - height * 0.2,
           centerX,
-          centerY + height * 0.35
+          centerY + height * 0.35,
         );
         ctx.closePath();
       }
@@ -253,7 +272,11 @@ export const ShapeClip = {
       ctx.shadowOffsetY = 0;
 
       // Stroke/Border
-      if (settings.strokeWidth > 0 && settings.strokeColor && settings.strokeColor !== "transparent") {
+      if (
+        settings.strokeWidth > 0 &&
+        settings.strokeColor &&
+        settings.strokeColor !== "transparent"
+      ) {
         ctx.strokeStyle = settings.strokeColor;
         ctx.lineWidth = settings.strokeWidth;
         ctx.stroke();

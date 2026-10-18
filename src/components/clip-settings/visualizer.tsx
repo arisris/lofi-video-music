@@ -2,7 +2,10 @@ import { editorStore } from "../../store/editor-store";
 import { getVisualizer } from "../../lib/visualizers/index";
 import { getClipsToSearch } from "../../utils/helpers";
 import { updateTimelineClipSettings } from "../../store/actions/timeline-actions";
-import { SharedTransformSettingsView, SharedAnimationSettingsView } from "./shared";
+import {
+  SharedTransformSettingsView,
+  SharedAnimationSettingsView,
+} from "./shared";
 
 interface ClipViewProps {
   clip?: Record<string, any>;
@@ -12,48 +15,57 @@ interface ClipViewProps {
 export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
   const clipsToSearch = getClipsToSearch(editorStore.getState());
   const selectedClip =
-    clip || clipsToSearch.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "visualizer");
+    clip ||
+    clipsToSearch.find(
+      (c: any) =>
+        c.id === editorStore.getState().selectedClipId &&
+        c.type === "visualizer",
+    );
 
   if (!selectedClip) {
-    return <div className="text-slate-500 text-xs italic text-center py-8">Select a visualizer from the list to change settings</div>;
+    return (
+      <div className="py-8 text-center text-xs text-slate-500 italic">
+        Select a visualizer from the list to change settings
+      </div>
+    );
   }
 
-  const activeVis = getVisualizer(selectedClip.settings?.style as string) as unknown as
-    | { hasReflection?: boolean }
-    | undefined;
+  const activeVis = getVisualizer(
+    selectedClip.settings?.style as string,
+  ) as unknown as { hasReflection?: boolean } | undefined;
   const settings = selectedClip.settings as Record<string, any>;
 
   const update = (patch: Record<string, unknown>) =>
     updateTimelineClipSettings(selectedClip.id as string, patch);
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+    <div className="animate-in fade-in slide-in-from-top-2 space-y-4 duration-300">
       <div className="mb-4">
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex cursor-pointer items-center gap-2">
           <input
             type="checkbox"
             checked={settings.rainbow}
-            className="w-4 h-4 accent-blue-600 rounded"
+            className="h-4 w-4 rounded accent-blue-600"
             onChange={(e) => update({ rainbow: e.target.checked })}
           />
           <span className="text-xs text-slate-300">Rainbow Mode</span>
         </label>
       </div>
       <div className="mb-4">
-        <label className="text-xs text-slate-400 mb-2 flex justify-between items-center">
+        <label className="mb-2 flex items-center justify-between text-xs text-slate-400">
           <span>Main Color</span>
-          <span className="text-slate-500 font-mono">{settings.color}</span>
+          <span className="font-mono text-slate-500">{settings.color}</span>
         </label>
         <input
           type="color"
           value={settings.color}
-          className="w-full h-10 bg-transparent cursor-pointer rounded border border-slate-700"
+          className="h-10 w-full cursor-pointer rounded border border-slate-700 bg-transparent"
           onChange={(e) => update({ color: e.target.value })}
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-slate-400 mb-2">Intensity</label>
+          <label className="mb-2 block text-xs text-slate-400">Intensity</label>
           <input
             type="range"
             min={0}
@@ -65,7 +77,7 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-400 mb-2">Opacity</label>
+          <label className="mb-2 block text-xs text-slate-400">Opacity</label>
           <input
             type="range"
             min={0}
@@ -78,7 +90,7 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
         </div>
       </div>
       <div className="mt-4">
-        <label className="text-xs text-slate-400 mb-2 flex justify-between">
+        <label className="mb-2 flex justify-between text-xs text-slate-400">
           <span>Size</span>
           <span className="text-slate-500">{`${Math.round((settings.size !== undefined ? settings.size : 1.0) * 100)}%`}</span>
         </label>
@@ -93,9 +105,11 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
         />
       </div>
       <div className="mt-4">
-        <label className="text-xs text-slate-400 mb-2 flex justify-between">
+        <label className="mb-2 flex justify-between text-xs text-slate-400">
           <span>Density</span>
-          <span className="text-slate-500">{(settings.density ?? 1.5).toFixed(1)}</span>
+          <span className="text-slate-500">
+            {(settings.density ?? 1.5).toFixed(1)}
+          </span>
         </label>
         <input
           type="range"
@@ -109,7 +123,7 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
       </div>
       {activeVis?.hasReflection && (
         <div className="mt-4">
-          <label className="text-xs text-slate-400 mb-2 flex justify-between">
+          <label className="mb-2 flex justify-between text-xs text-slate-400">
             <span>Reflection Opacity</span>
             <span className="text-slate-500">
               {`${Math.round((settings.reflectionOpacity !== undefined ? settings.reflectionOpacity : 0.25) * 100)}%`}
@@ -120,14 +134,26 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
             min={0}
             max={1}
             step={0.05}
-            value={settings.reflectionOpacity !== undefined ? settings.reflectionOpacity : 0.25}
+            value={
+              settings.reflectionOpacity !== undefined
+                ? settings.reflectionOpacity
+                : 0.25
+            }
             className="w-full accent-blue-500"
-            onChange={(e) => update({ reflectionOpacity: parseFloat(e.target.value) })}
+            onChange={(e) =>
+              update({ reflectionOpacity: parseFloat(e.target.value) })
+            }
           />
         </div>
       )}
-      <SharedTransformSettingsView settings={settings} updateSettings={update} />
-      <SharedAnimationSettingsView settings={settings} updateSettings={update} />
+      <SharedTransformSettingsView
+        settings={settings}
+        updateSettings={update}
+      />
+      <SharedAnimationSettingsView
+        settings={settings}
+        updateSettings={update}
+      />
     </div>
   );
 };

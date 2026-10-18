@@ -1,4 +1,10 @@
-import { handleDragStart, getEventPos, findClipAtPos, findHandleAtPos, DragPointerEvent } from "../lib/drag";
+import {
+  handleDragStart,
+  getEventPos,
+  findClipAtPos,
+  findHandleAtPos,
+  DragPointerEvent,
+} from "../lib/drag";
 import { getSelectedClipInfo } from "../utils/helpers";
 import { runtime } from "../lib/runtime";
 import { editorStore, useEditorStore } from "../store/editor-store";
@@ -6,12 +12,14 @@ import { editorStore, useEditorStore } from "../store/editor-store";
 let isHoveringClip = false;
 
 const resolutionWidth = (aspectRatio: string, res: string): number => {
-  if (aspectRatio === "16:9") return res === "1080p" ? 1920 : res === "1440p" ? 2560 : 1280;
+  if (aspectRatio === "16:9")
+    return res === "1080p" ? 1920 : res === "1440p" ? 2560 : 1280;
   return res === "1080p" ? 1080 : res === "1440p" ? 1440 : 720;
 };
 
 const resolutionHeight = (aspectRatio: string, res: string): number => {
-  if (aspectRatio === "16:9") return res === "1080p" ? 1080 : res === "1440p" ? 1440 : 720;
+  if (aspectRatio === "16:9")
+    return res === "1080p" ? 1080 : res === "1440p" ? 1440 : 720;
   return res === "1080p" ? 1080 : res === "1440p" ? 1440 : 1280;
 };
 
@@ -35,8 +43,16 @@ export const VideoPreview = () => {
         ? "move"
         : "default");
 
-  const width = isRecording ? resolutionWidth(aspectRatio, recordResolution || "720p") : aspectRatio === "16:9" ? 1280 : 720;
-  const height = isRecording ? resolutionHeight(aspectRatio, recordResolution || "720p") : aspectRatio === "16:9" ? 720 : 1280;
+  const width = isRecording
+    ? resolutionWidth(aspectRatio, recordResolution || "720p")
+    : aspectRatio === "16:9"
+      ? 1280
+      : 720;
+  const height = isRecording
+    ? resolutionHeight(aspectRatio, recordResolution || "720p")
+    : aspectRatio === "16:9"
+      ? 720
+      : 1280;
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const state = editorStore.getState();
@@ -51,12 +67,16 @@ export const VideoPreview = () => {
       const { settings, renderer } = selectedInfo;
       const w = runtime.canvas?.width;
       const h = runtime.canvas?.height;
-      const bbox = renderer.getItemBoundingBox ? renderer.getItemBoundingBox(runtime.ctx, w, h, settings) : null;
+      const bbox = renderer.getItemBoundingBox
+        ? renderer.getItemBoundingBox(runtime.ctx, w, h, settings)
+        : null;
       if (bbox) {
         const handle = findHandleAtPos(pos, bbox, settings);
         if (handle === "rotate") hoverCursor = "crosshair";
-        else if (handle === "resize-tl" || handle === "resize-br") hoverCursor = "nwse-resize";
-        else if (handle === "resize-tr" || handle === "resize-bl") hoverCursor = "nesw-resize";
+        else if (handle === "resize-tl" || handle === "resize-br")
+          hoverCursor = "nwse-resize";
+        else if (handle === "resize-tr" || handle === "resize-bl")
+          hoverCursor = "nesw-resize";
       }
     }
 
@@ -72,7 +92,7 @@ export const VideoPreview = () => {
 
   return (
     <div
-      className="canvas-container flex-1 relative"
+      className="canvas-container relative flex-1"
       style={{ cursor: cursorStyle }}
       onMouseDown={handleDragStart as unknown as React.MouseEventHandler}
       onMouseMove={handleMouseMove}
@@ -85,10 +105,11 @@ export const VideoPreview = () => {
 
       {/* Recording Indicator */}
       <div
-        className={`absolute top-4 left-4 flex items-center gap-2 bg-black/60 text-red-500 px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-red-500/30 pointer-events-none ${isRecording ? "" : "hidden"}`}
+        className={`pointer-events-none absolute top-4 left-4 flex items-center gap-2 rounded-full border border-red-500/30 bg-black/60 px-3 py-1.5 text-sm font-medium text-red-500 backdrop-blur-sm ${isRecording ? "" : "hidden"}`}
       >
-        <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-        Recording... <span className="text-white ml-1 font-mono">{recordingTime}</span>
+        <div className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
+        Recording...{" "}
+        <span className="ml-1 font-mono text-white">{recordingTime}</span>
       </div>
     </div>
   );

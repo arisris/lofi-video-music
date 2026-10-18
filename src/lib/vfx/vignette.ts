@@ -24,14 +24,21 @@ export const VignetteVFX = {
     const opacity = settings.opacity !== undefined ? settings.opacity : 0.4;
     const color = settings.color || "#000000";
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "bass") : 0;
+    const audioLevel = settings.audioReactive
+      ? getAudioReactivity(editorStore.getState(), "bass")
+      : 0;
 
     // Pulse opacity and close in the radius on strong bass beats
-    const activeOpacity = Math.max(0.0, Math.min(1.0, opacity + audioLevel * 0.45));
+    const activeOpacity = Math.max(
+      0.0,
+      Math.min(1.0, opacity + audioLevel * 0.45),
+    );
 
     // Scale the vignette circle radius based on audio level
     const maxRadius = Math.sqrt(w * w + h * h) / 2;
-    const radiusScale = settings.audioReactive ? Math.max(0.5, 1.1 - audioLevel * 0.45) : 1.0;
+    const radiusScale = settings.audioReactive
+      ? Math.max(0.5, 1.1 - audioLevel * 0.45)
+      : 1.0;
     const outerRadius = maxRadius * radiusScale;
 
     // Convert hex color to rgba for gradient
@@ -53,7 +60,14 @@ export const VignetteVFX = {
     ctx.save();
 
     // Create radial gradient anchored in center
-    const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, outerRadius);
+    const grad = ctx.createRadialGradient(
+      w / 2,
+      h / 2,
+      0,
+      w / 2,
+      h / 2,
+      outerRadius,
+    );
     grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`); // center is transparent
     grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, ${activeOpacity})`); // edges are colored
 

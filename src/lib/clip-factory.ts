@@ -153,7 +153,10 @@ let clipSeq = 0;
 /**
  * Factory to create a timeline clip object.
  */
-export const createTimelineClip = (type: string, specificSettings: Record<string, any> = {}) => {
+export const createTimelineClip = (
+  type: string,
+  specificSettings: Record<string, any> = {},
+) => {
   // Date.now() only has millisecond resolution, so two clips created in the
   // same tick collided and became indistinguishable - every lookup by id
   // (selection, delete, drag, duplicate) then resolved to whichever came
@@ -167,22 +170,35 @@ export const createTimelineClip = (type: string, specificSettings: Record<string
   const adaptiveDuration = Math.max(5, targetVisualWidth / timelineZoom);
 
   let duration = adaptiveDuration;
-  if (type === "background" && specificSettings.bgType === "video" && typeof specificSettings.videoDuration === "number" && specificSettings.videoDuration > 0) {
+  if (
+    type === "background" &&
+    specificSettings.bgType === "video" &&
+    typeof specificSettings.videoDuration === "number" &&
+    specificSettings.videoDuration > 0
+  ) {
     duration = specificSettings.videoDuration;
-  } else if (type === "overlay" && specificSettings.mediaType === "video" && typeof specificSettings.videoDuration === "number" && specificSettings.videoDuration > 0) {
+  } else if (
+    type === "overlay" &&
+    specificSettings.mediaType === "video" &&
+    typeof specificSettings.videoDuration === "number" &&
+    specificSettings.videoDuration > 0
+  ) {
     duration = specificSettings.videoDuration;
   }
 
   // Music clips default to track-1, others to track-2
-  const defaultTrackId = (type === "music") ? "track-1" : "track-2";
+  const defaultTrackId = type === "music" ? "track-1" : "track-2";
 
   // A clip type may own its defaults - glviz builds them from the selected
   // definition. Those must win over the shared table, then be overridden by
   // whatever the caller passed explicitly.
-  const renderer = ClipRegistry.get(type) as { getDefaultSettings?: (s: Record<string, any>) => Record<string, any> } | undefined;
-  const declared = typeof renderer?.getDefaultSettings === "function"
-    ? renderer.getDefaultSettings(specificSettings)
-    : DEFAULT_SETTINGS[type];
+  const renderer = ClipRegistry.get(type) as
+    | { getDefaultSettings?: (s: Record<string, any>) => Record<string, any> }
+    | undefined;
+  const declared =
+    typeof renderer?.getDefaultSettings === "function"
+      ? renderer.getDefaultSettings(specificSettings)
+      : DEFAULT_SETTINGS[type];
   const defaultSettings = { ...DEFAULT_TRANSFORMS, ...(declared || {}) };
 
   let trackId = state.selectedTrackId || defaultTrackId;
@@ -211,7 +227,12 @@ export const createTimelineClip = (type: string, specificSettings: Record<string
 export const addClipToTimeline = (
   type: string,
   specificSettings: Record<string, any> = {},
-  onComplete: ((clip: Record<string, any>, applyFinishedState: (clip: Record<string, any>) => void) => void) | null = null,
+  onComplete:
+    | ((
+        clip: Record<string, any>,
+        applyFinishedState: (clip: Record<string, any>) => void,
+      ) => void)
+    | null = null,
 ) => {
   const newClip = createTimelineClip(type, specificSettings);
 
@@ -219,16 +240,26 @@ export const addClipToTimeline = (
     const store = editorStore.getState();
     const isThumbnailMode = store.currentRoute === "/image";
 
-    if (isThumbnailMode && (clip.type === "background" || clip.type === "music")) {
-      editorStore.setState({ videoClips: [...(store.videoClips || []), clip as never] });
+    if (
+      isThumbnailMode &&
+      (clip.type === "background" || clip.type === "music")
+    ) {
+      editorStore.setState({
+        videoClips: [...(store.videoClips || []), clip as never],
+      });
     } else {
-      editorStore.setState({ timelineClips: [...store.timelineClips, clip as never] });
+      editorStore.setState({
+        timelineClips: [...store.timelineClips, clip as never],
+      });
     }
 
     editorStore.setState({
       selectedClipId: clip.id,
       activeClipTab: clip.type,
-      timelineScrollLeft: Math.max(0, (clip.start * (store.timelineZoom || 10)) - 100),
+      timelineScrollLeft: Math.max(
+        0,
+        clip.start * (store.timelineZoom || 10) - 100,
+      ),
     });
     bumpClips();
   };

@@ -9,7 +9,14 @@ interface ClipViewProps {
 /** Settings panel for the canvas "vignette" VFX clip. */
 export const VignetteSettingsView = ({ clip }: ClipViewProps) => {
   const selectedClip =
-    clip || editorStore.getState().timelineClips.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "vignette");
+    clip ||
+    editorStore
+      .getState()
+      .timelineClips.find(
+        (c: any) =>
+          c.id === editorStore.getState().selectedClipId &&
+          c.type === "vignette",
+      );
   if (!selectedClip) return null;
 
   const settings = selectedClip.settings as Record<string, any>;
@@ -23,7 +30,7 @@ export const VignetteSettingsView = ({ clip }: ClipViewProps) => {
     updateTimelineClipSettings(selectedClip.id as string, patch);
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-300">
+    <div className="animate-in fade-in space-y-4 duration-300">
       {/* Audio Reactive Toggle */}
       <ToggleControl
         label="Audio Reactive"
@@ -33,22 +40,24 @@ export const VignetteSettingsView = ({ clip }: ClipViewProps) => {
       />
 
       {/* Color Picker */}
-      <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50">
-        <label className="text-xs text-slate-400 mb-2 flex justify-between items-center font-bold">
+      <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3">
+        <label className="mb-2 flex items-center justify-between text-xs font-bold text-slate-400">
           <span>Shadow Color</span>
-          <span className="text-slate-500 font-mono text-[10px]">{settings.color}</span>
+          <span className="font-mono text-[10px] text-slate-500">
+            {settings.color}
+          </span>
         </label>
         <input
           type="color"
           value={settings.color}
-          className="w-full h-10 bg-transparent cursor-pointer rounded border border-slate-700"
+          className="h-10 w-full cursor-pointer rounded border border-slate-700 bg-transparent"
           onChange={(e) => update({ color: e.target.value })}
         />
       </div>
 
       {/* Opacity Slider */}
-      <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50">
-        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">
+      <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3">
+        <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
           {`Vignette Opacity: ${Math.round(settings.opacity * 100)}%`}
         </label>
         <input
@@ -56,11 +65,11 @@ export const VignetteSettingsView = ({ clip }: ClipViewProps) => {
           min={0.0}
           max={1.0}
           step={0.05}
-          className="w-full cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none accent-blue-500"
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-700 accent-blue-500"
           value={settings.opacity}
           onChange={(e) => update({ opacity: parseFloat(e.target.value) })}
         />
-        <div className="flex justify-between text-[9px] text-slate-500 mt-1.5 font-mono">
+        <div className="mt-1.5 flex justify-between font-mono text-[9px] text-slate-500">
           <span>Faint</span>
           <span>Solid</span>
         </div>

@@ -22,14 +22,14 @@ Key principles:
 
 ### 2.1 Code size (total ~8,270 lines)
 
-| Area | Files | Lines | Effort Estimate |
-|---|---|---|---|
-| Components (Mithril) | 17 | ~4,300 | **High** — manual conversion to JSX + hooks |
-| Lib engine (render, audio, drag, clips, vfx, visualizers) | ~30 | ~2,300 | **Low–Medium** — mostly framework-agnostic, typing only |
-| `src/main.js` (routing + shell + HMR) | 1 | 278 | **Medium** — full rewrite |
-| `src/lib/state.js` | 1 | 155 | **Medium** — split into Zustand store |
-| `src/utils/` | 3 | ~470 | Low |
-| `src/worker.js` | 1 | 181 | ✅ Untouched |
+| Area                                                      | Files | Lines  | Effort Estimate                                         |
+| --------------------------------------------------------- | ----- | ------ | ------------------------------------------------------- |
+| Components (Mithril)                                      | 17    | ~4,300 | **High** — manual conversion to JSX + hooks             |
+| Lib engine (render, audio, drag, clips, vfx, visualizers) | ~30   | ~2,300 | **Low–Medium** — mostly framework-agnostic, typing only |
+| `src/main.js` (routing + shell + HMR)                     | 1     | 278    | **Medium** — full rewrite                               |
+| `src/lib/state.js`                                        | 1     | 155    | **Medium** — split into Zustand store                   |
+| `src/utils/`                                              | 3     | ~470   | Low                                                     |
+| `src/worker.js`                                           | 1     | 181    | ✅ Untouched                                            |
 
 ### 2.2 Riskiest areas
 
@@ -106,25 +106,25 @@ src/
 
 ### Phase 3 — Component conversion (small → large, one commit per file)
 
-| # | Component | Lines | Status |
-|---|---|---|---|
-| 1 | `inspector-panel.js` | 10 | ✅ (with #2) |
-| 2 | `resizer.js` | 38 | ✅ (with #1) |
-| 3 | `vfx-panel.js` | 52 | ✅ (with #4) |
-| 4 | `media-pool.js` | 79 | ✅ (with #3) |
-| 5 | `settings-panel.js` | 95 | ✅ |
-| 6 | `ui/scrub-input.js` | 80 | ✅ → `ui/scrub-input.tsx` (with #15) |
-| 7 | `ui/color-input.js` | 83 | ✅ → `ui/color-input.tsx` (with #15) |
-| 8 | `clips-panel.js` | 139 | ✅ |
-| 9 | `video-preview.js` | 133 | ✅ |
-| 10 | `char-box.js` | 159 | ✅ → `char-box.tsx` (with #15) |
-| 11 | `record-settings-modal.js` | 231 | ✅ |
-| 12 | `text-panel.js` | 279 | ✅ |
-| 13 | `transport-bar.js` | 301 | ✅ |
-| 14 | `shape-panel.js` | 451 | ✅ |
-| 15 | `shared-clip-settings.js` | 474 | ✅ → `clip-settings/shared.tsx` + per-clip views in `clip-settings/` (all legacy `onSettings` renderers converted; MithrilBridge removed) |
-| 16 | `timeline.js` | 879 | ✅ |
-| 17 | `media-library-panel.js` | 1117 | ✅ |
+| #   | Component                  | Lines | Status                                                                                                                                    |
+| --- | -------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `inspector-panel.js`       | 10    | ✅ (with #2)                                                                                                                              |
+| 2   | `resizer.js`               | 38    | ✅ (with #1)                                                                                                                              |
+| 3   | `vfx-panel.js`             | 52    | ✅ (with #4)                                                                                                                              |
+| 4   | `media-pool.js`            | 79    | ✅ (with #3)                                                                                                                              |
+| 5   | `settings-panel.js`        | 95    | ✅                                                                                                                                        |
+| 6   | `ui/scrub-input.js`        | 80    | ✅ → `ui/scrub-input.tsx` (with #15)                                                                                                      |
+| 7   | `ui/color-input.js`        | 83    | ✅ → `ui/color-input.tsx` (with #15)                                                                                                      |
+| 8   | `clips-panel.js`           | 139   | ✅                                                                                                                                        |
+| 9   | `video-preview.js`         | 133   | ✅                                                                                                                                        |
+| 10  | `char-box.js`              | 159   | ✅ → `char-box.tsx` (with #15)                                                                                                            |
+| 11  | `record-settings-modal.js` | 231   | ✅                                                                                                                                        |
+| 12  | `text-panel.js`            | 279   | ✅                                                                                                                                        |
+| 13  | `transport-bar.js`         | 301   | ✅                                                                                                                                        |
+| 14  | `shape-panel.js`           | 451   | ✅                                                                                                                                        |
+| 15  | `shared-clip-settings.js`  | 474   | ✅ → `clip-settings/shared.tsx` + per-clip views in `clip-settings/` (all legacy `onSettings` renderers converted; MithrilBridge removed) |
+| 16  | `timeline.js`              | 879   | ✅                                                                                                                                        |
+| 17  | `media-library-panel.js`   | 1117  | ✅                                                                                                                                        |
 
 Conversion rules:
 
@@ -137,19 +137,21 @@ Conversion rules:
 ### Phase 4 — Typing `lib/` and `utils/`
 
 - [x] Rename `.js` → `.ts` gradually, leaf-first order: `vfx/` → `visualizers/` → `clips/` → `render.js`, `audio.js`, `drag.js`, `recorder.js` → `utils/` — DONE, one commit per batch:
-  | Commit | Scope |
-  |---|---|
-  | `065e833` | `lib/vfx/*.ts` (10 files) + `lib/webgl-renderer.ts` |
-  | `f7ca994` | `lib/visualizers/*.ts` + `lib/runtime.ts` (`RuntimeRefs`: engine refs non-null, UI refs nullable) |
-  | `f6fc890` | `lib/clips/*.ts` (11 files: registry, index, renderers, `draw-bg`, upload helpers) |
-  | `7dc1f82` | `lib/render.ts` (per-frame `m.redraw()` removed), `lib/video-playback.ts` (`ManageVideoOptions`), `lib/animations.ts` |
-  | `268e15d` | `lib/audio.ts` (mithril import dropped, 4× `m.redraw()` → `bumpClips()`, `runtime.source` type fix) |
+
+  | Commit    | Scope                                                                                                                       |
+  | --------- | --------------------------------------------------------------------------------------------------------------------------- |
+  | `065e833` | `lib/vfx/*.ts` (10 files) + `lib/webgl-renderer.ts`                                                                         |
+  | `f7ca994` | `lib/visualizers/*.ts` + `lib/runtime.ts` (`RuntimeRefs`: engine refs non-null, UI refs nullable)                           |
+  | `f6fc890` | `lib/clips/*.ts` (11 files: registry, index, renderers, `draw-bg`, upload helpers)                                          |
+  | `7dc1f82` | `lib/render.ts` (per-frame `m.redraw()` removed), `lib/video-playback.ts` (`ManageVideoOptions`), `lib/animations.ts`       |
+  | `268e15d` | `lib/audio.ts` (mithril import dropped, 4× `m.redraw()` → `bumpClips()`, `runtime.source` type fix)                         |
   | `2d61e5e` | `lib/drag.ts` (`DragPointerEvent`), `lib/recorder.ts` (`runtime.recordedChunks`), `lib/clip-factory.ts`, `lib/templates.ts` |
-  | `8f842a3` | `lib/fonts.ts`, `lib/emoji-render.ts`, `lib/media-helper.ts` (`MediaItem`, `MediaComplete`) |
-  | `181ee3e` | `utils/helpers.ts` (`BBox`, `HSL`), `utils/indexed-db.ts` (`IconRecord`), `utils/ui-helpers.ts` |
-  | `24d3e62` | `lib/state.ts` (Proxy bridge kept, typed as `LegacyStateView`) |
+  | `8f842a3` | `lib/fonts.ts`, `lib/emoji-render.ts`, `lib/media-helper.ts` (`MediaItem`, `MediaComplete`)                                 |
+  | `181ee3e` | `utils/helpers.ts` (`BBox`, `HSL`), `utils/indexed-db.ts` (`IconRecord`), `utils/ui-helpers.ts`                             |
+  | `24d3e62` | `lib/state.ts` (Proxy bridge kept, typed as `LegacyStateView`)                                                              |
 
   Conventions: renderer entry points are `(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>, localTime, clip)`; unused params are prefixed with `_`; `Uint8Array<ArrayBuffer>` for the analyser FFT buffer; `runtime.recordedChunks` added for the recorder.
+
 - [x] **First, convert the deferred clip-settings layer** (Mithril-rooted by `src/lib/clips/*` renderers) → DONE:
   - `shared-clip-settings.js` → `clip-settings/shared.tsx` (`SharedTextSettingsView`, `SharedTransformSettingsView`, `SharedAnimationSettingsView`)
   - `ui/scrub-input.tsx`, `ui/color-input.tsx`, `char-box.tsx` (React intersector/​picker equivalents)

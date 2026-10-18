@@ -16,10 +16,17 @@ export const MusicClip = {
     eqMid: 0,
     eqHigh: 0,
     startOffset: 0,
-    enabled: true
+    enabled: true,
   },
 
-  drawItem(_ctx: CanvasRenderingContext2D, _w: number, _h: number, _item: Record<string, any>, _localTime = 0, _clip = null) {
+  drawItem(
+    _ctx: CanvasRenderingContext2D,
+    _w: number,
+    _h: number,
+    _item: Record<string, any>,
+    _localTime = 0,
+    _clip = null,
+  ) {
     // Music clips are audio-only and do not render on the preview canvas
   },
 

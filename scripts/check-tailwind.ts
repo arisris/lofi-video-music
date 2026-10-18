@@ -43,7 +43,9 @@ for (const file of walk(ROOT)) {
         const merged = twMerge(classes);
         if (merged !== classes) {
           conflicts++;
-          console.log(`${path.relative(process.cwd(), file)}:${index + 1}: conflicting Tailwind classes`);
+          console.log(
+            `${path.relative(process.cwd(), file)}:${index + 1}: conflicting Tailwind classes`,
+          );
           console.log(`  found:   ${classes}`);
           console.log(`  merged:  ${merged}`);
           if (fix) {
@@ -70,8 +72,12 @@ if (conflicts > 0) {
 console.log("\nChecking canonical Tailwind classes...");
 const root = path.resolve(import.meta.dir, "..");
 const canonicalCmd = fix
-  ? $`bun x @laststance/tailwind-suggest-canonical-classes "src/**/*.{ts,tsx}" --css src/tailwind.css`.cwd(root).nothrow()
-  : $`bun x @laststance/tailwind-suggest-canonical-classes "src/**/*.{ts,tsx}" --css src/tailwind.css --check`.cwd(root).nothrow();
+  ? $`bun x @laststance/tailwind-suggest-canonical-classes "src/**/*.{ts,tsx}" --css src/tailwind.css`
+      .cwd(root)
+      .nothrow()
+  : $`bun x @laststance/tailwind-suggest-canonical-classes "src/**/*.{ts,tsx}" --css src/tailwind.css --check`
+      .cwd(root)
+      .nothrow();
 const canonicalResult = await canonicalCmd;
 if (!fix && canonicalResult.exitCode !== 0) hasIssues = true;
 

@@ -46,7 +46,9 @@ function writeCache(
   if (!cache || !ctx) return;
 
   try {
-    ctx.waitUntil(cache.put(new Request(url.toString(), request), response.clone()));
+    ctx.waitUntil(
+      cache.put(new Request(url.toString(), request), response.clone()),
+    );
   } catch (e) {
     console.warn("Error writing to cache:", e);
   }
@@ -54,7 +56,9 @@ function writeCache(
 
 /** Wraps an upstream body in a JSON response that is safe to cache publicly. */
 function cacheableJson(data: unknown): Response {
-  return Response.json(data, { headers: { "Cache-Control": "public, max-age=3600" } });
+  return Response.json(data, {
+    headers: { "Cache-Control": "public, max-age=3600" },
+  });
 }
 
 /** Turns an unknown thrown value into a message without leaking a stack trace. */
@@ -63,7 +67,10 @@ function errorMessage(err: unknown): string {
 }
 
 /** Reproduces a non-OK upstream status while quoting the upstream body. */
-async function upstreamError(provider: string, response: Response): Promise<Response> {
+async function upstreamError(
+  provider: string,
+  response: Response,
+): Promise<Response> {
   const errText = await response.text();
   return Response.json(
     { error: `${provider} API error: ${response.status} - ${errText}` },
@@ -74,7 +81,12 @@ async function upstreamError(provider: string, response: Response): Promise<Resp
 const PEXELS_ORIENTATIONS = ["landscape", "portrait", "square"];
 const PIXABAY_ORIENTATIONS = ["all", "landscape", "portrait"];
 
-async function handlePexelsSearch(request: Request, url: URL, env: Env, ctx: ExecutionContext): Promise<Response> {
+async function handlePexelsSearch(
+  request: Request,
+  url: URL,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response> {
   const query = url.searchParams.get("query") || "";
   const type = url.searchParams.get("type") || "video";
   const orientation = url.searchParams.get("orientation") || "";
@@ -82,12 +94,18 @@ async function handlePexelsSearch(request: Request, url: URL, env: Env, ctx: Exe
   const perPage = url.searchParams.get("per_page") || "30";
 
   if (!query) {
-    return Response.json({ error: "Query parameter is required" }, { status: 400 });
+    return Response.json(
+      { error: "Query parameter is required" },
+      { status: 400 },
+    );
   }
 
   const apiKey = env.PEXELS_API_KEY;
   if (!apiKey) {
-    return Response.json({ error: "Pexels API key not configured on server" }, { status: 500 });
+    return Response.json(
+      { error: "Pexels API key not configured on server" },
+      { status: 500 },
+    );
   }
 
   const cachedResponse = await readCache(url, request);
@@ -106,7 +124,9 @@ async function handlePexelsSearch(request: Request, url: URL, env: Env, ctx: Exe
       pexelsUrl += `&orientation=${orientation}`;
     }
 
-    const response = await fetch(pexelsUrl, { headers: { Authorization: apiKey } });
+    const response = await fetch(pexelsUrl, {
+      headers: { Authorization: apiKey },
+    });
 
     if (!response.ok) {
       return upstreamError("Pexels", response);
@@ -120,7 +140,12 @@ async function handlePexelsSearch(request: Request, url: URL, env: Env, ctx: Exe
   }
 }
 
-async function handlePixabaySearch(request: Request, url: URL, env: Env, ctx: ExecutionContext): Promise<Response> {
+async function handlePixabaySearch(
+  request: Request,
+  url: URL,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response> {
   const query = url.searchParams.get("query") || "";
   const type = url.searchParams.get("type") || "video";
   const orientation = url.searchParams.get("orientation") || "";
@@ -129,12 +154,18 @@ async function handlePixabaySearch(request: Request, url: URL, env: Env, ctx: Ex
   const perPage = url.searchParams.get("per_page") || "30";
 
   if (!query) {
-    return Response.json({ error: "Query parameter is required" }, { status: 400 });
+    return Response.json(
+      { error: "Query parameter is required" },
+      { status: 400 },
+    );
   }
 
   const apiKey = env.PIXABAY_API_KEY;
   if (!apiKey) {
-    return Response.json({ error: "Pixabay API key not configured on server" }, { status: 500 });
+    return Response.json(
+      { error: "Pixabay API key not configured on server" },
+      { status: 500 },
+    );
   }
 
   const cachedResponse = await readCache(url, request);

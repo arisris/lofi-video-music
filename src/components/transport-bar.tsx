@@ -1,6 +1,15 @@
 import { useEffect } from "react";
-import { formatTime, getTotalDuration, getClipsToSearch } from "../utils/helpers";
-import { playAudio, pauseAudio, skipToNextTrack, skipToPrevTrack } from "../lib/audio";
+import {
+  formatTime,
+  getTotalDuration,
+  getClipsToSearch,
+} from "../utils/helpers";
+import {
+  playAudio,
+  pauseAudio,
+  skipToNextTrack,
+  skipToPrevTrack,
+} from "../lib/audio";
 import { stopRecording } from "../lib/recorder";
 import { runtime } from "../lib/runtime";
 import { editorStore, useEditorStore } from "../store/editor-store";
@@ -19,7 +28,11 @@ const selectAspectRatio = (ratio: string) => {
 };
 
 const openRecordMenu = (mode: "clip" | "timeline") => {
-  editorStore.setState({ showRecordMenu: false, pendingRecordMode: mode, showRecordSettingsModal: true });
+  editorStore.setState({
+    showRecordMenu: false,
+    pendingRecordMode: mode,
+    showRecordSettingsModal: true,
+  });
 };
 
 /** Bottom transport bar: aspect ratio, playback, and record controls. */
@@ -44,21 +57,23 @@ export const PlaybackControls = () => {
 
   const state = editorStore.getState();
   const clipsToSearch = getClipsToSearch(state);
-  const musicClips = clipsToSearch.filter((c: { type: string }) => c.type === "music");
+  const musicClips = clipsToSearch.filter(
+    (c: { type: string }) => c.type === "music",
+  );
 
   return (
-    <div className="flex items-center justify-between gap-2 md:gap-4 w-full">
+    <div className="flex w-full items-center justify-between gap-2 md:gap-4">
       {/* Left: Aspect Ratio Switcher */}
-      <div className="flex items-center gap-3 w-auto md:w-1/3">
-        <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+      <div className="flex w-auto items-center gap-3 md:w-1/3">
+        <div className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950 p-0.5">
           {RATIO_OPTIONS.map((item) => (
             <button
               key={item.ratio}
               title={item.ratio}
-              className={`h-7 px-2.5 flex items-center justify-center gap-1 rounded transition text-[10px] font-bold cursor-pointer ${aspectRatio === item.ratio ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
+              className={`flex h-7 cursor-pointer items-center justify-center gap-1 rounded px-2.5 text-[10px] font-bold transition ${aspectRatio === item.ratio ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
               onClick={() => selectAspectRatio(item.ratio)}
             >
-              <i className={`${item.icon} w-3.5 h-3.5`} />
+              <i className={`${item.icon} h-3.5 w-3.5`} />
               <span className="hidden lg:inline">{item.ratio}</span>
             </button>
           ))}
@@ -66,39 +81,42 @@ export const PlaybackControls = () => {
       </div>
 
       {/* Center: Transport Buttons */}
-      <div className="flex items-center justify-center gap-4 flex-1">
+      <div className="flex flex-1 items-center justify-center gap-4">
         {/* Skip Prev */}
         <button
-          className="text-slate-400 hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed"
+          className="text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           disabled={isRecording || musicClips.length === 0}
           onClick={() => skipToPrevTrack()}
         >
-          <i className="icon-[ri--skip-back-fill] w-5 h-5" />
+          <i className="icon-[ri--skip-back-fill] h-5 w-5" />
         </button>
 
         {/* Play / Pause */}
         <button
-          className={`w-10 h-10 rounded-full flex items-center justify-center transition cursor-pointer shadow-md ${isRecording ? "opacity-30 cursor-not-allowed bg-slate-800 text-slate-500" : isPlaying ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700"}`}
+          className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full shadow-md transition ${isRecording ? "cursor-not-allowed bg-slate-800 text-slate-500 opacity-30" : isPlaying ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"}`}
           disabled={isRecording}
           onClick={() => (isPlaying ? pauseAudio() : playAudio())}
         >
-          <i className={`${isPlaying ? "icon-[ri--pause-fill]" : "icon-[ri--play-fill]"} w-5 h-5`} />
+          <i
+            className={`${isPlaying ? "icon-[ri--pause-fill]" : "icon-[ri--play-fill]"} h-5 w-5`}
+          />
         </button>
 
         {/* Skip Next */}
         <button
-          className="text-slate-400 hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed"
+          className="text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           disabled={isRecording || musicClips.length === 0}
           onClick={() => skipToNextTrack()}
         >
-          <i className="icon-[ri--skip-forward-fill] w-5 h-5" />
+          <i className="icon-[ri--skip-forward-fill] h-5 w-5" />
         </button>
       </div>
 
       {/* Right: Recording */}
-      <div className="flex items-center justify-end gap-1.5 md:gap-2 w-auto md:w-1/3 relative">
+      <div className="relative flex w-auto items-center justify-end gap-1.5 md:w-1/3 md:gap-2">
         {(() => {
-          const showDropdown = showRecordMenu && !isRecording && musicClips.length >= 2;
+          const showDropdown =
+            showRecordMenu && !isRecording && musicClips.length >= 2;
           if (!showDropdown) return null;
 
           const activeClip = clipsToSearch.find(
@@ -106,40 +124,47 @@ export const PlaybackControls = () => {
               c.type === "music" &&
               c.settings?.enabled !== false &&
               currentTime >= c.start &&
-              currentTime <= c.start + c.duration
+              currentTime <= c.start + c.duration,
           );
           const hasActiveClip = !!activeClip;
           const clipName = activeClip?.settings?.name || "";
 
           return (
-            <div className="absolute bottom-10 right-0 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl p-2 shadow-2xl z-50 flex flex-col gap-1 w-64 animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="animate-in fade-in slide-in-from-bottom-2 absolute right-0 bottom-10 z-50 flex w-64 flex-col gap-1 rounded-xl border border-slate-800 bg-slate-900/95 p-2 shadow-2xl backdrop-blur-md duration-200">
               {/* Option 1: Record Current Clip */}
               <button
-                className={`w-full text-left px-3 py-2 rounded-lg text-[10px] font-semibold tracking-wide flex items-center justify-between transition cursor-pointer ${hasActiveClip ? "text-slate-200 hover:bg-slate-800 hover:text-white" : "text-slate-600 cursor-not-allowed"}`}
+                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-[10px] font-semibold tracking-wide transition ${hasActiveClip ? "text-slate-200 hover:bg-slate-800 hover:text-white" : "cursor-not-allowed text-slate-600"}`}
                 disabled={!hasActiveClip}
                 onClick={() => openRecordMenu("clip")}
               >
                 <div className="flex flex-col truncate pr-2">
-                  <span className="font-bold text-slate-300">Record Current Clip</span>
-                  <span className="text-[9px] text-slate-500 truncate">
-                    {hasActiveClip ? `"${clipName}"` : "No active clip under playhead"}
+                  <span className="font-bold text-slate-300">
+                    Record Current Clip
+                  </span>
+                  <span className="truncate text-[9px] text-slate-500">
+                    {hasActiveClip
+                      ? `"${clipName}"`
+                      : "No active clip under playhead"}
                   </span>
                 </div>
-                <i className="icon-[ri--music-2-line] w-4 h-4 shrink-0 text-emerald-400" />
+                <i className="icon-[ri--music-2-line] h-4 w-4 shrink-0 text-emerald-400" />
               </button>
 
               {/* Option 2: Record Full Timeline */}
               <button
-                className="w-full text-left px-3 py-2 rounded-lg text-[10px] font-semibold tracking-wide flex items-center justify-between text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-[10px] font-semibold tracking-wide text-slate-200 transition hover:bg-slate-800 hover:text-white"
                 onClick={() => openRecordMenu("timeline")}
               >
                 <div className="flex flex-col">
-                  <span className="font-bold text-slate-300">Record Full Video</span>
+                  <span className="font-bold text-slate-300">
+                    Record Full Video
+                  </span>
                   <span className="text-[9px] text-slate-500">
-                    Duration: {formatTime(Math.floor(getTotalDuration(clipsToSearch)))}
+                    Duration:{" "}
+                    {formatTime(Math.floor(getTotalDuration(clipsToSearch)))}
                   </span>
                 </div>
-                <i className="icon-[ri--movie-2-line] w-4 h-4 text-blue-400" />
+                <i className="icon-[ri--movie-2-line] h-4 w-4 text-blue-400" />
               </button>
             </div>
           );
@@ -150,7 +175,7 @@ export const PlaybackControls = () => {
             return (
               <button
                 title="Save Thumbnail Image"
-                className="h-8 px-3 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer bg-blue-600 hover:bg-blue-500 text-white shadow-md border border-blue-500/35"
+                className="flex h-8 cursor-pointer items-center gap-1.5 rounded border border-blue-500/35 bg-blue-600 px-3 text-[10px] font-bold tracking-wider text-white uppercase shadow-md transition hover:bg-blue-500"
                 onClick={() => {
                   const canvas = runtime.canvas;
                   if (!canvas) return;
@@ -170,7 +195,7 @@ export const PlaybackControls = () => {
                   }, 50);
                 }}
               >
-                <i className="icon-[ri--download-line] w-3.5 h-3.5" />
+                <i className="icon-[ri--download-line] h-3.5 w-3.5" />
                 <span>Save Thumbnail</span>
               </button>
             );
@@ -182,7 +207,7 @@ export const PlaybackControls = () => {
           return (
             <button
               title={hasMultipleMusic ? "Record video options" : "Record video"}
-              className={`h-8 px-2 md:px-3 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer ${isRecording ? "bg-red-500/20 text-red-500 border border-red-500/50" : "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"}`}
+              className={`flex h-8 cursor-pointer items-center gap-1.5 rounded px-2 text-[10px] font-bold tracking-wider uppercase transition md:px-3 ${isRecording ? "border border-red-500/50 bg-red-500/20 text-red-500" : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"}`}
               onClick={(e) => {
                 e.stopPropagation();
                 if (isRecording) {
@@ -194,10 +219,14 @@ export const PlaybackControls = () => {
                 }
               }}
             >
-              <div className={`w-1.5 h-1.5 rounded-full ${isRecording ? "bg-red-500 animate-pulse" : "bg-slate-600"}`} />
-              <span className="hidden sm:inline">{isRecording ? "Stop" : "Record Video"}</span>
+              <div
+                className={`h-1.5 w-1.5 rounded-full ${isRecording ? "animate-pulse bg-red-500" : "bg-slate-600"}`}
+              />
+              <span className="hidden sm:inline">
+                {isRecording ? "Stop" : "Record Video"}
+              </span>
               {!isRecording && hasMultipleMusic && (
-                <i className="icon-[ri--arrow-up-s-line] w-3.5 h-3.5 ml-0.5" />
+                <i className="ml-0.5 icon-[ri--arrow-up-s-line] h-3.5 w-3.5" />
               )}
             </button>
           );
@@ -206,4 +235,3 @@ export const PlaybackControls = () => {
     </div>
   );
 };
-

@@ -9,7 +9,13 @@ interface ClipViewProps {
 /** Settings panel for the canvas "snow" VFX clip. */
 export const SnowSettingsView = ({ clip }: ClipViewProps) => {
   const selectedClip =
-    clip || editorStore.getState().timelineClips.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "snow");
+    clip ||
+    editorStore
+      .getState()
+      .timelineClips.find(
+        (c: any) =>
+          c.id === editorStore.getState().selectedClipId && c.type === "snow",
+      );
   if (!selectedClip) return null;
 
   const settings = selectedClip.settings as Record<string, any>;
@@ -20,11 +26,13 @@ export const SnowSettingsView = ({ clip }: ClipViewProps) => {
   if (settings.opacity === undefined) settings.opacity = 0.8;
   if (settings.audioReactive === undefined) settings.audioReactive = false;
 
-  const update = (patch: Record<string, unknown>, clipPatch: Record<string, unknown> = {}) =>
-    updateTimelineClipSettings(selectedClip.id as string, patch, clipPatch);
+  const update = (
+    patch: Record<string, unknown>,
+    clipPatch: Record<string, unknown> = {},
+  ) => updateTimelineClipSettings(selectedClip.id as string, patch, clipPatch);
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-300">
+    <div className="animate-in fade-in space-y-4 duration-300">
       {/* Audio Reactive Toggle */}
       <ToggleControl
         label="Audio Reactive"

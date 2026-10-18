@@ -1,7 +1,6 @@
 import { editorStore } from "../../store/editor-store";
 import { runtime } from "../runtime";
 
-
 export const drawBackground = (
   mediaEl: HTMLImageElement | HTMLVideoElement,
   cw: number,
@@ -22,11 +21,11 @@ export const drawBackground = (
   let translateY = ch / 2;
 
   let effect = "none";
-  
+
   // Force disable Ken Burns for video backgrounds as requested
   const isVideo = trackObj && trackObj.bgType === "video";
   const isThumbnailMode = editorStore.getState().currentRoute === "/image";
-  
+
   if (trackObj && trackObj.currentEffect && !isVideo && !isThumbnailMode) {
     effect = trackObj.currentEffect;
   }
@@ -89,21 +88,37 @@ export const drawBackground = (
   let minTy = ch - (drawHeight * scale) / 2;
   let maxTy = (drawHeight * scale) / 2;
 
-  if (minTx > maxTx) { minTx = cw / 2; maxTx = cw / 2; }
-  if (minTy > maxTy) { minTy = ch / 2; maxTy = ch / 2; }
+  if (minTx > maxTx) {
+    minTx = cw / 2;
+    maxTx = cw / 2;
+  }
+  if (minTy > maxTy) {
+    minTy = ch / 2;
+    maxTy = ch / 2;
+  }
 
   let clampedTx = Math.max(minTx, Math.min(maxTx, translateX));
   let clampedTy = Math.max(minTy, Math.min(maxTy, translateY));
 
   if (trackObj) {
-    if (translateX < minTx) trackObj.bgOffsetX = (trackObj.bgOffsetX || 0) + minTx - translateX;
-    if (translateX > maxTx) trackObj.bgOffsetX = (trackObj.bgOffsetX || 0) - (translateX - maxTx);
-    if (translateY < minTy) trackObj.bgOffsetY = (trackObj.bgOffsetY || 0) + minTy - translateY;
-    if (translateY > maxTy) trackObj.bgOffsetY = (trackObj.bgOffsetY || 0) - (translateY - maxTy);
+    if (translateX < minTx)
+      trackObj.bgOffsetX = (trackObj.bgOffsetX || 0) + minTx - translateX;
+    if (translateX > maxTx)
+      trackObj.bgOffsetX = (trackObj.bgOffsetX || 0) - (translateX - maxTx);
+    if (translateY < minTy)
+      trackObj.bgOffsetY = (trackObj.bgOffsetY || 0) + minTy - translateY;
+    if (translateY > maxTy)
+      trackObj.bgOffsetY = (trackObj.bgOffsetY || 0) - (translateY - maxTy);
   }
 
   ctx.translate(clampedTx, clampedTy);
   ctx.scale(scale, scale);
-  ctx.drawImage(mediaEl, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+  ctx.drawImage(
+    mediaEl,
+    -drawWidth / 2,
+    -drawHeight / 2,
+    drawWidth,
+    drawHeight,
+  );
   ctx.restore();
 };

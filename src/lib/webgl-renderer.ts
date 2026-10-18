@@ -5,7 +5,10 @@ let canvas: HTMLCanvasElement | null = null;
 let gl: WebGLRenderingContext | null = null;
 let quadBuffer: WebGLBuffer | null = null;
 let isSupportedCached: boolean | null = null;
-const uniformLocationCache = new Map<WebGLProgram, Record<string, WebGLUniformLocation | null>>();
+const uniformLocationCache = new Map<
+  WebGLProgram,
+  Record<string, WebGLUniformLocation | null>
+>();
 
 function getUniformLocation(
   gl: WebGLRenderingContext,
@@ -41,7 +44,8 @@ export const WebGLRenderer = {
       const testCanvas = document.createElement("canvas");
       isSupportedCached = !!(
         window.WebGLRenderingContext &&
-        (testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl"))
+        (testCanvas.getContext("webgl") ||
+          testCanvas.getContext("experimental-webgl"))
       );
       return isSupportedCached;
     } catch (e) {
@@ -62,9 +66,10 @@ export const WebGLRenderer = {
     };
 
     gl = (canvas.getContext("webgl", glOpts) ||
-      (canvas.getContext("experimental-webgl", glOpts) as WebGLRenderingContext | null)) as
-      | WebGLRenderingContext
-      | null;
+      (canvas.getContext(
+        "experimental-webgl",
+        glOpts,
+      ) as WebGLRenderingContext | null)) as WebGLRenderingContext | null;
     if (!gl) {
       console.error("Unable to initialize WebGL context.");
       return false;
@@ -72,12 +77,7 @@ export const WebGLRenderer = {
 
     // Create full screen quad buffer (-1 to 1 bounds)
     const vertices = new Float32Array([
-      -1.0, -1.0,
-       1.0, -1.0,
-      -1.0,  1.0,
-      -1.0,  1.0,
-       1.0, -1.0,
-       1.0,  1.0,
+      -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
     ]);
 
     quadBuffer = gl.createBuffer();

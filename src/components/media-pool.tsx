@@ -49,7 +49,12 @@ export const MediaPool = () => {
     { id: "settings", label: "Settings", icon: TAB_ICONS.settings },
     isThumbnailMode
       ? { id: "video", label: "Video", icon: TAB_ICONS.video, route: "/" }
-      : { id: "thumbnail", label: "Image", icon: TAB_ICONS.thumbnail, route: "/image" },
+      : {
+          id: "thumbnail",
+          label: "Image",
+          icon: TAB_ICONS.thumbnail,
+          route: "/image",
+        },
   ];
 
   const handleTabClick = (tab: LeftTab) => {
@@ -61,7 +66,10 @@ export const MediaPool = () => {
     if (state.activeLeftTab === tab.id && !state.leftPanelCollapsed) {
       editorStore.setState({ leftPanelCollapsed: true });
     } else {
-      editorStore.setState({ activeLeftTab: tab.id, leftPanelCollapsed: false });
+      editorStore.setState({
+        activeLeftTab: tab.id,
+        leftPanelCollapsed: false,
+      });
     }
   };
 
@@ -81,26 +89,27 @@ export const MediaPool = () => {
   })();
 
   return (
-    <div className="flex flex-row h-full overflow-hidden">
+    <div className="flex h-full flex-row overflow-hidden">
       {/* Vertical Tab Sidebar */}
-      <div className="w-14 flex-none bg-slate-950/80 border-r border-slate-800 flex flex-col items-center py-4 gap-3">
+      <div className="flex w-14 flex-none flex-col items-center gap-3 border-r border-slate-800 bg-slate-950/80 py-4">
         {tabs.map((tab) => {
-          const isActive = !tab.route && activeLeftTab === tab.id && !leftPanelCollapsed;
+          const isActive =
+            !tab.route && activeLeftTab === tab.id && !leftPanelCollapsed;
           const isRouteMatch = !!tab.route && currentRoute === tab.route;
           return (
             <button
               key={tab.id}
               title={tab.label}
               onClick={() => handleTabClick(tab)}
-              className={`w-10 h-10 flex flex-col items-center justify-center rounded-lg border transition-all cursor-pointer gap-0.5 text-[8px] font-bold uppercase tracking-tighter ${
+              className={`flex h-10 w-10 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border text-[8px] font-bold tracking-tighter uppercase transition-all ${
                 isActive || isRouteMatch
-                  ? "text-blue-400 bg-blue-500/10 border-blue-500/20"
+                  ? "border-blue-500/20 bg-blue-500/10 text-blue-400"
                   : tab.route
-                    ? "text-purple-400/80 border-purple-500/10 hover:text-purple-300 hover:bg-purple-500/10"
-                    : "text-slate-500 border-transparent hover:text-slate-300 hover:bg-slate-800/40"
+                    ? "border-purple-500/10 text-purple-400/80 hover:bg-purple-500/10 hover:text-purple-300"
+                    : "border-transparent text-slate-500 hover:bg-slate-800/40 hover:text-slate-300"
               }`}
             >
-              <i className={`${tab.icon} w-4.5 h-4.5`} />
+              <i className={`${tab.icon} h-4.5 w-4.5`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -110,7 +119,7 @@ export const MediaPool = () => {
       {/* Tab Content Area */}
       <div
         key={activeLeftTab}
-        className={`flex-1 overflow-hidden transition-all duration-200 ${leftPanelCollapsed ? "opacity-0 pointer-events-none w-0" : "opacity-100 animate-tab-fade-in"}`}
+        className={`flex-1 overflow-hidden transition-all duration-200 ${leftPanelCollapsed ? "pointer-events-none w-0 opacity-0" : "animate-tab-fade-in opacity-100"}`}
       >
         {content}
       </div>

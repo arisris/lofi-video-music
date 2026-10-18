@@ -11,9 +11,16 @@ export interface LayoutSlice {
 
 /** Default sidebar width, in pixels. */
 const initialPanelWidth = (min: number, ratio: number): number =>
-  typeof window !== "undefined" ? Math.max(min, Math.floor(window.innerWidth * ratio)) : min;
+  typeof window !== "undefined"
+    ? Math.max(min, Math.floor(window.innerWidth * ratio))
+    : min;
 
-export const createLayoutSlice: StateCreator<EditorStore, [], [], LayoutSlice> = () => ({
+export const createLayoutSlice: StateCreator<
+  EditorStore,
+  [],
+  [],
+  LayoutSlice
+> = () => ({
   aspectRatio: "16:9",
   mediaPoolWidth: initialPanelWidth(300, 0.22),
   inspectorWidth: initialPanelWidth(320, 0.22),

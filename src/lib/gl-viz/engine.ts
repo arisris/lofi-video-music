@@ -9,7 +9,12 @@
 import { WebGLRenderer, type UniformValue } from "../webgl-renderer";
 import { runtime } from "../runtime";
 import { hexToRGB, hexToRGBA } from "../../utils/helpers";
-import { AUDIO_SAMPLER, IMAGE_SAMPLER, type BBox, type VisualizerDef } from "./types";
+import {
+  AUDIO_SAMPLER,
+  IMAGE_SAMPLER,
+  type BBox,
+  type VisualizerDef,
+} from "./types";
 import type { AudioSource } from "./types";
 
 const AUDIO_UNIT = 0;
@@ -61,7 +66,7 @@ const updatePeaks = (now: number, bins: number): void => {
   for (let i = 0; i < bins; i++) {
     const live = audioBuffer[i];
     const held = peakBuffer[i] - fall;
-    peakBuffer[i] = live > held ? live : (held > 0 ? held : 0);
+    peakBuffer[i] = live > held ? live : held > 0 ? held : 0;
   }
 };
 
@@ -79,7 +84,8 @@ const imageAspects = new Map<string, number>();
 
 const hashSource = (src: string): string => {
   let h = 5381;
-  for (let i = 0; i < src.length; i++) h = ((h << 5) + h + src.charCodeAt(i)) | 0;
+  for (let i = 0; i < src.length; i++)
+    h = ((h << 5) + h + src.charCodeAt(i)) | 0;
   return String(h);
 };
 
@@ -88,7 +94,10 @@ const getProgram = (def: VisualizerDef): WebGLProgram | null => {
   const cached = programs.get(key);
   if (cached) return cached;
 
-  const program = WebGLRenderer.compileProgram(WebGLRenderer.DEFAULT_VERTEX_SHADER, def.fragment);
+  const program = WebGLRenderer.compileProgram(
+    WebGLRenderer.DEFAULT_VERTEX_SHADER,
+    def.fragment,
+  );
   if (!program) return null;
 
   // Drop the previous build of this style rather than letting HMR leak one.
@@ -117,10 +126,16 @@ const setTextureParams = (gl: WebGLRenderingContext, tex: WebGLTexture) => {
  * the visual frozen mid-beat. Decaying instead matches what render.ts does for
  * the legacy visualizers, so pausing fades out rather than sticking.
  */
-const uploadAudio = (gl: WebGLRenderingContext, source: AudioSource, bins: number, isPlaying: boolean): number => {
+const uploadAudio = (
+  gl: WebGLRenderingContext,
+  source: AudioSource,
+  bins: number,
+  isPlaying: boolean,
+): number => {
   const analyser = runtime.analyser;
   const available = analyser ? analyser.frequencyBinCount : bins;
-  if (audioBuffer.length !== available) audioBuffer = new Uint8Array(new ArrayBuffer(available));
+  if (audioBuffer.length !== available)
+    audioBuffer = new Uint8Array(new ArrayBuffer(available));
 
   if (!analyser) {
     // Still upload, so u_audio is a valid texture rather than a null binding.
@@ -130,7 +145,8 @@ const uploadAudio = (gl: WebGLRenderingContext, source: AudioSource, bins: numbe
     if (source === "wave") {
       analyser.getByteTimeDomainData(audioBuffer);
     } else {
-      if (floatBuffer.length !== available) floatBuffer = new Float32Array(available);
+      if (floatBuffer.length !== available)
+        floatBuffer = new Float32Array(available);
       analyser.getFloatFrequencyData(floatBuffer);
       const span = DB_CEILING - DB_FLOOR;
       for (let i = 0; i < available; i++) {
@@ -145,7 +161,8 @@ const uploadAudio = (gl: WebGLRenderingContext, source: AudioSource, bins: numbe
   }
 
   if (!audioTexture) audioTexture = gl.createTexture();
-  if (peakBuffer.length !== available) peakBuffer = new Uint8Array(new ArrayBuffer(available));
+  if (peakBuffer.length !== available)
+    peakBuffer = new Uint8Array(new ArrayBuffer(available));
 
   // Waveform rows have no meaningful peak height - a peak of a signal centred
   // on zero says nothing about how loud it is - so the hold row stays flat
@@ -157,14 +174,21 @@ const uploadAudio = (gl: WebGLRenderingContext, source: AudioSource, bins: numbe
     peakBuffer.fill(0);
   }
 
-  if (audioTexels.length !== bins * 2) audioTexels = new Uint8Array(new ArrayBuffer(bins * 2));
+  if (audioTexels.length !== bins * 2)
+    audioTexels = new Uint8Array(new ArrayBuffer(bins * 2));
   audioTexels.set(audioBuffer.subarray(0, bins), 0);
   audioTexels.set(peakBuffer.subarray(0, bins), bins);
 
   gl.bindTexture(gl.TEXTURE_2D, audioTexture);
   gl.texImage2D(
-    gl.TEXTURE_2D, 0, gl.LUMINANCE, bins, 2, 0,
-    gl.LUMINANCE, gl.UNSIGNED_BYTE,
+    gl.TEXTURE_2D,
+    0,
+    gl.LUMINANCE,
+    bins,
+    2,
+    0,
+    gl.LUMINANCE,
+    gl.UNSIGNED_BYTE,
     audioTexels,
   );
   setTextureParams(gl, audioTexture);
@@ -181,7 +205,17 @@ const getFallbackTexture = (gl: WebGLRenderingContext): WebGLTexture => {
   if (!fallbackTexture) {
     fallbackTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, fallbackTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array([255, 255, 255, 255]),
+    );
   }
   setTextureParams(gl, fallbackTexture);
   return fallbackTexture;
@@ -191,7 +225,10 @@ const getFallbackTexture = (gl: WebGLRenderingContext): WebGLTexture => {
  * Textures are cached by URL and uploaded asynchronously; until one lands the
  * fallback stays bound, so swapping images mid-playback never stalls a frame.
  */
-const getImageTexture = (gl: WebGLRenderingContext, url: string): WebGLTexture | null => {
+const getImageTexture = (
+  gl: WebGLRenderingContext,
+  url: string,
+): WebGLTexture | null => {
   if (!url) return null;
   if (imageTextures.has(url)) return imageTextures.get(url) ?? null;
 
@@ -250,14 +287,17 @@ const buildUniforms = (
     const value = settings[field.key] ?? def.settings[field.key];
     switch (field.kind) {
       case "slider":
-        if (typeof value === "number" && Number.isFinite(value)) uniforms[`u_${field.key}`] = value;
+        if (typeof value === "number" && Number.isFinite(value))
+          uniforms[`u_${field.key}`] = value;
         break;
       case "toggle":
         uniforms[`u_${field.key}`] = value === true ? 1 : 0;
         break;
       case "color":
         if (typeof value === "string") {
-          uniforms[`u_${field.key}`] = field.alpha ? hexToRGBA(value) : hexToRGB(value);
+          uniforms[`u_${field.key}`] = field.alpha
+            ? hexToRGBA(value)
+            : hexToRGB(value);
         }
         break;
       case "select": {
@@ -274,8 +314,15 @@ const buildUniforms = (
 };
 
 /** Bounding box a clip should occupy, falling back to the legacy layout. */
-export const resolveBBox = (def: VisualizerDef, w: number, h: number, settings: Record<string, unknown>): BBox =>
-  def.bbox ? def.bbox(w, h, settings) : { x: 0, y: h / 2, width: w, height: h / 2 };
+export const resolveBBox = (
+  def: VisualizerDef,
+  w: number,
+  h: number,
+  settings: Record<string, unknown>,
+): BBox =>
+  def.bbox
+    ? def.bbox(w, h, settings)
+    : { x: 0, y: h / 2, width: w, height: h / 2 };
 
 /**
  * Draws one frame of a visualizer into the 2D context at `bbox`.
@@ -317,7 +364,7 @@ export const drawVisualizer = (
   const rawImage = imageField ? settings[imageField.key] : undefined;
   const imageUrl = typeof rawImage === "string" ? rawImage : "";
   const image = imageUrl ? getImageTexture(gl, imageUrl) : null;
-  const imageAspect = image ? imageAspects.get(imageUrl) ?? 0 : 0;
+  const imageAspect = image ? (imageAspects.get(imageUrl) ?? 0) : 0;
 
   gl.activeTexture(gl.TEXTURE0 + AUDIO_UNIT);
   gl.bindTexture(gl.TEXTURE_2D, audioTexture);
@@ -329,7 +376,10 @@ export const drawVisualizer = (
   const glCanvas = WebGLRenderer.drawQuadAt(
     program,
     buildUniforms(def, settings, bbox, time, level, bins, imageAspect),
-    x, glY, w, h,
+    x,
+    glY,
+    w,
+    h,
     { [AUDIO_SAMPLER]: AUDIO_UNIT, [IMAGE_SAMPLER]: IMAGE_UNIT },
   );
 

@@ -35,19 +35,30 @@ export class Snowball extends BaseParticle {
     this.lastTime = undefined;
   }
 
-  update(w: number, h: number, settings: Record<string, any>, time: number, audioLevel = 0) {
+  update(
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+    time: number,
+    audioLevel = 0,
+  ) {
     this.canvasWidth = w;
     this.canvasHeight = h;
 
     const dt = this.step(time);
     const speedMultiplier = settings.speed !== undefined ? settings.speed : 1.0;
-    const activeSpeed = this.speed * speedMultiplier * (settings.audioReactive ? 0.4 + audioLevel * 1.6 : 1.0);
+    const activeSpeed =
+      this.speed *
+      speedMultiplier *
+      (settings.audioReactive ? 0.4 + audioLevel * 1.6 : 1.0);
     this.y += activeSpeed * dt;
 
     // Sway oscillates around baseX. Accumulating it instead (x += sway) walked
     // every flake sideways off the canvas over a few seconds.
-    const sway = Math.sin(time * this.swaySpeed + this.swayOffset) * this.swayAmount;
-    const activeSway = sway * (settings.audioReactive ? 1.0 + audioLevel * 2.0 : 1.0);
+    const sway =
+      Math.sin(time * this.swaySpeed + this.swayOffset) * this.swayAmount;
+    const activeSway =
+      sway * (settings.audioReactive ? 1.0 + audioLevel * 2.0 : 1.0);
     this.x = (((this.baseX + activeSway) % w) + w) % w;
 
     if (this.y > this.canvasHeight + 10) {
@@ -55,14 +66,24 @@ export class Snowball extends BaseParticle {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, settings: Record<string, any>, audioLevel = 0) {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    settings: Record<string, any>,
+    audioLevel = 0,
+  ) {
     const sizeMultiplier = settings.size !== undefined ? settings.size : 1.0;
-    const opacityMultiplier = settings.opacity !== undefined ? settings.opacity : 1.0;
+    const opacityMultiplier =
+      settings.opacity !== undefined ? settings.opacity : 1.0;
 
-    const activeRadius = this.radius * sizeMultiplier * (settings.audioReactive ? 0.8 + audioLevel * 0.6 : 1.0);
+    const activeRadius =
+      this.radius *
+      sizeMultiplier *
+      (settings.audioReactive ? 0.8 + audioLevel * 0.6 : 1.0);
     const activeOpacity = Math.min(
       1.0,
-      this.opacity * opacityMultiplier * (settings.audioReactive ? 0.5 + audioLevel * 0.5 : 1.0),
+      this.opacity *
+        opacityMultiplier *
+        (settings.audioReactive ? 0.5 + audioLevel * 0.5 : 1.0),
     );
 
     ctx.save();
@@ -100,7 +121,12 @@ export const SnowVFX = {
     const intensity = settings.intensity || 120;
 
     // Initialize or resize snowballs array if count doesn't match
-    if (!clip.snowballs || clip.snowballs.length !== intensity || clip.canvasWidth !== w || clip.canvasHeight !== h) {
+    if (
+      !clip.snowballs ||
+      clip.snowballs.length !== intensity ||
+      clip.canvasWidth !== w ||
+      clip.canvasHeight !== h
+    ) {
       clip.snowballs = [];
       clip.canvasWidth = w;
       clip.canvasHeight = h;
@@ -113,7 +139,9 @@ export const SnowVFX = {
       }
     }
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "volume") : 0;
+    const audioLevel = settings.audioReactive
+      ? getAudioReactivity(editorStore.getState(), "volume")
+      : 0;
 
     // Determine how many snowballs to draw
     const visibleCount = settings.audioReactive

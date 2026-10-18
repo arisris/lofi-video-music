@@ -1,6 +1,10 @@
 import { editorStore } from "../../store/editor-store";
 import { getClipsToSearch } from "../../utils/helpers";
-import { SharedTransformSettingsView, SharedAnimationSettingsView, useThumbnailMode } from "./shared";
+import {
+  SharedTransformSettingsView,
+  SharedAnimationSettingsView,
+  useThumbnailMode,
+} from "./shared";
 import { updateTimelineClipSettings } from "../../store/actions/timeline-actions";
 
 interface ClipViewProps {
@@ -22,11 +26,17 @@ const KEN_BURNS_OPTIONS = [
 export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
   const isThumbnailMode = useThumbnailMode();
   const clipsToSearch = getClipsToSearch(editorStore.getState());
-  const selectedClip = clip || clipsToSearch.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "background");
+  const selectedClip =
+    clip ||
+    clipsToSearch.find(
+      (c: any) =>
+        c.id === editorStore.getState().selectedClipId &&
+        c.type === "background",
+    );
 
   if (!selectedClip) {
     return (
-      <div className="text-slate-500 text-xs italic text-center py-8">
+      <div className="py-8 text-center text-xs text-slate-500 italic">
         Select a background clip from the list to change settings
       </div>
     );
@@ -38,16 +48,16 @@ export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
     updateTimelineClipSettings(selectedClip.id as string, patch);
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+    <div className="animate-in fade-in slide-in-from-top-2 space-y-4 duration-300">
       {/* Ken Burns Effect selector */}
       {!isThumbnailMode && (
-        <div className="bg-slate-800/40 p-4 rounded-lg border border-slate-700/50">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+        <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-4">
+          <label className="mb-3 block text-[10px] font-bold tracking-widest text-slate-500 uppercase">
             Motion / Ken Burns Effect
           </label>
           <div className="relative">
             <select
-              className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500/50 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors"
+              className="w-full cursor-pointer appearance-none rounded border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-slate-200 transition-colors outline-none hover:bg-slate-700/50 focus:border-blue-500/50"
               onChange={(e) => update({ currentEffect: e.target.value })}
               value={settings.currentEffect || "none"}
             >
@@ -57,24 +67,24 @@ export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
                 </option>
               ))}
             </select>
-            <i className="icon-[ri--arrow-down-s-line] absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <i className="pointer-events-none absolute top-1/2 right-2 icon-[ri--arrow-down-s-line] -translate-y-1/2 text-slate-500" />
           </div>
         </div>
       )}
 
       {isThumbnailMode && settings.bgType === "image" && (
-        <div className="bg-amber-950/20 border border-amber-800/40 p-3 rounded-lg text-amber-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
-          <i className="icon-[ri--alert-line] w-4 h-4 shrink-0" />
+        <div className="flex items-center gap-2 rounded-lg border border-amber-800/40 bg-amber-950/20 p-3 text-[10px] font-bold tracking-wider text-amber-500 uppercase">
+          <i className="icon-[ri--alert-line] h-4 w-4 shrink-0" />
           Motion / Ken Burns is disabled in Thumbnail Mode
         </div>
       )}
 
       {/* Video speed control (only if video) */}
       {settings.bgType === "video" && (
-        <div className="bg-slate-800/40 p-4 rounded-lg border border-slate-700/50">
-          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
+        <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-4">
+          <label className="mb-1.5 flex justify-between text-[10px] font-bold tracking-widest text-slate-500 uppercase">
             <span>Video Speed</span>
-            <span className="text-blue-400 font-mono text-[10px]">{`${(settings.speed || 1.0).toFixed(2)}x`}</span>
+            <span className="font-mono text-[10px] text-blue-400">{`${(settings.speed || 1.0).toFixed(2)}x`}</span>
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -83,7 +93,7 @@ export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
               max={4.0}
               step={0.05}
               value={settings.speed || 1.0}
-              className="flex-1 h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-blue-500"
+              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-slate-800 accent-blue-500"
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
                 if (settings.bgElements) {
@@ -95,7 +105,7 @@ export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
               }}
             />
             <button
-              className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded hover:text-white transition-colors text-[10px]"
+              className="rounded bg-slate-800 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
               onClick={() => {
                 if (settings.bgElements) {
                   (settings.bgElements as HTMLVideoElement[]).forEach((v) => {
@@ -111,8 +121,16 @@ export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
         </div>
       )}
 
-      <SharedTransformSettingsView settings={settings} updateSettings={update} />
-      {!isThumbnailMode && <SharedAnimationSettingsView settings={settings} updateSettings={update} />}
+      <SharedTransformSettingsView
+        settings={settings}
+        updateSettings={update}
+      />
+      {!isThumbnailMode && (
+        <SharedAnimationSettingsView
+          settings={settings}
+          updateSettings={update}
+        />
+      )}
     </div>
   );
 };

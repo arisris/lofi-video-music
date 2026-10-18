@@ -52,7 +52,12 @@ export interface ThumbnailSlice {
   thumbnail: ThumbnailState;
 }
 
-export const createThumbnailSlice: StateCreator<EditorStore, [], [], ThumbnailSlice> = () => ({
+export const createThumbnailSlice: StateCreator<
+  EditorStore,
+  [],
+  [],
+  ThumbnailSlice
+> = () => ({
   thumbnail: {
     layers: DEFAULT_THUMBNAIL_LAYERS.map((l) => ({ ...l })),
     selectedLayerId: "default-text-1",
