@@ -138,30 +138,62 @@ export const WebGLRenderer = {
     return program;
   },
 
-  drawQuad(
+  /**
+   * Grows the backing canvas to `w` x `h`, but only when it actually differs.
+   *
+   * Assigning to canvas.width reallocates the drawing buffer, so a caller that
+   * resizes per draw pays that cost every frame. Callers that draw several
+   * quads of different sizes into one shared canvas should size it once to the
+   * destination and use drawQuadAt for each region instead.
+   */
+  ensureSize(w: number, h: number): boolean {
+    if (!this.init()) return false;
+    if (!canvas) return false;
+    const tw = Math.max(1, Math.round(w));
+    const th = Math.max(1, Math.round(h));
+    if (canvas.width === tw && canvas.height === th) return true;
+    canvas.width = tw;
+    canvas.height = th;
+    return true;
+  },
+
+  getCanvas(): HTMLCanvasElement | null {
+    return this.init() ? canvas : null;
+  },
+
+  /**
+   * Draws the quad into one rectangle of the shared canvas.
+   *
+   * The rectangle is clipped by both the viewport and the scissor box, and the
+   * clear is scissored to match, so consecutive draws into different regions
+   * cannot leak into each other. `y` is measured from the bottom, as WebGL
+   * measures it, unlike every other coordinate in this codebase.
+   */
+  drawQuadAt(
     program: WebGLProgram,
     uniforms: Record<string, UniformValue>,
+    x: number,
+    y: number,
     w: number,
     h: number,
-    /**
-     * Integer uniforms. Texture samplers must go through uniform1i, and the
-     * `uniforms` map routes plain numbers through uniform1f, so they need a
-     * separate channel.
-     */
     intUniforms?: Record<string, number>,
   ): HTMLCanvasElement | null {
-    if (!this.init()) return null;
+    if (!this.init() || !canvas) return null;
     const g = gl as WebGLRenderingContext;
 
-    // Rescale WebGL canvas if dimensions changed
-    if (canvas && (canvas.width !== w || canvas.height !== h)) {
-      canvas.width = w;
-      canvas.height = h;
-    }
+    // A region partly off-canvas still has to produce a valid scissor box.
+    const rx = Math.max(0, Math.min(Math.round(x), canvas.width));
+    const ry = Math.max(0, Math.min(Math.round(y), canvas.height));
+    const rw = Math.max(0, Math.min(Math.round(x + w), canvas.width) - rx);
+    const rh = Math.max(0, Math.min(Math.round(y + h), canvas.height) - ry);
+    if (rw === 0 || rh === 0) return canvas;
 
-    g.viewport(0, 0, w, h);
+    g.viewport(rx, ry, rw, rh);
+    g.enable(g.SCISSOR_TEST);
+    g.scissor(rx, ry, rw, rh);
     g.clearColor(0.0, 0.0, 0.0, 0.0);
     g.clear(g.COLOR_BUFFER_BIT);
+    g.disable(g.SCISSOR_TEST);
 
     g.useProgram(program);
 
@@ -175,7 +207,6 @@ export const WebGLRenderer = {
       g.vertexAttribPointer(posAttr, 2, g.FLOAT, false, 0, 0);
     }
 
-    // Set custom uniforms dynamically
     for (const [name, val] of Object.entries(uniforms)) {
       const loc = getUniformLocation(g, program, name);
       if (loc === null) continue;
@@ -206,5 +237,21 @@ export const WebGLRenderer = {
     g.drawArrays(g.TRIANGLES, 0, 6);
 
     return canvas;
+  },
+
+  /**
+   * Convenience wrapper for drawing across the whole canvas. Kept for callers
+   * that own the full surface; prefer ensureSize + drawQuadAt when several
+   * quads of different sizes share one canvas.
+   */
+  drawQuad(
+    program: WebGLProgram,
+    uniforms: Record<string, UniformValue>,
+    w: number,
+    h: number,
+    intUniforms?: Record<string, number>,
+  ): HTMLCanvasElement | null {
+    if (!this.ensureSize(w, h)) return null;
+    return this.drawQuadAt(program, uniforms, 0, 0, w, h, intUniforms);
   },
 };

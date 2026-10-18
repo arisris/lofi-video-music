@@ -212,8 +212,17 @@ export const drawVisualizer = (
   const gl = WebGLRenderer.getContext();
   if (!gl) return;
 
+  // Match the shared canvas to the destination once, then draw each visualizer
+  // into its own rectangle. Resizing per draw would reallocate the drawing
+  // buffer on every frame, which is what made stacking several clips expensive.
+  const target = ctx2d.canvas;
+  if (!WebGLRenderer.ensureSize(target.width, target.height)) return;
+
   const w = Math.max(1, Math.round(bbox.width));
   const h = Math.max(1, Math.round(bbox.height));
+  const x = Math.round(bbox.x);
+  const y = Math.round(bbox.y);
+  if (w > target.width || h > target.height) return;
 
   const program = getProgram(def);
   if (!program) return;
@@ -232,10 +241,19 @@ export const drawVisualizer = (
   gl.activeTexture(gl.TEXTURE0 + IMAGE_UNIT);
   gl.bindTexture(gl.TEXTURE_2D, image ?? getFallbackTexture(gl));
 
-  const glCanvas = WebGLRenderer.drawQuad(program, buildUniforms(def, settings, bbox, time, level, bins), w, h, {
-    [AUDIO_SAMPLER]: AUDIO_UNIT,
-    [IMAGE_SAMPLER]: IMAGE_UNIT,
-  });
+  // The viewport is in GL space, whose origin is the bottom-left corner.
+  const glY = target.height - y - h;
+  const glCanvas = WebGLRenderer.drawQuadAt(
+    program,
+    buildUniforms(def, settings, bbox, time, level, bins),
+    x, glY, w, h,
+    { [AUDIO_SAMPLER]: AUDIO_UNIT, [IMAGE_SAMPLER]: IMAGE_UNIT },
+  );
 
-  if (glCanvas) ctx2d.drawImage(glCanvas, bbox.x, bbox.y, bbox.width, bbox.height);
+  // drawImage reads image coordinates, whose origin is the top-left - the
+  // opposite end of the canvas from the viewport we just drew into. Since the
+  // two canvases are the same size, the source rectangle is the clip's own
+  // rect; passing the GL-space y here would copy the mirrored strip.
+  // Copying only this rectangle keeps sibling clips from bleeding together.
+  if (glCanvas) ctx2d.drawImage(glCanvas, x, y, w, h, x, y, w, h);
 };
