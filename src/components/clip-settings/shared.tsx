@@ -360,8 +360,8 @@ export const SharedTransformSettingsView = ({ settings, updateSettings }: Shared
 
       {/* Row 1: Position */}
       <div className="grid grid-cols-2 gap-2 mb-2">
-        <ScrubInput label="X" value={settings.x as number} step={1} onUpdate={(val) => update("x", val)} />
-        <ScrubInput label="Y" value={settings.y as number} step={1} onUpdate={(val) => update("y", val)} />
+        <ScrubInput label="X" value={(settings.x as number) || 0} step={1} onUpdate={(val) => update("x", val)} />
+        <ScrubInput label="Y" value={(settings.y as number) || 0} step={1} onUpdate={(val) => update("y", val)} />
       </div>
 
       {/* Uniform Size/Scale Slider */}
@@ -397,7 +397,7 @@ export const SharedTransformSettingsView = ({ settings, updateSettings }: Shared
       <div className="grid grid-cols-2 gap-2 mb-2">
         <ScrubInput
           label="SX"
-          value={settings.scaleX as number}
+          value={(settings.scaleX as number) || 1}
           step={0.01}
           min={0.01}
           max={10}
@@ -405,7 +405,7 @@ export const SharedTransformSettingsView = ({ settings, updateSettings }: Shared
         />
         <ScrubInput
           label="SY"
-          value={settings.scaleY as number}
+          value={(settings.scaleY as number) || 1}
           step={0.01}
           min={0.01}
           max={10}
@@ -417,7 +417,7 @@ export const SharedTransformSettingsView = ({ settings, updateSettings }: Shared
       <div className="w-full">
         <ScrubInput
           label="R"
-          value={settings.rotation as number}
+          value={(settings.rotation as number) || 0}
           step={1}
           onUpdate={(val) => update("rotation", val)}
         />
