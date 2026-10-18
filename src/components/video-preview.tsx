@@ -24,7 +24,6 @@ export const VideoPreview = () => {
   const recordResolution = useEditorStore((s) => s.recordResolution);
   const aspectRatio = useEditorStore((s) => s.aspectRatio);
   const recordingTime = useEditorStore((s) => s.recordingTime);
-  const dragHintVisible = useEditorStore((s) => s.dragHintVisible);
 
   const cursorStyle =
     canvasCursor ||
@@ -90,16 +89,6 @@ export const VideoPreview = () => {
       >
         <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
         Recording... <span className="text-white ml-1 font-mono">{recordingTime}</span>
-      </div>
-
-      {/* Interaction Tooltip Hint */}
-      <div
-        className={`absolute bottom-4 right-4 bg-black/50 text-slate-300 px-3 py-1.5 rounded-lg text-xs backdrop-blur-sm border border-slate-600/50 pointer-events-none transition-opacity duration-1000 ${dragHintVisible ? "opacity-100" : "opacity-0"}`}
-      >
-        <i
-          className={`${interactionMode === "pan" ? "icon-[ri--drag-move-line]" : "icon-[ri--cursor-fill]"} inline w-3 h-3 mr-1`}
-        />
-        {interactionMode === "pan" ? "Drag background" : "Click clips to edit"}
       </div>
     </div>
   );

@@ -23,8 +23,6 @@ export interface TimelineSlice {
   timelineZoom: number;
   timelineScrollLeft: number;
   timelineScrollTop: number;
-  /** True while UI shows the "drop media here" hint. */
-  dragHintVisible: boolean;
 }
 
 export const createTimelineSlice: StateCreator<EditorStore, [], [], TimelineSlice> = () => ({
@@ -38,5 +36,4 @@ export const createTimelineSlice: StateCreator<EditorStore, [], [], TimelineSlic
   timelineZoom: 4,
   timelineScrollLeft: 0,
   timelineScrollTop: 0,
-  dragHintVisible: false,
 });

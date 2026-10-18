@@ -25,19 +25,6 @@ export const formatTime = (seconds: number) => {
   return `${m}:${s}`;
 };
 
-export const getRandomKenBurnsEffect = () => {
-  const effects = [
-    "random",
-    "zoomIn",
-    "zoomOut",
-    "panRight",
-    "panLeft",
-    "panUp",
-    "panDown",
-  ];
-  return effects[Math.floor(Math.random() * effects.length)];
-};
-
 export const generateThumbnail = (source: any, isVideo = false): Promise<string> => {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
@@ -89,10 +76,6 @@ export const getTotalDuration = (clips: any[]) => {
  */
 export const getGlobalTime = (state: any) => {
   return state ? (state.currentTime || 0) : 0;
-};
-
-export const getTrackAndTimeFromGlobal = (globalTime: number, _playlist?: any) => {
-  return { index: 0, time: globalTime };
 };
 
 export const getAudioReactivity = (state: any, type = "volume") => {
@@ -198,20 +181,6 @@ export function hexToHSL(hex: string): HSL {
     l: Math.round(l * 100),
   };
 }
-
-export const throttle = (fn: (...args: any[]) => void) => {
-  let scheduled = false;
-  let lastArgs: any[] | null = null;
-  return (...args: any[]) => {
-    lastArgs = args;
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      scheduled = false;
-      fn(...(lastArgs || []));
-    });
-  };
-};
 
 export const getMediaUrls = (clip: any): string[] => {
   const urls: string[] = [];

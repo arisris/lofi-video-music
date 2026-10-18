@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { formatTime, getTotalDuration, getClipsToSearch } from "../utils/helpers";
 import { playAudio, pauseAudio, skipToNextTrack, skipToPrevTrack } from "../lib/audio";
 import { stopRecording } from "../lib/recorder";
@@ -207,81 +207,3 @@ export const PlaybackControls = () => {
   );
 };
 
-/** Thin progress scrubber under the preview (timeline position + audio sync). */
-export const TimelineScrubber = () => {
-  const currentTime = useEditorStore((s) => s.currentTime || 0);
-  const [hover, setHover] = useState<{ time: string; x: number } | null>(null);
-
-  const state = editorStore.getState();
-  const clipsToSearch = getClipsToSearch(state);
-  const duration = getTotalDuration(clipsToSearch);
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    const targetTime = pos * duration;
-
-    const s = editorStore.getState();
-    const searchClips = getClipsToSearch(s);
-    const activeClip = searchClips.find(
-      (c: any) =>
-        c.type === "music" &&
-        c.settings?.enabled !== false &&
-        targetTime >= c.start &&
-        targetTime <= c.start + c.duration
-    );
-    editorStore.setState({ currentTime: targetTime });
-    if (activeClip && runtime.audioEl) {
-      runtime.audioEl.src = (activeClip.settings as { audioUrl: string }).audioUrl;
-      runtime.audioEl.currentTime = targetTime - activeClip.start + ((activeClip.settings as { startOffset?: number }).startOffset || 0);
-      runtime.audioEl.volume = (activeClip.settings as { volume?: number }).volume ?? 1.0;
-      if (s.isPlaying) runtime.audioEl.play().catch(() => {});
-    } else if (runtime.audioEl) {
-      runtime.audioEl.pause();
-    }
-  };
-
-  const moveHover = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const pos = x / rect.width;
-    setHover({ time: formatTime(pos * duration), x });
-  };
-
-  return (
-    <div className="flex items-center gap-2 md:gap-3 w-full">
-      <span className="text-[9px] md:text-[10px] text-slate-500 font-mono w-8 md:w-10">{formatTime(currentTime)}</span>
-
-      <div
-        className="flex-1 h-1 md:h-1.5 bg-slate-800 rounded-full cursor-pointer relative group"
-        onClick={seek}
-        onMouseMove={moveHover}
-        onMouseLeave={() => setHover(null)}
-      >
-        {/* Progress Fill */}
-        <div className="h-full bg-blue-500 rounded-full relative" style={{ width: `${progress}%` }} />
-
-        {/* Thumb */}
-        <div
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg scale-0 group-hover:scale-100 transition-transform"
-          style={{ left: `calc(${progress}% - 6px)` }}
-        />
-
-        {/* Hover Tooltip */}
-        {hover && (
-          <div
-            className="absolute bottom-full mb-2 px-1.5 py-0.5 bg-slate-800 text-white text-[9px] rounded border border-slate-700 -translate-x-1/2 pointer-events-none"
-            style={{ left: `${hover.x}px` }}
-          >
-            {hover.time}
-          </div>
-        )}
-      </div>
-
-      <span className="text-[9px] md:text-[10px] text-slate-500 font-mono w-8 md:w-10 text-right">
-        {formatTime(duration)}
-      </span>
-    </div>
-  );
-};

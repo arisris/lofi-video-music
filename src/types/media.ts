@@ -21,10 +21,5 @@ export interface MediaItem {
   [key: string]: unknown;
 }
 
-/** Playlist entry for the continuous music generator. */
-export interface PlaylistItem {
-  [key: string]: unknown;
-}
-
 /** Shared definition of per-clip settings for the current phase. */
 export type { ClipSettings };

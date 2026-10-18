@@ -52,9 +52,3 @@ if (import.meta.hot) {
 
 /** React hook for the editor store (used from Phase 3 onwards). */
 export const useEditorStore = <T,>(selector: (state: EditorStore) => T): T => useStore(editorStore, selector);
-
-/** Derived selector for the active editor mode. */
-export const selectIsThumbnailMode = (state: EditorStore): boolean => state.currentRoute === "/image";
-
-/** Convenience selector for the whole store shape (avoid: re-renders on everything). */
-export const selectAll = (state: EditorStore): EditorStore => state;
