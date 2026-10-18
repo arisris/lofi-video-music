@@ -1136,12 +1136,12 @@ export const Timeline = () => {
       {contextMenu && (
         <div
           id="timeline-context-menu"
-          className="fixed bg-slate-900 border border-slate-700/80 shadow-2xl rounded-lg py-1.5 min-w-[140px] z-[9999]"
+          className="fixed bg-slate-900 border border-slate-700/80 shadow-2xl rounded-lg py-1.5 min-w-35 z-9999"
           style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }}
           onMouseDown={(e) => e.stopPropagation()}
         >
           <button
-            className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-blue-600/20 hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-blue-600/20 transition-colors flex items-center gap-1.5 cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               const original = state.timelineClips.find((c: any) => c.id === contextMenu?.clipId);
@@ -1176,7 +1176,7 @@ export const Timeline = () => {
             <span>Duplicate Clip</span>
           </button>
           <button
-            className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-red-600/20 hover:text-red-400 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-red-600/20 transition-colors flex items-center gap-1.5 cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               const clipToDelete = state.timelineClips.find((c: any) => c.id === contextMenu?.clipId);
