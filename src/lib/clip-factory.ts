@@ -147,11 +147,19 @@ export const DEFAULT_SETTINGS: Record<string, any> = {
   },
 };
 
+/** Monotonic suffix for clip ids, see createTimelineClip. */
+let clipSeq = 0;
+
 /**
  * Factory to create a timeline clip object.
  */
 export const createTimelineClip = (type: string, specificSettings: Record<string, any> = {}) => {
-  const id = `clip-${Date.now()}`;
+  // Date.now() only has millisecond resolution, so two clips created in the
+  // same tick collided and became indistinguishable - every lookup by id
+  // (selection, delete, drag, duplicate) then resolved to whichever came
+  // first. The counter keeps ids unique within a millisecond; the timestamp
+  // keeps them unique across reloads.
+  const id = `clip-${Date.now().toString(36)}-${(clipSeq++).toString(36)}`;
   const state = editorStore.getState();
   const globalTime = getGlobalTime(state);
   const targetVisualWidth = 100;
