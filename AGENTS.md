@@ -24,6 +24,20 @@
 
   Three separate programs; run all three before calling a change done. (no npm, no lint/tests configured — do not invent them)
 
+## Browser checks
+
+Drive the browser with the Playwright MCP tools rather than a hand-rolled Playwright script — the session is visible and interruptible.
+
+Always finish browser work in this order:
+
+1. `browser_tabs({ action: "list" })` — count what is open
+2. `browser_tabs({ action: "close", index })` — once per tab
+3. `browser_close()`
+
+`browser_close()` alone only releases the *current page*; every other tab stays open. Each `browser_navigate` adds one, so a run with several checks leaves several tabs, and the leftovers accumulate until the MCP server runs out of memory.
+
+Closing the last tab tears the browser down, so step 3 only works while a tab still exists. If it errors with `Target.createTarget: Failed to open a new tab`, the browser is already gone — that is the desired end state, not a failure.
+
 ## Architecture
 
 **Two routes** defined in `src/app.tsx` via hashchange + regex parser:
