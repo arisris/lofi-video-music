@@ -2,10 +2,10 @@ import m from "mithril";
 import { useEffect } from "react";
 import { editorStore, useEditorStore } from "../store/editor-store";
 import { MediaLibraryPanel } from "./media-library-panel";
-import { ShapePanel } from "./shape-panel";
 import { TextPanel } from "./text-panel";
 import { VFXPanel } from "./vfx-panel";
 import { SettingsPanel } from "./settings-panel";
+import { ShapePanel } from "./shape-panel";
 import { MithrilBridge } from "../compat/mithril-bridge";
 
 interface LeftTab {
@@ -69,12 +69,25 @@ export const MediaPool = () => {
     switch (activeLeftTab) {
       case "library":
         return m(MediaLibraryPanel); // legacy (Phase 3 #17)
-      case "shapes":
-        return m(ShapePanel); // legacy (#14)
       default:
-        return null; // "text", "settings", and "vfx" are React components now
+        return null; // "shapes", "text", "settings", and "vfx" are React components now
     }
   };
+
+  const content = (() => {
+    switch (activeLeftTab) {
+      case "vfx":
+        return <VFXPanel />;
+      case "text":
+        return <TextPanel />;
+      case "settings":
+        return <SettingsPanel />;
+      case "shapes":
+        return <ShapePanel />;
+      default:
+        return <MithrilBridge render={legacyPanel} />;
+    }
+  })();
 
   return (
     <div className="flex flex-row h-full overflow-hidden">
@@ -108,15 +121,7 @@ export const MediaPool = () => {
         key={activeLeftTab}
         className={`flex-1 overflow-hidden transition-all duration-200 ${leftPanelCollapsed ? "opacity-0 pointer-events-none w-0" : "opacity-100 animate-tab-fade-in"}`}
       >
-        {activeLeftTab === "vfx" ? (
-          <VFXPanel />
-        ) : activeLeftTab === "text" ? (
-          <TextPanel />
-        ) : activeLeftTab === "settings" ? (
-          <SettingsPanel />
-        ) : (
-          <MithrilBridge render={legacyPanel} />
-        )}
+        {content}
       </div>
     </div>
   );
