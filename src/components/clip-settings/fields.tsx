@@ -38,7 +38,9 @@ const SliderField = ({ field, settings, onChange }: {
     <div>
       <label className={`${LABEL} flex justify-between items-baseline`}>
         <span>{field.label}</span>
-        <span className={VALUE}>{`${value.toFixed(decimalsFor(field.step))}${field.unit ?? ""}`}</span>
+        <span className={VALUE}>
+          {`${(value * (field.scale ?? 1)).toFixed(decimalsFor(field.step))}${field.unit ?? ""}`}
+        </span>
       </label>
       <input
         type="range"

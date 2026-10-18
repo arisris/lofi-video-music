@@ -19,7 +19,18 @@ export type AudioSource = "fft" | "wave";
 
 /** One control in the generated settings UI. Rendered in array order. */
 export type FieldSchema =
-  | { kind: "slider"; key: string; label: string; min: number; max: number; step?: number; unit?: string }
+  | {
+      kind: "slider";
+      key: string;
+      label: string;
+      min: number;
+      max: number;
+      step?: number;
+      /** Appended to the readout, e.g. "%" or "px". */
+      unit?: string;
+      /** Multiplies the readout only, so a 0-1 control can read as a percentage. */
+      scale?: number;
+    }
   | { kind: "color"; key: string; label: string }
   | { kind: "toggle"; key: string; label: string }
   | { kind: "select"; key: string; label: string; options: { value: string; label: string }[] }
