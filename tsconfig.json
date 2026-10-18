@@ -11,9 +11,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    // Type safety across the whole src tree. The only remaining .js file is
-    // src/worker.js (Cloudflare Worker, built by wrangler, never imported by
-    // the app), which is excluded below.
+    // Type safety across the whole src tree. The browser app is checked here;
+    // the Cloudflare Worker is a separate program (tsconfig.worker.json)
+    // because its runtime types conflict with the DOM lib.
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -24,5 +24,5 @@
     "types": ["vite/client"]
   },
   "include": ["src"],
-  "exclude": ["src/worker.js"]
+  "exclude": ["src/worker.ts"]
 }
