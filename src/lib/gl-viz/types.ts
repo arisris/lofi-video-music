@@ -36,8 +36,10 @@ export type FieldSchema =
       key: string;
       label: string;
       /**
-       * Accepts 8-digit hex and pushes a vec4 instead of a vec3, so a shader
-       * can use it as a background the user can also make transparent.
+       * Renders an opacity slider beside the swatch and pushes a vec4 instead
+       * of a vec3, so a shader can use it as a background the user can also
+       * make transparent. The alpha byte is owned by that slider, never by the
+       * colour picker.
        */
       alpha?: boolean;
     }

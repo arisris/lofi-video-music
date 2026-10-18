@@ -40,6 +40,9 @@ const normaliseColor = (raw: string, withAlpha: boolean): string => {
   const h = raw.replace(/^#/, "");
   if (withAlpha && /^[0-9a-f]{8}$/i.test(h)) return `#${h.slice(0, 8).toLowerCase()}`;
   if (/^[0-9a-f]{6}$/i.test(h)) return `#${h.toLowerCase()}`;
+  // An 8-digit value asked for as 6 keeps its RGB, so a swatch still shows the
+  // colour that is actually stored rather than falling back to the default.
+  if (/^[0-9a-f]{8}$/i.test(h)) return `#${h.slice(0, 6).toLowerCase()}`;
   return withAlpha ? "#00000000" : "#3b82f6";
 };
 
@@ -70,31 +73,62 @@ const SliderField = ({ field, settings, onChange }: {
   );
 };
 
+const alphaOf = (hex: string): number => {
+  const h = hex.replace(/^#/, "");
+  return /^[0-9a-f]{8}$/i.test(h) ? parseInt(h.slice(6, 8), 16) / 255 : 1;
+};
+
+/**
+ * Rewrites the alpha byte of a colour, leaving its RGB untouched.
+ *
+ * Alpha needs its own control: <input type="color"> has no alpha channel in
+ * the HTML spec, so a picker returns six digits and a stored #rrggbbaa
+ * silently loses its last byte - which reads as the colour becoming opaque
+ * with no way back.
+ */
+const withAlpha = (hex: string, alpha01: number): string => {
+  const rgb = normaliseColor(hex, false).slice(1);
+  const a = Math.round(Math.min(1, Math.max(0, alpha01)) * 255).toString(16).padStart(2, "0");
+  return `#${rgb}${a}`;
+};
+
 const ColorField = ({ field, settings, onChange }: {
   field: Extract<FieldSchema, { kind: "color" }>;
   settings: Record<string, unknown>;
   onChange: FieldsProps["onChange"];
 }) => {
   const raw = settings[field.key];
-  const value = normaliseColor(typeof raw === "string" ? raw : "", field.alpha === true);
-  const alpha = value.length === 9 ? Math.round(parseInt(value.slice(7, 9), 16) / 255 * 100) : 100;
+  const stored = typeof raw === "string" ? raw : "";
+  const hasAlpha = field.alpha === true;
+  // Always six digits on the swatch, so the picker cannot drop the alpha byte.
+  const swatch = normaliseColor(stored, false);
+  const alpha = hasAlpha ? alphaOf(stored) : 1;
 
   return (
     <div>
       <label className={`${LABEL} flex justify-between items-baseline`}>
         <span>{field.label}</span>
-        <span className={VALUE}>
-          {value.toUpperCase()}{field.alpha ? `  ${alpha}%` : ""}
-        </span>
+        {hasAlpha
+          ? <span className={VALUE}>{`${swatch.toUpperCase()}  ${Math.round(alpha * 100)}%`}</span>
+          : <span className={VALUE}>{swatch.toUpperCase()}</span>}
       </label>
       <input
         type="color"
-        // The native picker exposes an opacity slider for 8-digit values, which
-        // is why alpha-capable fields need no second control.
-        value={value}
+        value={swatch}
         className="w-full h-8 bg-transparent cursor-pointer rounded border border-slate-700"
-        onChange={(e) => onChange(field.key, field.alpha ? e.target.value.toLowerCase() : e.target.value)}
+        onChange={(e) => onChange(field.key, hasAlpha ? withAlpha(e.target.value, alpha) : e.target.value)}
       />
+      {hasAlpha && (
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={alpha}
+          className="w-full accent-blue-500 mt-1.5"
+          onChange={(e) => onChange(field.key, withAlpha(swatch, parseFloat(e.target.value)))}
+        />
+      )}
     </div>
   );
 };
