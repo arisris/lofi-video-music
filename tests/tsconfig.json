@@ -1,0 +1,25 @@
+{
+  // The end-to-end suite. Separate from the app's program because it runs on
+  // Bun rather than in the browser: it needs bun-types for Bun.WebView, and the
+  // app's DOM lib and vite/client types have nothing to say about it.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+
+    "skipLibCheck": true,
+    "types": ["bun-types"]
+  },
+  "include": ["e2e"]
+}

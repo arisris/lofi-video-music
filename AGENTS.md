@@ -18,17 +18,31 @@
 - `bun run preview` — build then `vite preview`
 - `bun run deploy` — build then `wrangler deploy`
 - `bun run clean` — remove node_modules and reinstall
+- `bun test` — end-to-end suite (`tests/e2e/`), drives a real browser through `Bun.WebView`
 - `bunx tsc --noEmit` — typecheck the app (`tsconfig.json`)
 - `bunx tsc --noEmit -p worker/tsconfig.json` — typecheck the Cloudflare Worker
 - `bunx tsc --noEmit -p tsconfig.node.json` — typecheck `vite.config.ts`
+- `bunx tsc --noEmit -p tests/tsconfig.json` — typecheck the e2e suite
 
-  Three separate programs; run all three before calling a change done. (no npm, no lint/tests configured — do not invent them)
+  Four separate programs; run all four before calling a change done. (no npm, no lint configured — do not invent them)
+
+  `bun test` needs no setup: it starts the dev server when one is not already
+  running, and reuses an existing one when there is. It drives its own headless
+  Chrome, not the Playwright MCP session below.
 
 ## Browser checks
 
-Drive the browser with the Playwright MCP tools rather than a hand-rolled Playwright script — the session is visible and interruptible.
+Two ways in, for two different jobs.
 
-Always finish browser work in this order:
+**Interactive work** — drive the browser with the Playwright MCP tools rather
+than a script: the session is visible and interruptible.
+
+**Repeatable checks** — `bun test`. It uses `Bun.WebView`, so it needs a Chrome
+or Chromium on the machine (`CHROME_PATH` overrides the default, which points at
+the Playwright cache). No Playwright dependency: the suite imports nothing but
+`bun:test`.
+
+Always finish MCP browser work in this order:
 
 1. `browser_tabs({ action: "list" })` — count what is open
 2. `browser_tabs({ action: "close", index })` — once per tab
@@ -37,6 +51,10 @@ Always finish browser work in this order:
 `browser_close()` alone only releases the *current page*; every other tab stays open. Each `browser_navigate` adds one, so a run with several checks leaves several tabs, and the leftovers accumulate until the MCP server runs out of memory.
 
 Closing the last tab tears the browser down, so step 3 only works while a tab still exists. If it errors with `Target.createTarget: Failed to open a new tab`, the browser is already gone — that is the desired end state, not a failure.
+
+The e2e suite does its own teardown in `tests/e2e/harness.ts`. `view.close()`
+ends a tab but leaves the browser Bun spawned running, so `shutdown()` also calls
+`Bun.WebView.closeAll()`.
 
 ## Architecture
 
