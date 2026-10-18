@@ -8,7 +8,72 @@
 //     frame on a long timeline.
 
 import { describe, test, expect, afterAll } from "bun:test";
-import { withApp, shutdown, TIMEOUT } from "./harness";
+import { withApp, shutdown, TIMEOUT, type TestPage } from "./harness";
+
+/**
+ * Trims a music clip's head and reports where the clip ended up.
+ *
+ * The moves are dispatched as a burst on purpose: the offset this guards
+ * accumulated once per pointer event, so a single move lands on the right
+ * answer and hides the bug completely.
+ */
+const TRIM = `(async (opts) => {
+  const e = window.__e2e;
+  const { editorStore } = await e.store();
+
+  const clip = {
+    id: "m1",
+    type: "music",
+    trackId: "track-1",
+    start: opts.start,
+    duration: opts.duration,
+    settings: {
+      name: "m1",
+      audioUrl: "",
+      audioDuration: opts.audioDuration,
+      volume: 1,
+      playbackRate: 1,
+      pan: 0,
+      startOffset: opts.startOffset,
+      enabled: true,
+    },
+  };
+
+  editorStore.setState({
+    timelineClips: [clip],
+    timelineZoom: 10,
+    // The Timeline re-renders off this, the same way adding a clip does.
+    selectedClipId: "m1",
+  });
+  await new Promise((r) => requestAnimationFrame(r));
+
+  const el = document.querySelector(
+    '#timeline-content-area div.absolute.top-2.bottom-2.rounded.border'
+  );
+  // Must be the handle, not the clip. A mousedown dispatched on the clip makes
+  // the clip's own handler the target and starts a move drag instead, which
+  // leaves startOffset untouched and passes nothing.
+  const handle = el.querySelector("div.cursor-ew-resize");
+  const r = el.getBoundingClientRect();
+  const y = r.top + 12;
+  const grabX = r.left + 3;
+
+  handle.dispatchEvent(new MouseEvent("mousedown", {
+    clientX: grabX, clientY: y, bubbles: true, cancelable: true }));
+  await new Promise((res) => requestAnimationFrame(res));
+
+  for (let i = 1; i <= 10; i++) {
+    window.dispatchEvent(new MouseEvent("mousemove", {
+      clientX: grabX + (opts.totalPx / 10) * i, clientY: y, bubbles: true }));
+    await new Promise((res) => requestAnimationFrame(res));
+  }
+  window.dispatchEvent(new MouseEvent("mouseup", {
+    clientX: grabX + opts.totalPx, clientY: y, bubbles: true }));
+  await new Promise((res) => requestAnimationFrame(res));
+
+  const c = editorStore.getState().timelineClips.find((c) => c.id === "m1");
+  return { start: c.start, duration: c.duration, startOffset: c.settings.startOffset };
+})`;
 
 /** test() plus the harness wrapper, so every case carries the real budget. */
 const e2e = (name: string, body: Parameters<typeof withApp>[0]) =>
@@ -137,6 +202,73 @@ describe("timeline drag", () => {
       // One slow frame in thirty is tolerable; thirty would mean nothing was
       // memoised at all.
       expect(res.over).toBeLessThan(10);
+    });
+  });
+});
+
+describe("trimming a music clip", () => {
+  // Trimming the head slides the clip's window through the audio file: the
+  // startOffset says where inside the file the clip begins. It has to track the
+  // cursor exactly, and above all not depend on how many pointer events the
+  // drag happened to deliver.
+  const trim = (
+    t: TestPage,
+    opts: { start: number; duration: number; audioDuration: number; startOffset: number; totalPx: number }
+  ) =>
+    t.eval<{ start: number; duration: number; startOffset: number }>(
+      `${TRIM}(${JSON.stringify(opts)})`
+    );
+
+  e2e("pulling the head right moves the window forward by the same amount", async () => {
+    await withApp(async (t) => {
+      const res = await trim(t, {
+        start: 10, duration: 20, audioDuration: 60, startOffset: 0, totalPx: 20,
+      });
+      // 20px at zoom 10 is 2s: the clip starts 2s later, so it must start 2s
+      // further into the file, and keep covering the same 20s of audio.
+      expect(res.start).toBe(12);
+      expect(res.startOffset).toBe(2);
+      expect(res.start + res.duration).toBe(30);
+    });
+  });
+
+  e2e("pulling the head left moves the window back by the same amount", async () => {
+    await withApp(async (t) => {
+      const res = await trim(t, {
+        start: 10, duration: 20, audioDuration: 60, startOffset: 5, totalPx: -20,
+      });
+      expect(res.start).toBe(8);
+      expect(res.startOffset).toBe(3);
+      expect(res.start + res.duration).toBe(30);
+    });
+  });
+
+  e2e("the head stops at the start of the file", async () => {
+    await withApp(async (t) => {
+      const res = await trim(t, {
+        start: 10, duration: 20, audioDuration: 60, startOffset: 0, totalPx: -30,
+      });
+      // Nothing exists before the beginning of the audio, so the clip refuses
+      // to move rather than reporting a negative offset.
+      expect(res.startOffset).toBe(0);
+      expect(res.start).toBe(10);
+    });
+  });
+
+  e2e("the head stops at the end of what the clip covers", async () => {
+    await withApp(async (t) => {
+      const res = await trim(t, {
+        start: 5, duration: 5, audioDuration: 15, startOffset: 0, totalPx: 200,
+      });
+      // A 5s clip cannot trim its head past its own length. Bounded by the
+      // 15s file alone it clamped at 14.9, which put the start at 19.9 and
+      // dragged the whole clip away from where it was.
+      expect(res.startOffset).toBeCloseTo(4.9, 5);
+      expect(res.start).toBeCloseTo(9.9, 5);
+      expect(res.duration).toBeCloseTo(0.1, 5);
+      // The far end must not move: trimming a head slides the window, it does
+      // not relocate the clip.
+      expect(res.start + res.duration).toBeCloseTo(10, 5);
     });
   });
 });

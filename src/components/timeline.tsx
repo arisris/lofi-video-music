@@ -25,6 +25,14 @@ type DragState = {
   startX: number;
   initialStart: number;
   initialDuration: number;
+  /**
+   * Where the clip began inside its audio file when the drag started.
+   *
+   * Read from the store this would be the value the previous pointer event
+   * already wrote back, so every move would add its delta on top of the one
+   * before and the offset would run away from the cursor.
+   */
+  initialStartOffset: number;
 };
 let isDraggingClip: DragState | null = null;
 let contextMenu: { x: number; y: number; clipId: string } | null = null;
@@ -189,7 +197,10 @@ const handleWindowMouseMove = (e: MouseEvent) => {
         newStart = Math.max(0, isDraggingClip.initialStart + dx);
       } else if (isDraggingClip?.type === "resize-end") {
         if (clip.type === "music") {
-          const maxDur = (clip.settings.audioDuration || clip.duration) - (clip.settings.startOffset || 0);
+          // Bounded by the audio left after the clip's own offset, taken from
+          // the drag origin for the same reason the head trim is.
+          const maxDur =
+            (clip.settings.audioDuration || clip.duration) - isDraggingClip.initialStartOffset;
           newDur = Math.max(0.1, Math.min(maxDur, isDraggingClip.initialDuration + dx));
         } else {
           newDur = Math.max(0.1, isDraggingClip.initialDuration + dx);
@@ -198,16 +209,27 @@ const handleWindowMouseMove = (e: MouseEvent) => {
         if (clip.type === "music") {
           newStart = Math.max(0, isDraggingClip.initialStart + dx);
           const dStart = newStart - isDraggingClip.initialStart;
-          let newOffset = (clip.settings.startOffset || 0) + dStart;
+          // Derived from the offset the drag began with, so the result depends
+          // only on where the cursor is and not on how many events got here.
+          // The clip covers the same span of audio either way: trimming the
+          // head slides the window forward instead of dropping sound.
+          const base = isDraggingClip.initialStartOffset;
+          let newOffset = base + dStart;
 
           if (newOffset < 0) {
             newOffset = 0;
-            newStart = isDraggingClip.initialStart - (clip.settings.startOffset || 0);
+            newStart = isDraggingClip.initialStart - base;
           }
-          const maxOffset = (clip.settings.audioDuration || clip.duration) - 0.1;
+          // The head can only be trimmed while the clip still has audio left to show,
+          // which is the smaller of the file and the clip's own span. Bounding
+          // it by the file alone let the clip trim past its own length: the
+          // duration would floor at 0.1s while the start kept running, so the
+          // clip jumped to a different place on the timeline entirely.
+          const maxOffset =
+            Math.min(clip.settings.audioDuration || clip.duration, base + isDraggingClip.initialDuration) - 0.1;
           if (newOffset > maxOffset) {
             newOffset = maxOffset;
-            newStart = isDraggingClip.initialStart + (maxOffset - (clip.settings.startOffset || 0));
+            newStart = isDraggingClip.initialStart + (maxOffset - base);
           }
 
           nextClip.settings = { ...clip.settings, startOffset: newOffset };
@@ -415,6 +437,7 @@ const beginClipDrag = (
     startX: e.clientX,
     initialStart: clip.start,
     initialDuration: clip.duration,
+    initialStartOffset: clip.settings?.startOffset || 0,
   };
   window.addEventListener("mousemove", handleWindowMouseMove);
   window.addEventListener("mouseup", handleWindowMouseUp);
