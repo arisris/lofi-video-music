@@ -127,7 +127,7 @@ export const App = () => {
           </div>
           <MithrilBridge render={() => m(Timeline)} />
           <div className="flex-none p-2 bg-slate-900 border-t border-slate-800">
-            <MithrilBridge render={() => m(PlaybackControls)} />
+            <PlaybackControls />
           </div>
         </main>
 
