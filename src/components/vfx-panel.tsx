@@ -1,5 +1,6 @@
 import { addClipToTimeline } from "../lib/clip-factory";
 import { VisualizerRegistry } from "../lib/visualizers/index";
+import { listVisualizerDefs } from "../lib/gl-viz";
 import { VFXRegistry } from "../lib/vfx/index";
 
 const VIS_ICONS: Record<string, string> = {
@@ -33,7 +34,24 @@ export const VFXPanel = () => (
         </div>
       </div>
 
-      {/* 2. VISUAL EFFECTS SECTION */}
+      {/* 2. SHADER VISUALIZER SECTION */}
+      <div className="space-y-4">
+        <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Shader Visualizer</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {listVisualizerDefs().map((def) => (
+            <button
+              key={def.id}
+              className="p-2.5 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl transition-all flex flex-col items-center justify-center text-center gap-1 group cursor-pointer"
+              onClick={() => addClipToTimeline("glviz", { style: def.id })}
+            >
+              <i className={`${def.icon} w-4.5 h-4.5 text-slate-400 group-hover:text-blue-400 transition-colors`} />
+              <span className="text-[10px] font-bold text-slate-200">{def.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. VISUAL EFFECTS SECTION */}
       <div className="space-y-4">
         <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Visual Effects</h3>
         <div className="grid grid-cols-3 gap-2">

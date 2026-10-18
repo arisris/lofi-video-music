@@ -790,7 +790,9 @@ export const Timeline = () => {
                                   ? "icon-[ri--text-spacing]"
                                   : clip.type === "visualizer"
                                     ? "icon-[ri--pulse-line]"
-                                    : "icon-[ri--image-line]"
+                                    : clip.type === "glviz"
+                                      ? "icon-[ri--shapes-line]"
+                                      : "icon-[ri--image-line]"
                               } w-3 h-3 text-slate-300 shrink-0`}
                             />
                           )}
@@ -801,7 +803,9 @@ export const Timeline = () => {
                                 ? clip.settings?.fileName || (clip.type === "background" ? "Background" : "Overlay")
                                 : clip.type === "visualizer"
                                   ? `Visualizer (${clip.settings?.style || "bars"})`
-                                  : clip.settings?.content || clip.type}
+                                  : clip.type === "glviz"
+                                    ? `Shader (${clip.settings?.style || "bars"})`
+                                    : clip.settings?.content || clip.type}
                           </span>
                         </div>
                       </div>
