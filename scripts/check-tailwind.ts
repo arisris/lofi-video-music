@@ -4,7 +4,7 @@ import { $ } from "bun";
 import { twMerge } from "tailwind-merge";
 
 const ROOT = path.resolve(import.meta.dir, "..", "src");
-const CANONICAL_BIN = path.resolve(import.meta.dir, "..", "node_modules", ".bin", "tailwind-suggest-canonical-classes");
+// Use `bun x` so the canonical-classes CLI resolves automatically.
 const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
 
 function walk(dir: string): string[] {
@@ -70,8 +70,8 @@ if (conflicts > 0) {
 console.log("\nChecking canonical Tailwind classes...");
 const root = path.resolve(import.meta.dir, "..");
 const canonicalCmd = fix
-  ? $`${CANONICAL_BIN} "src/**/*.{ts,tsx}" --css src/tailwind.css`.cwd(root).nothrow()
-  : $`${CANONICAL_BIN} "src/**/*.{ts,tsx}" --css src/tailwind.css --check`.cwd(root).nothrow();
+  ? $`bun x @laststance/tailwind-suggest-canonical-classes "src/**/*.{ts,tsx}" --css src/tailwind.css`.cwd(root).nothrow()
+  : $`bun x @laststance/tailwind-suggest-canonical-classes "src/**/*.{ts,tsx}" --css src/tailwind.css --check`.cwd(root).nothrow();
 const canonicalResult = await canonicalCmd;
 if (!fix && canonicalResult.exitCode !== 0) hasIssues = true;
 
