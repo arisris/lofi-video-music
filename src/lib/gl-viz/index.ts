@@ -6,8 +6,10 @@
 
 import { registerVisualizer } from "./registry";
 import { BarsVisualizer } from "./defs/bars";
+import { KaleidoscopeVisualizer } from "./defs/kaleidoscope";
 
 registerVisualizer(BarsVisualizer);
+registerVisualizer(KaleidoscopeVisualizer);
 
 export * from "./types";
 export * from "./registry";

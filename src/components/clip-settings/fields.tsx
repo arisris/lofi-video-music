@@ -5,6 +5,7 @@
 // deliberately dumb - it reads settings and reports changes, nothing else.
 
 import type { FieldSchema } from "../../lib/gl-viz/types";
+import { useEditorStore } from "../../store/editor-store";
 
 interface FieldsProps {
   fields: FieldSchema[];
@@ -117,28 +118,61 @@ const SelectField = ({ field, settings, onChange }: {
   );
 };
 
+/**
+ * Picks an image out of the media pool.
+ *
+ * Only the URL is stored, never the element. Settings survive HMR and route
+ * swaps, and a detached HTMLImageElement in the store would not survive a
+ * reload; the engine resolves the URL to a texture and caches it by URL.
+ */
 const ImageField = ({ field, settings, onChange }: {
   field: Extract<FieldSchema, { kind: "image" }>;
   settings: Record<string, unknown>;
   onChange: FieldsProps["onChange"];
 }) => {
+  const mediaPool = useEditorStore((s) => s.mediaPool);
+  const images = mediaPool.filter((m) => m.type === "image");
   const raw = settings[field.key];
   const value = typeof raw === "string" ? raw : "";
+
   return (
     <div>
-      <label className={LABEL}>{field.label}</label>
-      <div className="flex items-center gap-2">
-        <div className="w-9 h-9 shrink-0 rounded border border-slate-700 bg-slate-800 bg-cover bg-center" style={value ? { backgroundImage: `url(${value})` } : undefined} />
-        <input
-          type="text"
-          value={value}
-          placeholder="No image set"
-          spellCheck={false}
-          className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 h-7 text-[10px] text-slate-300 outline-none focus:border-blue-500/50"
-          onChange={(e) => onChange(field.key, e.target.value)}
-        />
+      <div className={`${LABEL} flex justify-between items-baseline`}>
+        <span>{field.label}</span>
+        {value && (
+          <button
+            className="text-[9px] text-slate-500 hover:text-rose-400 cursor-pointer"
+            onClick={() => onChange(field.key, "")}
+          >
+            Clear
+          </button>
+        )}
       </div>
-      {field.hint && <p className="mt-1 text-[9px] text-slate-600">{field.hint}</p>}
+      {images.length === 0 ? (
+        <p className="text-[9px] text-slate-600 leading-relaxed">
+          No images in the media pool. Add one from the Media tab, then pick it here.
+        </p>
+      ) : (
+        <div className="grid grid-cols-5 gap-1">
+          {images.map((img) => {
+            const src = (img.thumbnail as string | null) || img.url;
+            const active = img.url === value;
+            return (
+              <button
+                key={img.id || img.url}
+                title={img.name || "image"}
+                className={`aspect-square rounded border overflow-hidden cursor-pointer transition ${
+                  active ? "border-blue-500 ring-1 ring-blue-500/50" : "border-slate-700 hover:border-slate-500"
+                }`}
+                onClick={() => onChange(field.key, img.url)}
+              >
+                <img src={src} alt={img.name || ""} className="w-full h-full object-cover" />
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {field.hint && <p className="mt-1.5 text-[9px] text-slate-600">{field.hint}</p>}
     </div>
   );
 };
