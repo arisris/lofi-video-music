@@ -5,34 +5,50 @@ import { BaseParticle } from "./base-particle";
 
 export class Snowball extends BaseParticle {
   radius: number = 3;
-  speed: number = 1;
+  /** Fall speed in px/second. */
+  speed: number = 80;
   opacity: number = 0.5;
   swaySpeed: number = 1;
-  swayAmount: number = 0.5;
+  /** Sway amplitude in px. */
+  swayAmount: number = 8;
   swayOffset: number = 0;
+  /** Horizontal anchor: sway is applied around this, never accumulated. */
+  baseX: number = 0;
+
+  constructor(canvasWidth: number, canvasHeight: number) {
+    super(canvasWidth, canvasHeight);
+    // Field initializers above run after super() and would flatten every
+    // snowball to the same size/speed — re-apply the per-particle roll.
+    this.reset();
+  }
 
   reset() {
-    this.x = Math.random() * this.canvasWidth;
-    this.y = -10 - Math.random() * 50;
+    this.baseX = Math.random() * this.canvasWidth;
+    this.x = this.baseX;
+    this.y = -10 - Math.random() * 60;
     this.radius = 2 + Math.random() * 4; // base size between 2px and 6px
-    this.speed = 1 + Math.random() * 2; // slow base fall speed
+    this.speed = 45 + Math.random() * 70; // 45-115 px/s, slow drifting snowfall
     this.opacity = 0.3 + Math.random() * 0.5;
-    this.swaySpeed = 0.5 + Math.random() * 1.5;
-    this.swayAmount = 0.2 + Math.random() * 0.8;
+    this.swaySpeed = 0.4 + Math.random() * 1.2;
+    this.swayAmount = 4 + Math.random() * 10; // 4-14px of horizontal drift
     this.swayOffset = Math.random() * Math.PI * 2;
+    this.lastTime = undefined;
   }
 
   update(w: number, h: number, settings: Record<string, any>, time: number, audioLevel = 0) {
     this.canvasWidth = w;
     this.canvasHeight = h;
 
+    const dt = this.step(time);
     const speedMultiplier = settings.speed !== undefined ? settings.speed : 1.0;
     const activeSpeed = this.speed * speedMultiplier * (settings.audioReactive ? 0.4 + audioLevel * 1.6 : 1.0);
-    this.y += activeSpeed;
+    this.y += activeSpeed * dt;
 
+    // Sway oscillates around baseX. Accumulating it instead (x += sway) walked
+    // every flake sideways off the canvas over a few seconds.
     const sway = Math.sin(time * this.swaySpeed + this.swayOffset) * this.swayAmount;
     const activeSway = sway * (settings.audioReactive ? 1.0 + audioLevel * 2.0 : 1.0);
-    this.x += activeSway;
+    this.x = (((this.baseX + activeSway) % w) + w) % w;
 
     if (this.y > this.canvasHeight + 10) {
       this.reset();
@@ -89,7 +105,11 @@ export const SnowVFX = {
       clip.canvasWidth = w;
       clip.canvasHeight = h;
       for (let i = 0; i < intensity; i++) {
-        clip.snowballs.push(new Snowball(w, h));
+        const ball = new Snowball(w, h);
+        // Pre-fill the sky: the first flakes start spread over the canvas instead
+        // of queueing up above the top edge and taking a full pass to fall in.
+        ball.y = Math.random() * h;
+        clip.snowballs.push(ball);
       }
     }
 

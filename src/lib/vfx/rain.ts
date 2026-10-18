@@ -5,22 +5,42 @@ import { BaseParticle } from "./base-particle";
 
 export class Drop extends BaseParticle {
   length: number = 10;
-  speed: number = 10;
+  /** Fall speed in px/second. */
+  speed: number = 800;
   opacity: number = 0.2;
+  /** Horizontal drift in px/second — a slight slant so the curtain isn't a ruler. */
+  slant: number = 0;
+
+  constructor(canvasWidth: number, canvasHeight: number) {
+    super(canvasWidth, canvasHeight);
+    // Field initializers above run after super() and would flatten every drop to
+    // the same length/speed — re-apply the per-particle roll.
+    this.reset();
+  }
 
   reset() {
     this.x = Math.random() * this.canvasWidth;
     this.y = -20 - Math.random() * 100;
-    this.length = 10 + Math.random() * 20;
-    this.speed = 10 + Math.random() * 10;
-    this.opacity = 0.1 + Math.random() * 0.4;
+    this.length = 10 + Math.random() * 22;
+    this.speed = 600 + Math.random() * 500; // 600-1100 px/s
+    this.opacity = 0.12 + Math.random() * 0.38;
+    this.slant = (Math.random() - 0.5) * 70;
+    this.lastTime = undefined;
   }
 
-  update(w: number, h: number, settings: Record<string, any>) {
+  update(w: number, h: number, settings: Record<string, any>, time?: number) {
     this.canvasWidth = w;
     this.canvasHeight = h;
+    const dt = this.step(time);
+
     const speedMultiplier = settings.speed !== undefined ? settings.speed : 1.0;
-    this.y += this.speed * speedMultiplier;
+    this.y += this.speed * speedMultiplier * dt;
+    this.x += this.slant * dt;
+
+    // Wrap horizontally instead of letting drops drift off the canvas.
+    if (this.x < 0) this.x += w;
+    else if (this.x > w) this.x -= w;
+
     if (this.y > this.canvasHeight) {
       this.reset();
     }
@@ -30,10 +50,15 @@ export class Drop extends BaseParticle {
     const sizeMultiplier = settings.size !== undefined ? settings.size : 1.0;
     const opacityMultiplier = settings.opacity !== undefined ? settings.opacity : 1.0;
 
+    // (x, y) is the drop's head; the streak trails *behind* it, i.e. above,
+    // and leans against the direction of travel.
+    const length = this.length * sizeMultiplier;
+    const tiltX = (this.slant / Math.max(this.speed, 1)) * length;
+
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x, this.y + this.length * sizeMultiplier);
+    ctx.lineTo(this.x - tiltX, this.y - length);
     ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1.0, this.opacity * opacityMultiplier)})`;
     ctx.lineWidth = Math.max(0.5, 1 * sizeMultiplier);
     ctx.stroke();
@@ -70,7 +95,10 @@ export const RainVFX = {
       clip.canvasWidth = w;
       clip.canvasHeight = h;
       for (let i = 0; i < intensity; i++) {
-        clip.drops.push(new Drop(w, h));
+        const drop = new Drop(w, h);
+        // Pre-fill the sky so the curtain is visible immediately.
+        drop.y = Math.random() * h;
+        clip.drops.push(drop);
       }
     }
 
@@ -90,9 +118,11 @@ export const RainVFX = {
         }
       : settings;
 
+    const time = performance.now() / 1000;
+
     for (let i = 0; i < visibleCount; i++) {
       const drop = clip.drops[i];
-      drop.update(w, h, activeSettings);
+      drop.update(w, h, activeSettings, time);
       drop.draw(ctx, activeSettings);
     }
   },

@@ -12,6 +12,13 @@ export class Firefly extends BaseParticle {
   pulseSpeed: number = 0.03;
   pulseOffset: number = 0;
 
+  constructor(canvasWidth: number, canvasHeight: number) {
+    super(canvasWidth, canvasHeight);
+    // Field initializers above run after super() and would flatten every firefly
+    // to the same size/speed — re-apply the per-particle roll.
+    this.reset();
+  }
+
   reset() {
     this.x = Math.random() * this.canvasWidth;
     this.y = Math.random() * this.canvasHeight;

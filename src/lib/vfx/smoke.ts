@@ -13,6 +13,13 @@ export class SmokeParticle extends BaseParticle {
   growth: number = 0.3;
   drift: number = 0;
 
+  constructor(canvasWidth: number, canvasHeight: number) {
+    super(canvasWidth, canvasHeight);
+    // Field initializers above run after super() and would flatten every puff to
+    // the same size/lifespan — re-apply the per-particle roll.
+    this.reset();
+  }
+
   reset() {
     this.x = Math.random() * this.canvasWidth;
     this.y = this.canvasHeight + 50 + Math.random() * 100;
