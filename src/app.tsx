@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Router, useLocation } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import type { EditorRoute } from "./store/slices/mode";
 import { useEditorStore, editorStore } from "./store/editor-store";
 import { runtime } from "./lib/runtime";
@@ -20,27 +22,25 @@ import { bumpClips } from "./store/actions/timeline-actions";
 /** Set once per page session so HMR re-mounts never double-schedule the rAF loop. */
 let renderLoopStarted = false;
 
-/** Current hash route → editor route. Both `#!` and `#/` prefixes are accepted. */
-const currentRoute = (): EditorRoute =>
-  window.location.hash.replace(/^#!?\/?/, "/").startsWith("/image") ? "/image" : "/";
+const toEditorRoute = (location: string): EditorRoute =>
+  location.startsWith("/image") ? "/image" : "/";
 
-export const App = () => {
+const AppContent = () => {
   const mediaPoolWidth = useEditorStore((s) => s.mediaPoolWidth);
   const inspectorWidth = useEditorStore((s) => s.inspectorWidth);
   const leftPanelCollapsed = useEditorStore((s) => s.leftPanelCollapsed);
   const showRecordSettingsModal = useEditorStore((s) => s.showRecordSettingsModal);
 
-  useEffect(() => {
-    // Resolve the active route and keep it in sync with the hash.
-    let lastResolvedRoute: string | null = null;
-    const applyRoute = () => {
-      const next = currentRoute();
-      editorStore.getState().swapRoute(lastResolvedRoute, next);
-      lastResolvedRoute = next;
-    };
-    applyRoute();
-    window.addEventListener("hashchange", applyRoute);
+  const [location] = useLocation();
+  const lastResolvedRouteRef = useRef<string | null>(null);
 
+  useEffect(() => {
+    const next = toEditorRoute(location);
+    editorStore.getState().swapRoute(lastResolvedRouteRef.current, next);
+    lastResolvedRouteRef.current = next;
+  }, [location]);
+
+  useEffect(() => {
     // Bind the canvas/audio elements the render loop and engine need.
     let raf = 0;
     const bindRuntime = () => {
@@ -89,7 +89,6 @@ export const App = () => {
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("hashchange", applyRoute);
       window.removeEventListener("mousemove", handleDragMove as unknown as (ev: MouseEvent) => void);
       window.removeEventListener("mouseup", handleDragEnd as unknown as EventListener);
       window.removeEventListener("touchmove", handleDragMove as unknown as (ev: TouchEvent) => void);
@@ -162,3 +161,9 @@ export const App = () => {
     </div>
   );
 };
+
+export const App = () => (
+  <Router hook={useHashLocation}>
+    <AppContent />
+  </Router>
+);

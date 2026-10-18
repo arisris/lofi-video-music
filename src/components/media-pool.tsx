@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { editorStore, useEditorStore } from "../store/editor-store";
 import { MediaLibraryPanel } from "./media-library-panel";
 import { TextPanel } from "./text-panel";
@@ -30,6 +31,7 @@ export const MediaPool = () => {
   const leftPanelCollapsed = useEditorStore((s) => s.leftPanelCollapsed);
   const currentRoute = useEditorStore((s) => s.currentRoute);
   const isThumbnailMode = currentRoute === "/image";
+  const [, navigate] = useLocation();
 
   // Default: an undefined or "playlist" tab falls back to "library".
   useEffect(() => {
@@ -52,7 +54,7 @@ export const MediaPool = () => {
 
   const handleTabClick = (tab: LeftTab) => {
     if (tab.route) {
-      window.location.hash = `#!${tab.route}`;
+      navigate(tab.route);
       return;
     }
     const state = editorStore.getState();
