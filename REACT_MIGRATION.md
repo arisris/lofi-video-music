@@ -159,7 +159,7 @@ Conversion rules:
   - `updateTimelineClipSettings(clipId, patch, clipPatch?)` now also patches top-level clip props (`duration`, particle caches like `drops`/`snowballs`) and thumbnail-mode `videoClips`; new `bumpClips()` helper replaces legacy `m.redraw()` after imperative uploads
   - Remaining `m.redraw()` calls in `lib/` (audio, drag, render loop, fonts, clip-factory, recorder) are no-ops now that no Mithril roots exist — they get removed during the `.js` → `.ts`Rename step below
 - [x] Properly type `runtime.js` (holds refs to canvas/audio/video) → `lib/runtime.ts` with a `RuntimeRefs` interface; engine refs (`audioCtx`, `analyser`, EQ/gain/panner, `dataArray`) are non-null because the audio engine builds them before the render loop starts, while UI refs (`canvas`, `ctx`, `audioEl`, `mediaRecorder`) stay nullable for React consumers
-- [ ] Tear down the legacy typed `State`; all state access goes through the typed store — *bridge is now `lib/state.ts` and still in use; removal is the last remaining Phase 4 item*
+- [x] Tear down the legacy typed `State`; all state access goes through the typed store → DONE in three commits: `d94ed33` (React components), `e72727a` (engine leaf modules), `b16f64d` (engine core + `src/lib/state.ts` deleted). Along the way the typed store surfaced latent mismatches that are now fixed: `RecordMode` is `'timeline' | 'clip'`, `staticSnapTargetsX/Y` are `CanvasSnapTarget[]`, `transformMode` accepts `null`, and the dead `store.dataArray` field was dropped (FFT buffer lives in `runtime`). Drag/clip mutations are immutable (`updateTimelineClipSettings` / `updateClipSettings`).
 - [x] Verify: clean build with no errors (`bunx tsc -noEmit` clean, `bun run build` green, Playwright smoke test on the production preview build: shape clip + canvas drag + Rain VFX slider + 3s playback + thumbnail route, zero console errors)
 
 ### Phase 5 — Cleanup & finalization
@@ -187,4 +187,4 @@ Conversion rules:
 - [x] **M2** — Zustand slices complete + video ⇄ thumbnail mode swap working (Phase 1)
 - [x] **M3** — `main.tsx` + React shell alive in the browser (Phase 2)
 - [x] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
-- [ ] **M5** — `lib/` + `utils/` 100% `.ts` ✅, `strict` for all files + docs updated ⏳ (Phases 4–5; only the `State` bridge teardown, `allowJs` off, and doc updates remain)
+- [ ] **M5** — `lib/` + `utils/` 100% `.ts` ✅, State bridge removed ✅, `strict` for all files + docs updated ⏳ (Phases 4–5; only `allowJs` off and the end-to-end deploy test remain)
