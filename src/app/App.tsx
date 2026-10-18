@@ -123,7 +123,7 @@ export const App = () => {
         {/* CENTER PANEL: Preview Player */}
         <main className="flex-none md:flex-1 h-auto md:h-full flex flex-col bg-black relative order-1 md:order-2">
           <div className="flex-1 flex items-center justify-center overflow-hidden relative bg-black">
-            <MithrilBridge render={() => m(VideoPreview)} />
+            <VideoPreview />
           </div>
           <MithrilBridge render={() => m(Timeline)} />
           <div className="flex-none p-2 bg-slate-900 border-t border-slate-800">
