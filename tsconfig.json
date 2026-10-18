@@ -11,11 +11,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    // Gradual migration: legacy .js compiles without checking
-    "allowJs": true,
-    "checkJs": false,
-
-    // Type safety for new TypeScript files
+    // Type safety across the whole src tree. The only remaining .js file is
+    // src/worker.js (Cloudflare Worker, built by wrangler, never imported by
+    // the app), which is excluded below.
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -25,5 +23,6 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/worker.js"]
 }
