@@ -7,7 +7,7 @@
 export interface RuntimeRefs {
   audioCtx: AudioContext;
   analyser: AnalyserNode;
-  source: MediaStreamAudioSourceNode;
+  source: MediaElementAudioSourceNode;
   dest: MediaStreamAudioDestinationNode;
   eqLow: BiquadFilterNode;
   eqMid: BiquadFilterNode;
