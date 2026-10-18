@@ -8,8 +8,8 @@ A browser-based editor for building lofi music videos: compose a timeline with m
 - **Build**: Vite 8 + Cloudflare Vite plugin
 - **UI**: React 19 + Tailwind CSS v4, canvas-based render loop
 - **State**: Zustand (single store in `src/store/`, slices per domain)
-- **Language**: TypeScript (only `src/worker.js` remains JavaScript)
-- **Backend**: Cloudflare Worker (`src/worker.js`) proxying the Pexels and Pixabay APIs
+- **Language**: TypeScript throughout (no JavaScript sources left)
+- **Backend**: Cloudflare Worker (`worker/index.ts`) proxying the Pexels and Pixabay APIs
 
 ## Development
 
@@ -31,7 +31,8 @@ Other scripts:
 bun run build     # production build
 bun run preview   # build then serve the production bundle
 bun run deploy    # build then wrangler deploy
-bunx tsc -b       # typecheck app + worker (two tsconfig projects)
+bunx tsc --noEmit  # typecheck the app
+bunx tsc --noEmit -p worker/tsconfig.json  # typecheck the Worker
 ```
 
 Setup notes are kept in `AGENTS.md`; the ongoing Mithril → React migration is tracked in `REACT_MIGRATION.md`.

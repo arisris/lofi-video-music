@@ -9,12 +9,11 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsc/tsconfig.tsbuildinfo",
     "jsx": "react-jsx",
 
-    // Type safety across the whole src tree. The browser app is checked here;
-    // the Cloudflare Worker is a separate program (tsconfig.worker.json)
-    // because its runtime types conflict with the DOM lib.
+    // Type safety across the whole browser app. The Cloudflare Worker lives
+    // in ./worker with its own tsconfig.json, so it falls outside this
+    // program - its runtime types conflict with the DOM lib below.
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -24,7 +23,5 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["src"],
-  "exclude": ["src/worker.ts"],
-  "references": [{ "path": "./tsconfig.worker.json" }]
+  "include": ["src"]
 }

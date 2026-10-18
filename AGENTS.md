@@ -6,9 +6,9 @@
 - **Bundler**: Vite 8 + Cloudflare Vite plugin (`@cloudflare/vite-plugin`)
 - **UI**: React 19 (`src/components/`, `src/app/`) + Tailwind CSS v4
 - **State**: Zustand store (`src/store/editor-store.ts` + slices in `src/store/slices/`)
-- **Backend**: Cloudflare Worker (`src/worker.js`) — proxies Pexels/Pixabay API calls
+- **Backend**: Cloudflare Worker (`worker/index.ts`) — proxies Pexels/Pixabay API calls
 - **Deploy**: Cloudflare Workers via `wrangler deploy`
-- **Language**: TypeScript (`src/**/*.ts(x)`), except `src/worker.js` which stays JS
+- **Language**: TypeScript everywhere — the app is `src/**/*.ts(x)`, the Worker is `worker/index.ts`
 
 ## Commands
 
@@ -18,7 +18,11 @@
 - `bun run preview` — build then `vite preview`
 - `bun run deploy` — build then `wrangler deploy`
 - `bun run clean` — remove node_modules and reinstall
-- `bunx tsc -b` — typecheck. Two projects: `tsconfig.json` (browser app) and `tsconfig.worker.json` (Cloudflare Worker), linked by `references`. Use `-b`; plain `tsc -noEmit` only checks the app and silently skips the worker. (no npm, no lint/tests configured — do not invent them)
+- `bunx tsc --noEmit` — typecheck the app (`tsconfig.json`)
+- `bunx tsc --noEmit -p worker/tsconfig.json` — typecheck the Cloudflare Worker
+- `bunx tsc --noEmit -p tsconfig.node.json` — typecheck `vite.config.ts`
+
+  Three separate programs; run all three before calling a change done. (no npm, no lint/tests configured — do not invent them)
 
 ## Architecture
 
@@ -41,7 +45,7 @@ State is swapped between routes via the `mode` slice action (`swapRoute`). The Z
 - `src/utils/` — helpers, IndexedDB, UI helpers
 - `src/data/` — static JSON (emoji, character data)
 
-**Worker** (`src/worker.js`): Cloudflare Worker with two API endpoints:
+**Worker** (`worker/index.ts`): Cloudflare Worker with two API endpoints:
 - `/api/pexels/search` — proxies Pexels video/photo search
 - `/api/pixabay/search` — proxies Pixabay video/image search
 - Uses Cloudflare Cache API for caching responses
