@@ -1,7 +1,6 @@
 import m from "mithril";
 import { useEffect } from "react";
 import type { EditorRoute } from "../store/slices/mode";
-import { MithrilBridge } from "../compat/mithril-bridge";
 import { useEditorStore, editorStore } from "../store/editor-store";
 import { State } from "../lib/state";
 import { runtime } from "../lib/runtime";
@@ -125,7 +124,7 @@ export const App = () => {
           <div className="flex-1 flex items-center justify-center overflow-hidden relative bg-black">
             <VideoPreview />
           </div>
-          <MithrilBridge render={() => m(Timeline)} />
+          <Timeline />
           <div className="flex-none p-2 bg-slate-900 border-t border-slate-800">
             <PlaybackControls />
           </div>
