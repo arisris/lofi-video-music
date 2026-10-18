@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import { $ } from "bun";
 import { twMerge } from "tailwind-merge";
 
 const ROOT = path.resolve(import.meta.dir, "..", "src");
@@ -68,13 +68,12 @@ if (conflicts > 0) {
 
 // Canonical class suggestions (via @laststance/tailwind-suggest-canonical-classes)
 console.log("\nChecking canonical Tailwind classes...");
-const canonicalArgs = ["src/**/*.{ts,tsx}", "--css", "src/tailwind.css"];
-if (!fix) canonicalArgs.push("--check");
-const canonicalResult = spawnSync(CANONICAL_BIN, canonicalArgs, {
-  cwd: path.resolve(import.meta.dir, ".."),
-  stdio: "inherit",
-});
-if (!fix && canonicalResult.status !== 0) hasIssues = true;
+const root = path.resolve(import.meta.dir, "..");
+const canonicalCmd = fix
+  ? $`${CANONICAL_BIN} "src/**/*.{ts,tsx}" --css src/tailwind.css`.cwd(root).nothrow()
+  : $`${CANONICAL_BIN} "src/**/*.{ts,tsx}" --css src/tailwind.css --check`.cwd(root).nothrow();
+const canonicalResult = await canonicalCmd;
+if (!fix && canonicalResult.exitCode !== 0) hasIssues = true;
 
 if (hasIssues) {
   console.log("\nTailwind issues found.");
