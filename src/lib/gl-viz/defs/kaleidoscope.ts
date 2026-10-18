@@ -20,6 +20,7 @@ uniform float u_segments;
 uniform float u_spin;
 uniform float u_zoom;
 uniform float u_bands;
+uniform float u_radius;
 uniform vec3  u_color;
 uniform vec4  u_background;
 
@@ -52,12 +53,19 @@ void main() {
   col += u_color * ring * 0.55;
   col += u_color * u_audioLevel * 0.12;
 
-  // The background the user picked, with the pattern dissolved radially into
-  // it. Alpha is mixed on the same falloff rather than scaled by it, so the
+  // Circular mask, dissolving radially into the background the user picked.
+  //
+  // The quad is square, so r reaches 0.5 at the edge midpoints but 0.707 in
+  // the corners. Fading out only past 0.707 left every corner at full
+  // strength, which is what made the effect read as a hard square; the
+  // default radius of 0.5 inscribes a circle and clears the corners entirely.
+  //
+  // Alpha is mixed on the same falloff rather than scaled by it, so the
   // pattern stays opaque where it exists and only the surround takes the
   // background's alpha - scaling instead would make a transparent background
   // hide the pattern too, which is the opposite of what it is for.
-  float fade = smoothstep(0.78, 0.05, r);
+  float edge = max(0.08, u_radius);
+  float fade = 1.0 - smoothstep(edge - 0.14, edge, r);
   gl_FragColor = vec4(mix(u_background.rgb, col, fade), mix(u_background.a, 1.0, fade));
 }
 `;
@@ -73,6 +81,7 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
     spin: 0.35,
     zoom: 1.4,
     bands: 6,
+    radius: 0.5,
     color: "#a855f7",
     // Fully transparent by default: the visual floats over whatever backdrop the
     // timeline already has instead of stamping an opaque square on top of it.
@@ -85,6 +94,11 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
     { kind: "slider", key: "spin", label: "Spin", min: 0, max: 2, step: 0.01 },
     { kind: "slider", key: "zoom", label: "Zoom", min: 0.2, max: 4, step: 0.05 },
     { kind: "slider", key: "bands", label: "Rings", min: 1, max: 24, step: 1 },
+    // Capped at the quad's edge midpoint radius (0.5), not its corner radius
+    // (0.707). The falloff has to finish before the quad runs out, otherwise
+    // the pattern is still at full strength where the square stops and the
+    // disc turns back into a box.
+    { kind: "slider", key: "radius", label: "Radius", min: 0.15, max: 0.5, step: 0.01 },
     { kind: "color", key: "color", label: "Tint" },
     { kind: "color", key: "background", label: "Background", alpha: true },
     { kind: "image", key: "image", label: "Image", hint: "Optional. Warps a picture; without one it renders as light only." },
