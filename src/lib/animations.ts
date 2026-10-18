@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 import { runtime } from "./runtime";
 
 /**
@@ -15,7 +15,7 @@ export const applyClipAnimations = (
   duration: number,
   clipType: string | null = null,
 ) => {
-  const isThumbnailMode = State.currentRoute === "/image";
+  const isThumbnailMode = editorStore.getState().currentRoute === "/image";
   if (isThumbnailMode) {
     const vfxTypes = ["rain", "smoke", "flash", "snow", "fireflies", "filmgrain", "vignette"];
     if (!clipType || !vfxTypes.includes(clipType)) {

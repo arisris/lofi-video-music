@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { TextSettingsView } from "../../components/clip-settings/text";
 import { drawEmojiText, measureEmojiText, drawWavyEmojiText } from "../emoji-render";
 
@@ -100,7 +100,7 @@ export const TextClip = {
 
     // Slice content if typewriter effect is active
     let contentToDraw: string = item.content || "";
-    const isThumbnailMode = State.currentRoute === "/image";
+    const isThumbnailMode = editorStore.getState().currentRoute === "/image";
     if (item.textEffect === "typewriter" && !isThumbnailMode) {
       const speed = item.typewriterSpeed || 15;
       let charCount = Math.floor(localTime * speed);

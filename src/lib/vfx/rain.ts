@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { RainSettingsView } from "../../components/clip-settings/vfx/rain";
 import { getAudioReactivity } from "../../utils/helpers";
 import { BaseParticle } from "./base-particle";
@@ -74,7 +74,7 @@ export const RainVFX = {
       }
     }
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(State, "volume") : 0;
+    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "volume") : 0;
 
     // Determine how many drops to draw
     const visibleCount = settings.audioReactive

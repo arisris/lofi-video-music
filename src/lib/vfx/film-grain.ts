@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { FilmGrainSettingsView } from "../../components/clip-settings/vfx/filmgrain";
 import { getAudioReactivity } from "../../utils/helpers";
 
@@ -80,7 +80,7 @@ export const FilmGrainVFX = {
     let glitchIntensity = settings.glitchFrequency || 0.3;
 
     if (settings.audioReactive) {
-      const bassLevel = getAudioReactivity(State, "bass");
+      const bassLevel = getAudioReactivity(editorStore.getState(), "bass");
       if (bassLevel > 0.68 && clip.glitchActiveFrames === 0 && clip.glitchCooldown === 0) {
         clip.glitchActiveFrames = 3 + Math.floor(Math.random() * 5); // glitch for 3-7 frames
         clip.glitchCooldown = 12; // short cooldown for fast triggers

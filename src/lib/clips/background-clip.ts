@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { bumpClips } from "../../store/actions/timeline-actions";
 import { BackgroundSettingsView } from "../../components/clip-settings/background";
 import { generateThumbnail, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
@@ -56,7 +56,7 @@ export const processBgClipUpload = (file: File, clip: Record<string, any>, onCom
         showDragHint();
 
         // Revoke old URLs after replacing elements
-        oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, State));
+        oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, editorStore.getState()));
       }
     };
     [vid1, vid2].forEach((vid) => {
@@ -91,7 +91,7 @@ export const processBgClipUpload = (file: File, clip: Record<string, any>, onCom
       showDragHint();
 
       // Revoke old URLs after replacing element
-      oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, State));
+      oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, editorStore.getState()));
     };
     img.src = url;
   }

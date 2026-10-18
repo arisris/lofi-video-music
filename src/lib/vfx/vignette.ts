@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { VignetteSettingsView } from "../../components/clip-settings/vfx/vignette";
 import { getAudioReactivity } from "../../utils/helpers";
 
@@ -24,7 +24,7 @@ export const VignetteVFX = {
     const opacity = settings.opacity !== undefined ? settings.opacity : 0.4;
     const color = settings.color || "#000000";
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(State, "bass") : 0;
+    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "bass") : 0;
 
     // Pulse opacity and close in the radius on strong bass beats
     const activeOpacity = Math.max(0.0, Math.min(1.0, opacity + audioLevel * 0.45));

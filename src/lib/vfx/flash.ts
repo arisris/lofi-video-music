@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { FlashSettingsView } from "../../components/clip-settings/vfx/flash";
 import { getAudioReactivity } from "../../utils/helpers";
 
@@ -32,7 +32,7 @@ export const FlashVFX = {
     }
 
     if (settings.audioReactive) {
-      const bassLevel = getAudioReactivity(State, "bass");
+      const bassLevel = getAudioReactivity(editorStore.getState(), "bass");
       const threshold = 0.85 - (settings.frequency || 0.5) * 0.35;
 
       if (bassLevel > threshold && clip.flashOpacity <= 0 && clip.flashCooldown === 0) {

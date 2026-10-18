@@ -9,8 +9,6 @@ export interface PlaybackSlice {
   playlist: unknown[];
   currentTrackIndex: number;
   isAudioInit: boolean;
-  /** FFT analysis buffer shared by visualizers (engine-owned). */
-  dataArray: Uint8Array | null;
 
   /** Track-transition bookkeeping for the music playlist. */
   bgTransitionStyle: string;
@@ -28,7 +26,6 @@ export const createPlaybackSlice: StateCreator<EditorStore, [], [], PlaybackSlic
   playlist: [],
   currentTrackIndex: -1,
   isAudioInit: false,
-  dataArray: null,
 
   bgTransitionStyle: "fade",
   prevTrackIndex: -1,

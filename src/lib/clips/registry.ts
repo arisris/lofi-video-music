@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 
 export const ClipRegistry = {
   clips: [] as Record<string, any>[],
@@ -25,18 +25,28 @@ export const ClipRegistry = {
     };
 
     // Initialize settings if not already in state
-    if (!State.clipSettings[clip.id]) {
-      State.clipSettings[clip.id] = { ...defaultTransform, ...clip.settings };
+    const state = editorStore.getState();
+    const existing = state.clipSettings[clip.id];
+
+    let nextSettings: Record<string, any>;
+    if (!existing) {
+      nextSettings = { ...defaultTransform, ...clip.settings };
       if (isDefaultDisabled) {
-        State.clipSettings[clip.id].enabled = false;
+        nextSettings.enabled = false;
       }
-    } else if (State.clipSettings[clip.id].enabled === undefined) {
+    } else if (existing.enabled === undefined) {
       // Backfill enabled flag for existing settings (e.g. from HMR)
-      State.clipSettings[clip.id].enabled = !isDefaultDisabled;
+      nextSettings = { ...existing, enabled: !isDefaultDisabled };
+    } else {
+      nextSettings = existing;
     }
-    
+
+    if (nextSettings !== existing) {
+      editorStore.setState({ clipSettings: { ...state.clipSettings, [clip.id]: nextSettings } });
+    }
+
     // Bind settings to the clip object for easy access (compatibility)
-    clip.settings = State.clipSettings[clip.id];
+    clip.settings = editorStore.getState().clipSettings[clip.id];
   },
 
   clear() {

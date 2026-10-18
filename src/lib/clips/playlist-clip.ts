@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { getClipsToSearch } from "../../utils/helpers";
 import { PlaylistSettingsView } from "../../components/clip-settings/playlist";
 import { drawEmojiText, measureEmojiText } from "../emoji-render";
@@ -42,11 +42,11 @@ export const PlaylistClip = {
     const barGap = Math.max(2, settings.fontSize * 0.1);
     const eqWidth = (barW * 3) + (barGap * 2) + 5; // +5 for extra breathing room
     
-    const clipsToSearch = getClipsToSearch(State);
+    const clipsToSearch = getClipsToSearch(editorStore.getState());
     const musicClips = clipsToSearch
       .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
       .sort((a: any, b: any) => a.start - b.start);
-    const activeIndex = musicClips.findIndex((c: any) => State.currentTime >= c.start && State.currentTime <= c.start + c.duration);
+    const activeIndex = musicClips.findIndex((c: any) => editorStore.getState().currentTime >= c.start && editorStore.getState().currentTime <= c.start + c.duration);
 
     const displayCount = Math.min(musicClips.length, settings.maxItems);
     if (displayCount === 0) return { x: 0, y: 0, width: 0, height: 0 };
@@ -86,7 +86,7 @@ export const PlaylistClip = {
 
     let boxX: number, boxY: number, boxH: number;
 
-    if (State.aspectRatio === "16:9") {
+    if (editorStore.getState().aspectRatio === "16:9") {
       boxX = w - boxW - margin;
       boxY = margin;
     } else {
@@ -100,13 +100,13 @@ export const PlaylistClip = {
   },
 
   draw(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const clipsToSearch = getClipsToSearch(State);
+    const clipsToSearch = getClipsToSearch(editorStore.getState());
     const musicClips = clipsToSearch
       .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
       .sort((a: any, b: any) => a.start - b.start);
     if (musicClips.length === 0) return;
 
-    const activeIndex = musicClips.findIndex((c: any) => State.currentTime >= c.start && State.currentTime <= c.start + c.duration);
+    const activeIndex = musicClips.findIndex((c: any) => editorStore.getState().currentTime >= c.start && editorStore.getState().currentTime <= c.start + c.duration);
 
     const settings = this.settings;
     const bbox = this.getBoundingBox(ctx, w, h);
@@ -175,7 +175,7 @@ export const PlaylistClip = {
 
       if (isCurrent) {
         ctx.shadowBlur = Math.max(ctx.shadowBlur, 15);
-        ctx.shadowColor = State.clipSettings.visualizer?.color || "#3b82f6";
+        ctx.shadowColor = (editorStore.getState().clipSettings.visualizer?.color as string) || "#3b82f6";
         ctx.fillStyle = "#ffffff";
       } else {
         ctx.fillStyle = settings.textColor || "#ffffff";
@@ -208,9 +208,9 @@ export const PlaylistClip = {
       );
 
       // Equalizer animation (Right side balanced by innerPadding)
-      if (isCurrent && State.isPlaying) {
+      if (isCurrent && editorStore.getState().isPlaying) {
         ctx.shadowBlur = 0;
-        ctx.fillStyle = State.clipSettings.visualizer?.color || "#3b82f6";
+        ctx.fillStyle = (editorStore.getState().clipSettings.visualizer?.color as string) || "#3b82f6";
         const time = Date.now() * 0.005;
         
         // Scale dimensions based on font size

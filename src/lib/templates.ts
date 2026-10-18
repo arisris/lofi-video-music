@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 import { loadGoogleFont } from "./fonts";
 import { bumpClips } from "../store/actions/timeline-actions";
 
@@ -85,32 +85,42 @@ export const applyTemplate = (templateId: string) => {
   const template = Templates.find(t => t.id === templateId);
   if (!template) return;
 
-  // Mutate existing settings objects to maintain references in Clips/Effects
+  // Merge template values into the store immutably
+  const state = editorStore.getState();
+  let clipSettings = state.clipSettings;
+  let effectSettings = state.effectSettings;
+
   if (template.settings.clipSettings) {
-    Object.keys(template.settings.clipSettings).forEach(clipId => {
-      if (State.clipSettings[clipId]) {
-        Object.assign(State.clipSettings[clipId], template.settings.clipSettings[clipId]);
-        
+    for (const clipId of Object.keys(template.settings.clipSettings)) {
+      const patch = template.settings.clipSettings[clipId];
+      if (clipSettings[clipId]) {
+        clipSettings = { ...clipSettings, [clipId]: { ...clipSettings[clipId], ...patch } };
+
         // Lazy load fonts if specified in template
-        if (template.settings.clipSettings[clipId].fontFamily) {
-          loadGoogleFont(template.settings.clipSettings[clipId].fontFamily);
+        if (patch.fontFamily) {
+          loadGoogleFont(patch.fontFamily);
         }
       }
-    });
+    }
   }
 
   if (template.settings.effectSettings) {
-    Object.keys(template.settings.effectSettings).forEach(effId => {
-      if (State.effectSettings[effId]) {
-        Object.assign(State.effectSettings[effId], template.settings.effectSettings[effId]);
+    for (const effId of Object.keys(template.settings.effectSettings)) {
+      const patch = template.settings.effectSettings[effId];
+      if (effectSettings[effId]) {
+        effectSettings = { ...effectSettings, [effId]: { ...effectSettings[effId], ...patch } };
       }
-    });
+    }
   }
 
-  if (template.settings.bgTransitionStyle) {
-    State.bgTransitionStyle = template.settings.bgTransitionStyle;
-  }
+  editorStore.setState({
+    clipSettings,
+    effectSettings,
+    ...(template.settings.bgTransitionStyle
+      ? { bgTransitionStyle: template.settings.bgTransitionStyle }
+      : {}),
+  });
 
-  // Poke the store so React panels re-render after the nested mutations above
+  // Poke the store so React panels re-render after the merge above
   bumpClips();
 };

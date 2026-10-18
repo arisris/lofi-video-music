@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { FirefliesSettingsView } from "../../components/clip-settings/vfx/fireflies";
 import { getAudioReactivity } from "../../utils/helpers";
 import { BaseParticle } from "./base-particle";
@@ -112,7 +112,7 @@ export const FirefliesVFX = {
       }
     }
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(State, "volume") : 0;
+    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "volume") : 0;
     const time = performance.now() / 1000;
 
     clip.fireflies.forEach((firefly: Firefly) => {

@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 import { getGlobalTime } from "../utils/helpers";
 import { bumpClips } from "../store/actions/timeline-actions";
 
@@ -151,9 +151,10 @@ export const DEFAULT_SETTINGS: Record<string, any> = {
  */
 export const createTimelineClip = (type: string, specificSettings: Record<string, any> = {}) => {
   const id = `clip-${Date.now()}`;
-  const globalTime = getGlobalTime(State);
+  const state = editorStore.getState();
+  const globalTime = getGlobalTime(state);
   const targetVisualWidth = 100;
-  const timelineZoom = State.timelineZoom || 10;
+  const timelineZoom = state.timelineZoom || 10;
   const adaptiveDuration = Math.max(5, targetVisualWidth / timelineZoom);
 
   let duration = adaptiveDuration;
@@ -168,7 +169,7 @@ export const createTimelineClip = (type: string, specificSettings: Record<string
 
   const defaultSettings = DEFAULT_SETTINGS[type] || { ...DEFAULT_TRANSFORMS };
 
-  let trackId = State.selectedTrackId || defaultTrackId;
+  let trackId = state.selectedTrackId || defaultTrackId;
   if (type === "music") {
     trackId = "track-1";
   } else if (trackId === "track-1") {
@@ -199,16 +200,20 @@ export const addClipToTimeline = (
   const newClip = createTimelineClip(type, specificSettings);
 
   const applyFinishedState = (clip: Record<string, any>) => {
-    const isThumbnailMode = State.currentRoute === "/image";
+    const store = editorStore.getState();
+    const isThumbnailMode = store.currentRoute === "/image";
+
     if (isThumbnailMode && (clip.type === "background" || clip.type === "music")) {
-      if (!State.videoClips) State.videoClips = [];
-      State.videoClips.push(clip);
+      editorStore.setState({ videoClips: [...(store.videoClips || []), clip as never] });
     } else {
-      State.timelineClips.push(clip);
+      editorStore.setState({ timelineClips: [...store.timelineClips, clip as never] });
     }
-    State.selectedClipId = clip.id;
-    State.activeClipTab = clip.type;
-    State.timelineScrollLeft = Math.max(0, (clip.start * (State.timelineZoom || 10)) - 100);
+
+    editorStore.setState({
+      selectedClipId: clip.id,
+      activeClipTab: clip.type,
+      timelineScrollLeft: Math.max(0, (clip.start * (store.timelineZoom || 10)) - 100),
+    });
     bumpClips();
   };
 

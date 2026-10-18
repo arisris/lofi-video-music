@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { getClipsToSearch } from "../../utils/helpers";
 import { TitleSettingsView } from "../../components/clip-settings/title";
 import { drawEmojiText, measureEmojiText, drawWavyEmojiText } from "../emoji-render";
@@ -39,12 +39,12 @@ export const TitleClip = {
     
     ctx.save();
     ctx.font = `${settings.fontWeight} ${settings.fontSize}px ${settings.fontFamily}`;
-    const clipsToSearch = getClipsToSearch(State);
+    const clipsToSearch = getClipsToSearch(editorStore.getState());
     const activeClip = clipsToSearch.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
-      State.currentTime >= c.start && 
-      State.currentTime <= c.start + c.duration
+      editorStore.getState().currentTime >= c.start && 
+      editorStore.getState().currentTime <= c.start + c.duration
     );
     const text = activeClip ? (activeClip.settings?.name || "") : "No Music Playing";
     const width = measureEmojiText(ctx, text, settings.fontSize);
@@ -54,7 +54,7 @@ export const TitleClip = {
     const height = settings.fontSize * (settings.lineHeight || 1.2) + (settings.bgPadding || 0) * 2;
     
     let x: number, y: number;
-    if (State.aspectRatio === "16:9") {
+    if (editorStore.getState().aspectRatio === "16:9") {
       x = padding;
       y = h - padding - height;
       this.settings.originX = 0;
@@ -69,12 +69,12 @@ export const TitleClip = {
   },
 
   draw(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const clipsToSearch = getClipsToSearch(State);
+    const clipsToSearch = getClipsToSearch(editorStore.getState());
     const activeClip = clipsToSearch.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
-      State.currentTime >= c.start && 
-      State.currentTime <= c.start + c.duration
+      editorStore.getState().currentTime >= c.start && 
+      editorStore.getState().currentTime <= c.start + c.duration
     );
     if (!activeClip) return;
 
@@ -86,7 +86,7 @@ export const TitleClip = {
 
     if (settings.textEffect === "typewriter") {
       const speed = settings.typewriterSpeed || 15;
-      const localTime = State.currentTime - activeClip.start;
+      const localTime = editorStore.getState().currentTime - activeClip.start;
       let charCount = Math.floor(localTime * speed);
       
       const duration = activeClip.duration;
@@ -101,7 +101,7 @@ export const TitleClip = {
     ctx.save();
     ctx.globalAlpha *= opacity;
     
-    const size = State.aspectRatio === "9:16" ? settings.fontSize * 0.8 : settings.fontSize;
+    const size = editorStore.getState().aspectRatio === "9:16" ? settings.fontSize * 0.8 : settings.fontSize;
     ctx.font = `${settings.fontWeight} ${size}px ${settings.fontFamily}`;
     
     // Shadow
@@ -130,7 +130,7 @@ export const TitleClip = {
 
     // Text Alignment Logic
     const textWidth = measureEmojiText(ctx, textToDraw, size);
-    const textAlign = (State.aspectRatio === "16:9") ? "left" : "center";
+    const textAlign = (editorStore.getState().aspectRatio === "16:9") ? "left" : "center";
     ctx.textBaseline = "middle";
 
     let textX = bbox.x + (settings.bgPadding || 0);

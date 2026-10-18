@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 
 /**
  * Manages video playback for looping clips with crossfade.
@@ -90,7 +90,7 @@ const manageLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, dura
   const primaryTargetTime = loopTime;
   const secondaryTargetTime = inCrossfade ? (loopTime + period) : 0;
 
-  if (State.isPlaying) {
+  if (editorStore.getState().isPlaying) {
     // Manage primary video
     if (primaryVid.paused) {
       primaryVid.currentTime = primaryTargetTime;
@@ -145,7 +145,7 @@ const manageNonLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, d
     secondaryVid.currentTime = 0;
   }
 
-  if (State.isPlaying && localTime < duration) {
+  if (editorStore.getState().isPlaying && localTime < duration) {
     if (primaryVid.paused) {
       primaryVid.currentTime = targetTime;
       primaryVid.play().catch(() => {});

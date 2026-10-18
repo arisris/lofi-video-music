@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { RainGpuSettingsView } from "../../components/clip-settings/vfx/rain-gpu";
 import { getAudioReactivity } from "../../utils/helpers";
 import { WebGLRenderer, UniformValue } from "../webgl-renderer";
@@ -163,7 +163,7 @@ export const RainGPUVFX = {
     };
 
     if (settings.audioReactive) {
-      const audioLevel = getAudioReactivity(State, "volume");
+      const audioLevel = getAudioReactivity(editorStore.getState(), "volume");
       uniforms.u_intensity = intensity * (0.25 + audioLevel * 0.75);
       uniforms.u_speed = speed * (0.4 + audioLevel * 1.6);
       uniforms.u_opacity = opacity * (0.3 + audioLevel * 0.7);

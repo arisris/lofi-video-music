@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { runtime } from "../runtime";
 
 
@@ -25,7 +25,7 @@ export const drawBackground = (
   
   // Force disable Ken Burns for video backgrounds as requested
   const isVideo = trackObj && trackObj.bgType === "video";
-  const isThumbnailMode = State.currentRoute === "/image";
+  const isThumbnailMode = editorStore.getState().currentRoute === "/image";
   
   if (trackObj && trackObj.currentEffect && !isVideo && !isThumbnailMode) {
     effect = trackObj.currentEffect;

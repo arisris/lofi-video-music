@@ -1,11 +1,11 @@
-import { State } from "../lib/state";
+import { editorStore } from "../store/editor-store";
 
 /**
  * UI-specific helpers that depend on the editor store.
  */
 export const showDragHint = () => {
-  State.dragHintVisible = true;
+  editorStore.setState({ dragHintVisible: true });
   setTimeout(() => {
-    State.dragHintVisible = false;
+    editorStore.setState({ dragHintVisible: false });
   }, 4000);
 };

@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { bumpClips } from "../../store/actions/timeline-actions";
 import { OverlaySettingsView } from "../../components/clip-settings/overlay";
 import { generateThumbnail, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
@@ -51,7 +51,7 @@ export const processOverlayUpload = (file: File, clip: Record<string, any>, onCo
         bumpClips();
 
         // Revoke old URLs after replacing elements
-        oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, State));
+        oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, editorStore.getState()));
       }
     };
     [vid1, vid2].forEach((vid) => {
@@ -85,7 +85,7 @@ export const processOverlayUpload = (file: File, clip: Record<string, any>, onCo
       bumpClips();
 
       // Revoke old URLs after replacing elements
-      oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, State));
+      oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, editorStore.getState()));
     };
     img.src = url;
   }

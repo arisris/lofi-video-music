@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { editorStore } from "../../store/editor-store";
 import { SmokeSettingsView } from "../../components/clip-settings/vfx/smoke";
 import { getAudioReactivity } from "../../utils/helpers";
 import { BaseParticle } from "./base-particle";
@@ -101,7 +101,7 @@ export const SmokeVFX = {
       }
     }
 
-    const audioLevel = settings.audioReactive ? getAudioReactivity(State, "bass") : 0;
+    const audioLevel = settings.audioReactive ? getAudioReactivity(editorStore.getState(), "bass") : 0;
 
     clip.particles.forEach((p: SmokeParticle) => {
       p.update(w, h, audioLevel);

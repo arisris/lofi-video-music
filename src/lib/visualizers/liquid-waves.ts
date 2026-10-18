@@ -1,4 +1,4 @@
-import { State } from "../state";
+import { runtime } from "../runtime";
 
 export const LiquidWavesVisualizer = {
   id: "liquid_waves",
@@ -9,17 +9,17 @@ export const LiquidWavesVisualizer = {
     const baseCenterY = h * 0.72;
 
     let bass = 0;
-    for (let i = 0; i < 8; i++) bass += State.dataArray[i] || 0;
+    for (let i = 0; i < 8; i++) bass += runtime.dataArray[i] || 0;
     bass = (bass / 8) / 255;
 
     let mids = 0;
-    const midStart = Math.floor(State.dataArray.length * 0.15);
-    for (let i = 0; i < 16; i++) mids += State.dataArray[midStart + i] || 0;
+    const midStart = Math.floor(runtime.dataArray.length * 0.15);
+    for (let i = 0; i < 16; i++) mids += runtime.dataArray[midStart + i] || 0;
     mids = (mids / 16) / 255;
 
     let highs = 0;
-    const highStart = Math.floor(State.dataArray.length * 0.5);
-    for (let i = 0; i < 24; i++) highs += State.dataArray[highStart + i] || 0;
+    const highStart = Math.floor(runtime.dataArray.length * 0.5);
+    for (let i = 0; i < 24; i++) highs += runtime.dataArray[highStart + i] || 0;
     highs = (highs / 24) / 255;
 
     const waveSpecs = [
