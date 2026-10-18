@@ -1,7 +1,20 @@
 import { runtime } from "../lib/runtime";
 import { ClipRegistry } from "../lib/clips/registry";
 
-export const formatTime = (seconds) => {
+export interface BBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface HSL {
+  h: number;
+  s: number;
+  l: number;
+}
+
+export const formatTime = (seconds: number) => {
   if (isNaN(seconds)) return "00:00";
   const m = Math.floor(seconds / 60)
     .toString()
@@ -25,12 +38,12 @@ export const getRandomKenBurnsEffect = () => {
   return effects[Math.floor(Math.random() * effects.length)];
 };
 
-export const generateThumbnail = (source, isVideo = false) => {
+export const generateThumbnail = (source: any, isVideo = false): Promise<string> => {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d")!;
 
-    const draw = (media) => {
+    const draw = (media: any) => {
       const mediaW = media.naturalWidth || media.videoWidth || media.width || 300;
       const mediaH = media.naturalHeight || media.videoHeight || media.height || 200;
 
@@ -64,9 +77,9 @@ export const generateThumbnail = (source, isVideo = false) => {
   });
 };
 
-export const getTotalDuration = (clips) => {
+export const getTotalDuration = (clips: any[]) => {
   if (!clips || clips.length === 0) return 60;
-  const maxEnd = clips.reduce((max, clip) => Math.max(max, clip.start + clip.duration), 0);
+  const maxEnd = clips.reduce((max: number, clip: any) => Math.max(max, clip.start + clip.duration), 0);
   return Math.max(60, Math.ceil(maxEnd));
 };
 
@@ -74,15 +87,15 @@ export const getTotalDuration = (clips) => {
  * Single source of truth for calculating the global timeline time.
  * Decoupled from global State to be a pure utility.
  */
-export const getGlobalTime = (state) => {
+export const getGlobalTime = (state: any) => {
   return state ? (state.currentTime || 0) : 0;
 };
 
-export const getTrackAndTimeFromGlobal = (globalTime, playlist) => {
+export const getTrackAndTimeFromGlobal = (globalTime: number, _playlist?: any) => {
   return { index: 0, time: globalTime };
 };
 
-export const getAudioReactivity = (state, type = "volume") => {
+export const getAudioReactivity = (state: any, type = "volume") => {
   if (!state || !runtime.analyser || !runtime.dataArray || !state.isPlaying) {
     return 0;
   }
@@ -125,7 +138,7 @@ export const getAudioReactivity = (state, type = "volume") => {
   }
 };
 
-export const cloneMediaElement = (el) => {
+export const cloneMediaElement = (el: any): any => {
   if (!el) return el;
   if (typeof el.cloneNode === "function") {
     const newEl = el.cloneNode(true);
@@ -142,12 +155,12 @@ export const cloneMediaElement = (el) => {
   return el;
 };
 
-export const cloneVids = (vids) => {
+export const cloneVids = (vids: any): any => {
   if (!vids || !Array.isArray(vids)) return vids;
   return vids.map(cloneMediaElement);
 };
 
-export const getClipsToSearch = (state) => {
+export const getClipsToSearch = (state: any): any[] => {
   if (!state) return [];
   const isThumbnailMode = state.currentRoute === "/image";
   return isThumbnailMode
@@ -156,7 +169,7 @@ export const getClipsToSearch = (state) => {
 };
 
 // Helper to convert hex to HSL
-export function hexToHSL(hex) {
+export function hexToHSL(hex: string): HSL {
   hex = hex.replace(/^#/, '');
   if (hex.length === 3) {
     hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
@@ -182,33 +195,33 @@ export function hexToHSL(hex) {
   return {
     h: Math.round(h * 360),
     s: Math.round(s * 100),
-    l: Math.round(l * 100)
+    l: Math.round(l * 100),
   };
 }
 
-export const throttle = (fn) => {
+export const throttle = (fn: (...args: any[]) => void) => {
   let scheduled = false;
-  let lastArgs = null;
-  return (...args) => {
+  let lastArgs: any[] | null = null;
+  return (...args: any[]) => {
     lastArgs = args;
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(() => {
       scheduled = false;
-      fn(...lastArgs);
+      fn(...(lastArgs || []));
     });
   };
 };
 
-export const getMediaUrls = (clip) => {
-  const urls = [];
+export const getMediaUrls = (clip: any): string[] => {
+  const urls: string[] = [];
   if (!clip || !clip.settings) return urls;
   const s = clip.settings;
   if (s.bgElement && s.bgElement.src) {
     urls.push(s.bgElement.src);
   }
   if (s.bgElements) {
-    s.bgElements.forEach(v => {
+    s.bgElements.forEach((v: HTMLVideoElement) => {
       if (v && v.src) urls.push(v.src);
     });
   }
@@ -216,7 +229,7 @@ export const getMediaUrls = (clip) => {
     urls.push(s.mediaElement.src);
   }
   if (s.mediaElements) {
-    s.mediaElements.forEach(v => {
+    s.mediaElements.forEach((v: HTMLVideoElement) => {
       if (v && v.src) urls.push(v.src);
     });
   }
@@ -226,22 +239,22 @@ export const getMediaUrls = (clip) => {
   return urls;
 };
 
-export const revokeUrlIfUnused = (url, state) => {
+export const revokeUrlIfUnused = (url: string, state: any) => {
   if (!url || typeof url !== "string" || !url.startsWith("blob:")) return;
 
   const clips = [
     ...(state.timelineClips || []),
     ...(state.videoClips || []),
-    ...(state.thumbnailClips || [])
+    ...(state.thumbnailClips || []),
   ];
 
-  const inUse = clips.some(c => getMediaUrls(c).includes(url));
+  const inUse = clips.some((c: any) => getMediaUrls(c).includes(url));
 
   if (!inUse) {
     try {
       URL.revokeObjectURL(url);
       if (state.mediaPool) {
-        state.mediaPool = state.mediaPool.filter(asset => asset.url !== url);
+        state.mediaPool = state.mediaPool.filter((asset: any) => asset.url !== url);
       }
     } catch (err) {
       console.warn("Failed to revoke object URL:", url, err);
@@ -249,12 +262,12 @@ export const revokeUrlIfUnused = (url, state) => {
   }
 };
 
-export const revokeClipUrls = (clip, state) => {
+export const revokeClipUrls = (clip: any, state: any) => {
   const urls = getMediaUrls(clip);
   urls.forEach(url => revokeUrlIfUnused(url, state));
 };
 
-export const transformPoint = (px, py, bbox, settings) => {
+export const transformPoint = (px: number, py: number, bbox: BBox, settings: Record<string, any>) => {
   const x = settings.x ?? 0;
   const y = settings.y ?? 0;
   const scaleX = settings.scaleX ?? 1;
@@ -281,11 +294,11 @@ export const transformPoint = (px, py, bbox, settings) => {
 
   return {
     x: cx + rx + x,
-    y: cy + ry + y
+    y: cy + ry + y,
   };
 };
 
-export const inverseTransformPoint = (sx, sy, bbox, settings) => {
+export const inverseTransformPoint = (sx: number, sy: number, bbox: BBox, settings: Record<string, any>) => {
   const x = settings.x ?? 0;
   const y = settings.y ?? 0;
   const scaleX = settings.scaleX ?? 1;
@@ -312,16 +325,16 @@ export const inverseTransformPoint = (sx, sy, bbox, settings) => {
 
   return {
     x: dx + cx,
-    y: dy + cy
+    y: dy + cy,
   };
 };
 
-export const getSelectedClipInfo = (state) => {
+export const getSelectedClipInfo = (state: any): any => {
   if (!state || !state.selectedClipId) return null;
   const globalTime = getGlobalTime(state);
 
   // Try to find a timeline clip
-  const timelineClip = state.timelineClips.find(c => c.id === state.selectedClipId);
+  const timelineClip = state.timelineClips.find((c: any) => c.id === state.selectedClipId);
   if (timelineClip && timelineClip.type !== 'background') {
     if (globalTime >= timelineClip.start && globalTime <= timelineClip.start + timelineClip.duration) {
       const renderer = ClipRegistry.get(timelineClip.type);
@@ -330,7 +343,7 @@ export const getSelectedClipInfo = (state) => {
           clip: timelineClip,
           settings: timelineClip.settings,
           renderer,
-          isTimeline: true
+          isTimeline: true,
         };
       }
     }
@@ -344,7 +357,7 @@ export const getSelectedClipInfo = (state) => {
       clip: globalClip,
       settings: settings,
       renderer: globalClip,
-      isTimeline: false
+      isTimeline: false,
     };
   }
 
