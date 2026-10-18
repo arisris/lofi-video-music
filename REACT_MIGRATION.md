@@ -167,7 +167,8 @@ Conversion rules:
 - [x] `tsconfig.json`: `allowJs`/`checkJs` removed, `strict` applies to every file; `src/worker.js` is excluded explicitly (built by Wrangler, imported by nothing) — done in `8e9a9d5`
 - [x] Remove `mithril` from `package.json`, clean node_modules (`bun install`) — done in `e7bc9a8` (`bun remove mithril @types/mithril`)
 - [x] Update `README.md` & `AGENTS.md`: new stack (TypeScript, React, Zustand), new directories (`src/store/`, `src/types/`, `src/app/`) — done in `8e183fb`
-- [ ] Full end-to-end test: video editor, thumbnail editor, playback, record, `bun run deploy` (deploy handled manually by the user)
+- [x] Full end-to-end test: video editor, thumbnail editor, playback, record — 13/13 checks pass on the dev server (upload media, add shape/text/VFX clips, playback with audio init, canvas drag, inspector scrub input, record → webm download, route swap both ways, aspect ratio switch), zero console errors. One real bug was found and fixed along the way (`09d6815`): NaN transform values on the thumbnail route.
+- [ ] `bun run deploy` (handled manually by the user)
 
 ---
 
@@ -189,4 +190,4 @@ Conversion rules:
 - [x] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
 - [x] **M5** — `lib/` + `utils/` 100% `.ts`, State bridge removed, `strict` for all files, docs updated (Phases 4–5)
 
-Remaining: the end-to-end test pass (video editor, thumbnail editor, playback, record) before deploying.
+The migration is complete: only the deploy step remains (run by the user).
