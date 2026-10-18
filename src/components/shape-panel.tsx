@@ -434,7 +434,7 @@ export const ShapePanel = () => {
                       <button
                         key={id}
                         title={id}
-                        className="p-2 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl flex items-center justify-center min-h-[44px] transition-all group cursor-pointer hover:scale-[1.05]"
+                        className="p-2 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl flex items-center justify-center min-h-11 transition-all group cursor-pointer hover:scale-[1.05]"
                         onClick={() => addIcon(id)}
                       >
                         <IconPreview iconId={id} />
@@ -454,7 +454,7 @@ export const ShapePanel = () => {
                       <button
                         key={id}
                         title={id}
-                        className="p-2 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl flex items-center justify-center min-h-[44px] transition-all group cursor-pointer hover:scale-[1.05]"
+                        className="p-2 bg-slate-800/40 hover:bg-blue-600/10 border border-slate-700/50 hover:border-blue-500/30 rounded-xl flex items-center justify-center min-h-11 transition-all group cursor-pointer hover:scale-[1.05]"
                         onClick={() => addIcon(id)}
                       >
                         <IconPreview iconId={id} />

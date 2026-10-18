@@ -60,7 +60,7 @@ export const TextSettingsView = ({ clip }: ClipViewProps) => {
           id={"text-editor-" + selectedClip.id}
           key={"textarea-" + selectedClip.id}
           defaultValue={settings.content || ""}
-          className="w-full bg-slate-800 text-white text-xs p-2 rounded border border-slate-700 focus:border-blue-500 outline-none min-h-[60px] resize-y"
+          className="w-full bg-slate-800 text-white text-xs p-2 rounded border border-slate-700 focus:border-blue-500 outline-none min-h-15 resize-y"
           onInput={(e) => {
             settings.content = e.currentTarget.value;
           }}

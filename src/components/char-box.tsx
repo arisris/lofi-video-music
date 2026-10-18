@@ -78,7 +78,7 @@ export const CharBox = ({ trigger, onSelect, onClose }: CharBoxProps) => {
   if (!charsData) {
     return (
       <div
-        className="fixed bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-[9999] flex items-center justify-center animate-in fade-in zoom-in-95 duration-200"
+        className="fixed bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-9999 flex items-center justify-center animate-in fade-in zoom-in-95 duration-200"
         style={{ width: "288px", height: "200px", top: `${coords.top}px`, left: `${coords.left}px` }}
       >
         <div className="flex flex-col items-center gap-2">
@@ -101,7 +101,7 @@ export const CharBox = ({ trigger, onSelect, onClose }: CharBoxProps) => {
 
   return (
     <div
-      className="fixed bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-[9999] flex flex-col animate-in fade-in zoom-in-95 duration-200"
+      className="fixed bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-9999 flex flex-col animate-in fade-in zoom-in-95 duration-200"
       style={{ width: "288px", maxHeight: "400px", top: `${coords.top}px`, left: `${coords.left}px` }}
     >
       {/* Header / Search */}
@@ -126,11 +126,11 @@ export const CharBox = ({ trigger, onSelect, onClose }: CharBoxProps) => {
 
       {/* Categories Tab */}
       {!searchQuery && (
-        <div className="flex bg-slate-950/50 px-1 gap-1 overflow-x-auto overflow-y-hidden border-b border-slate-800 min-h-[46px] items-center">
+        <div className="flex bg-slate-950/50 px-1 gap-1 overflow-x-auto overflow-y-hidden border-b border-slate-800 min-h-11.5 items-center">
           {categories.map((cat) => (
             <button
               key={cat.id}
-              className={`flex-shrink-0 px-2 py-1 rounded-lg text-lg transition-all ${
+              className={`shrink-0 px-2 py-1 rounded-lg text-lg transition-all ${
                 activeCategory === cat.id
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
                   : "text-slate-400 hover:bg-slate-800"

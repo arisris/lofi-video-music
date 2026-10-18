@@ -43,7 +43,7 @@ export const Resizer = ({ side, onResize, order = "" }: ResizerProps) => {
 
   return (
     <div
-      className={`hidden md:flex flex-none w-1 h-full bg-transparent hover:bg-blue-500/30 cursor-col-resize transition-all z-[100] items-center justify-center ${order} ${isResizing ? "bg-blue-500/50 w-1.5" : ""}`}
+      className={`hidden md:flex flex-none w-1 h-full bg-transparent hover:bg-blue-500/30 cursor-col-resize transition-all z-100 items-center justify-center ${order} ${isResizing ? "bg-blue-500/50 w-1.5" : ""}`}
       onMouseDown={handleMouseDown}
     />
   );

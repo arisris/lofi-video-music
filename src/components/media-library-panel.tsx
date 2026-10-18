@@ -622,7 +622,7 @@ export const MediaLibraryPanel = () => {
                       )}
 
                       {/* Asset details */}
-                      <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end min-h-[40px] pointer-events-none">
+                      <div className="absolute bottom-0 inset-x-0 p-2 bg-linear-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end min-h-10 pointer-events-none">
                         <span className="text-[9px] font-bold text-slate-200 truncate pr-1">{asset.name}</span>
                       </div>
 
@@ -852,7 +852,7 @@ export const MediaLibraryPanel = () => {
                           )}
 
                           {/* Author info */}
-                          <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end min-h-[40px] pointer-events-none">
+                          <div className="absolute bottom-0 inset-x-0 p-2 bg-linear-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end min-h-10 pointer-events-none">
                             <span className="text-[9px] font-bold text-slate-200 truncate pr-1">{`By ${item.user || "Pixabay"}`}</span>
                           </div>
 

@@ -266,7 +266,7 @@ export const TextPanel = () => {
             {TEXT_TEMPLATES.map((t) => (
               <button
                 key={t.name}
-                className="p-4 bg-slate-800/40 hover:bg-slate-850 border border-slate-700/50 hover:border-slate-600 rounded-xl transition-all flex flex-col items-center justify-center text-center gap-3 min-h-[90px] cursor-pointer group hover:scale-[1.02]"
+                className="p-4 bg-slate-800/40 hover:bg-slate-850 border border-slate-700/50 hover:border-slate-600 rounded-xl transition-all flex flex-col items-center justify-center text-center gap-3 min-h-22.5 cursor-pointer group hover:scale-[1.02]"
                 onClick={() => addTemplateText(t)}
               >
                 <div

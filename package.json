@@ -9,6 +9,8 @@
     "deploy": "bun run build && wrangler deploy",
     "test": "bun test tests/",
     "check:tailwind": "bun scripts/check-tailwind.ts",
+    "check:canonical": "bun x @laststance/tailwind-suggest-canonical-classes \"src/**/*.{ts,tsx}\" --css src/tailwind.css --check",
+    "fix:canonical": "bun x @laststance/tailwind-suggest-canonical-classes \"src/**/*.{ts,tsx}\" --css src/tailwind.css",
     "clean": "rm -rf node_modules && bun i"
   },
   "dependencies": {
