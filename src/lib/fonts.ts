@@ -1,8 +1,7 @@
-import m from "mithril";
 
 const loadedFonts = new Set();
 
-export const loadGoogleFont = (fontFamily) => {
+export const loadGoogleFont = (fontFamily: string) => {
   if (!fontFamily) return;
   if (loadedFonts.has(fontFamily)) return;
   
@@ -23,8 +22,7 @@ export const loadGoogleFont = (fontFamily) => {
   
   link.onload = () => {
     console.log(`Font loaded: ${cleanName}`);
-    // Trigger redraw so canvas can update with the new font
-    setTimeout(() => m.redraw(), 100);
+    // Canvas re-renders every frame, so no explicit UI poke is needed here.
   };
 
   document.head.appendChild(link);

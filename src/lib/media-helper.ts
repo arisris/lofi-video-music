@@ -1,15 +1,32 @@
-import m from "mithril";
 import { generateThumbnail } from "../utils/helpers";
 import { parseGIF, decompressFrames } from "gifuct-js";
+
+export interface MediaItem {
+  id: string;
+  name: string;
+  type: string;
+  source: string;
+  url: string;
+  thumbnail: string | null;
+  duration: number;
+  width?: number;
+  height?: number;
+  element?: HTMLImageElement | null;
+  elements?: HTMLVideoElement[] | null;
+  gifFrames?: any[];
+  gifDuration?: number;
+}
+
+export type MediaComplete = (item: MediaItem) => void;
 
 /**
  * Appends an image element to a hidden layout container in the DOM.
  * This keeps the browser ticking animation frames for animated WebPs/GIFs
  * so they can be animated on canvas.
  */
-const appendToHiddenContainer = (img) => {
+const appendToHiddenContainer = (img: HTMLElement) => {
   if (typeof document === "undefined") return;
-  let container = document.getElementById("hidden-media-container");
+  let container: HTMLElement | null = document.getElementById("hidden-media-container");
   if (!container) {
     container = document.createElement("div");
     container.id = "hidden-media-container";
@@ -32,7 +49,7 @@ const appendToHiddenContainer = (img) => {
   container.appendChild(img);
 };
 
-const processStaticImageFile = (file, url, id, onComplete) => {
+const processStaticImageFile = (file: File, url: string, id: string, onComplete: MediaComplete) => {
   const img = new Image();
   appendToHiddenContainer(img);
   img.onload = () => {
@@ -69,7 +86,7 @@ const processStaticImageFile = (file, url, id, onComplete) => {
   img.src = url;
 };
 
-const processStaticImageUrl = (url, id, name, source, onComplete) => {
+const processStaticImageUrl = (url: string, id: string, name: string, source: string, onComplete: MediaComplete) => {
   const img = new Image();
   appendToHiddenContainer(img);
   img.onload = () => {
@@ -107,7 +124,7 @@ const processStaticImageUrl = (url, id, name, source, onComplete) => {
   img.src = url;
 };
 
-const processGifFile = (file, url, id, onComplete) => {
+const processGifFile = (file: File, url: string, id: string, onComplete: MediaComplete) => {
   file.arrayBuffer().then(arrayBuffer => {
     try {
       const gif = parseGIF(arrayBuffer);
@@ -116,9 +133,9 @@ const processGifFile = (file, url, id, onComplete) => {
       const bakingCanvas = document.createElement("canvas");
       bakingCanvas.width = gif.lsd.width;
       bakingCanvas.height = gif.lsd.height;
-      const bakingCtx = bakingCanvas.getContext("2d");
+      const bakingCtx = bakingCanvas.getContext("2d")!;
 
-      let prevCanvasData = null;
+      let prevCanvasData: ImageData | null = null;
 
       const frames = decompressedFrames.map((frame, index) => {
         if (index > 0) {
@@ -142,8 +159,8 @@ const processGifFile = (file, url, id, onComplete) => {
         const tempCanvas = document.createElement("canvas");
         tempCanvas.width = frame.dims.width;
         tempCanvas.height = frame.dims.height;
-        const tempCtx = tempCanvas.getContext("2d");
-        const imageData = new ImageData(frame.patch, frame.dims.width, frame.dims.height);
+        const tempCtx = tempCanvas.getContext("2d")!;
+        const imageData = new ImageData(frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>, frame.dims.width, frame.dims.height);
         tempCtx.putImageData(imageData, 0, 0);
 
         bakingCtx.drawImage(tempCanvas, frame.dims.left, frame.dims.top);
@@ -151,7 +168,7 @@ const processGifFile = (file, url, id, onComplete) => {
         const frameCanvas = document.createElement("canvas");
         frameCanvas.width = bakingCanvas.width;
         frameCanvas.height = bakingCanvas.height;
-        const frameCtx = frameCanvas.getContext("2d");
+        const frameCtx = frameCanvas.getContext("2d")!;
         frameCtx.drawImage(bakingCanvas, 0, 0);
 
         return {
@@ -191,7 +208,7 @@ const processGifFile = (file, url, id, onComplete) => {
   });
 };
 
-const processGifUrl = (url, id, name, source, onComplete) => {
+const processGifUrl = (url: string, id: string, name: string, source: string, onComplete: MediaComplete) => {
   fetch(url)
     .then(res => res.arrayBuffer())
     .then(arrayBuffer => {
@@ -202,9 +219,9 @@ const processGifUrl = (url, id, name, source, onComplete) => {
         const bakingCanvas = document.createElement("canvas");
         bakingCanvas.width = gif.lsd.width;
         bakingCanvas.height = gif.lsd.height;
-        const bakingCtx = bakingCanvas.getContext("2d");
+        const bakingCtx = bakingCanvas.getContext("2d")!;
 
-        let prevCanvasData = null;
+        let prevCanvasData: ImageData | null = null;
 
         const frames = decompressedFrames.map((frame, index) => {
           if (index > 0) {
@@ -228,8 +245,8 @@ const processGifUrl = (url, id, name, source, onComplete) => {
           const tempCanvas = document.createElement("canvas");
           tempCanvas.width = frame.dims.width;
           tempCanvas.height = frame.dims.height;
-          const tempCtx = tempCanvas.getContext("2d");
-          const imageData = new ImageData(frame.patch, frame.dims.width, frame.dims.height);
+          const tempCtx = tempCanvas.getContext("2d")!;
+          const imageData = new ImageData(frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>, frame.dims.width, frame.dims.height);
           tempCtx.putImageData(imageData, 0, 0);
 
           bakingCtx.drawImage(tempCanvas, frame.dims.left, frame.dims.top);
@@ -237,7 +254,7 @@ const processGifUrl = (url, id, name, source, onComplete) => {
           const frameCanvas = document.createElement("canvas");
           frameCanvas.width = bakingCanvas.width;
           frameCanvas.height = bakingCanvas.height;
-          const frameCtx = frameCanvas.getContext("2d");
+          const frameCtx = frameCanvas.getContext("2d")!;
           frameCtx.drawImage(bakingCanvas, 0, 0);
 
           return {
@@ -282,7 +299,7 @@ const processGifUrl = (url, id, name, source, onComplete) => {
 /**
  * Robust wrapper for generating thumbnails with CORS fallback
  */
-const safeGenerateThumbnail = (source, isVideo = false) => {
+const safeGenerateThumbnail = (source: any, isVideo = false): Promise<string | null> => {
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
       resolve(null);
@@ -304,7 +321,7 @@ const safeGenerateThumbnail = (source, isVideo = false) => {
 /**
  * Seeks to 1.0s or mid-duration to avoid black frames, then captures thumbnail.
  */
-const generateVideoThumbnail = (video) => {
+const generateVideoThumbnail = (video: HTMLVideoElement): Promise<string | null> => {
   return new Promise((resolve) => {
     const safetyTimeout = setTimeout(() => {
       safeGenerateThumbnail(video, true).then(resolve);
@@ -323,7 +340,7 @@ const generateVideoThumbnail = (video) => {
   });
 };
 
-export const processMediaFile = (file, onComplete) => {
+export const processMediaFile = (file: File, onComplete: MediaComplete) => {
   const url = URL.createObjectURL(file);
   const id = `media-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -397,7 +414,7 @@ export const processMediaFile = (file, onComplete) => {
   }
 };
 
-export const processMediaUrl = (url, type, name, source, onComplete) => {
+export const processMediaUrl = (url: string, type: string, name: string, source: string, onComplete: MediaComplete) => {
   const id = `media-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   const isGif = url.toLowerCase().includes(".gif") || type === "gif";

@@ -1,23 +1,22 @@
-import m from "mithril";
 const EMOJI_REGEX = /[\u{1f300}-\u{1f5ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{1f700}-\u{1f77f}\u{1f780}-\u{1f7ff}\u{1f800}-\u{1f8ff}\u{1f900}-\u{1f9ff}\u{1fa00}-\u{1fa6f}\u{1fa70}-\u{1faff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{2300}-\u{23ff}]/gu;
 
 // Cache for loaded emoji images
-const emojiCache = new Map();
+const emojiCache = new Map<string, HTMLImageElement>();
 
 /**
  * Gets the hex code point string for an emoji character
  * Handles ZWJ sequences by joining them with dashes
  */
-function getEmojiHex(emoji) {
+function getEmojiHex(emoji: string) {
   return [...emoji].map(char => 
-    char.codePointAt(0).toString(16)
+    char.codePointAt(0)!.toString(16)
   ).join("-");
 }
 
 /**
  * Parses a string into an array of text and emoji parts
  */
-export function parseEmojiText(text) {
+export function parseEmojiText(text: string) {
   const parts = [];
   let lastIndex = 0;
   let match;
@@ -43,17 +42,26 @@ export function parseEmojiText(text) {
 /**
  * Draws single emoji (helper function to avoid duplication)
  */
-function drawSingleEmoji(ctx, part, x, y, fontSize, strokeColor, strokeWidth, color) {
-  const hex = part.hex;
+function drawSingleEmoji(
+  ctx: CanvasRenderingContext2D,
+  part: { type: string; content: string; hex?: string },
+  x: number,
+  y: number,
+  fontSize: number,
+  strokeColor: string,
+  strokeWidth: number,
+  color: string,
+): number {
+  const hex = part.hex || "";
   const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/emoji.svg`;
-  
+
   let img = emojiCache.get(hex);
   if (!img) {
     img = new Image();
     img.crossOrigin = "anonymous";
     img.src = url;
     img.onload = () => {
-      m.redraw();
+      // The shared render loop redraws the canvas every frame.
     };
     emojiCache.set(hex, img);
   }
@@ -87,7 +95,16 @@ function drawSingleEmoji(ctx, part, x, y, fontSize, strokeColor, strokeWidth, co
 /**
  * Draws text with emoji fallback on canvas
  */
-export function drawEmojiText(ctx, text, x, y, fontSize, color, strokeColor, strokeWidth) {
+export function drawEmojiText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  color: string,
+  strokeColor: string,
+  strokeWidth: number,
+) {
   const parts = parseEmojiText(text);
   let currentX = x;
 
@@ -110,7 +127,7 @@ export function drawEmojiText(ctx, text, x, y, fontSize, color, strokeColor, str
 /**
  * Calculates total width of text with emojis
  */
-export function measureEmojiText(ctx, text, fontSize) {
+export function measureEmojiText(ctx: CanvasRenderingContext2D, text: string, fontSize: number): number {
   const parts = parseEmojiText(text);
   let totalWidth = 0;
   parts.forEach(part => {
@@ -123,7 +140,20 @@ export function measureEmojiText(ctx, text, fontSize) {
   return totalWidth;
 }
 
-export function drawWavyEmojiText(ctx, text, x, y, fontSize, color, strokeColor, strokeWidth, time, amplitude = 6, frequency = 4, spacing = 0.15) {
+export function drawWavyEmojiText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  color: string,
+  strokeColor: string,
+  strokeWidth: number,
+  time: number,
+  amplitude = 6,
+  frequency = 4,
+  spacing = 0.15,
+) {
   const parts = parseEmojiText(text);
   let currentX = x;
   let charIndex = 0;
