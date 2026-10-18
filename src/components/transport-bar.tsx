@@ -31,7 +31,7 @@ export const PlaybackControls = () => {
   const currentRoute = useEditorStore((s) => s.currentRoute);
   const currentTime = useEditorStore((s) => s.currentTime);
 
-  // Close the record dropdown on any outside click (legacy window listener).
+  // Close the record dropdown on any outside click.
   useEffect(() => {
     const closeMenu = () => {
       if (editorStore.getState().showRecordMenu) {

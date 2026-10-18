@@ -5,7 +5,7 @@ import { hasIcons, populateIcons, getAllIconIds, getIconFromDb } from "../utils/
 interface ShapeEntry {
   name: string;
   settings: Record<string, unknown>;
-  /** Inline SVG markup rendered via dangerouslySetInnerHTML (legacy m.trust). */
+  /** Inline SVG markup rendered via dangerouslySetInnerHTML. */
   svg: string;
   /** Optional inline css for premium preset swatches. */
   svgStyle?: string;

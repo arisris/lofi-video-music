@@ -20,7 +20,7 @@ import { bumpClips } from "./store/actions/timeline-actions";
 /** Set once per page session so HMR re-mounts never double-schedule the rAF loop. */
 let renderLoopStarted = false;
 
-/** Current hash route → editor route (Mithril's `#!` prefix keeps working). */
+/** Current hash route → editor route. Both `#!` and `#/` prefixes are accepted. */
 const currentRoute = (): EditorRoute =>
   window.location.hash.replace(/^#!?\/?/, "/").startsWith("/image") ? "/image" : "/";
 
@@ -31,7 +31,7 @@ export const App = () => {
   const showRecordSettingsModal = useEditorStore((s) => s.showRecordSettingsModal);
 
   useEffect(() => {
-    // Initial route resolution (replaces legacy `m.route(document.body, "/", ...)`)
+    // Resolve the active route and keep it in sync with the hash.
     let lastResolvedRoute: string | null = null;
     const applyRoute = () => {
       const next = currentRoute();
@@ -41,7 +41,7 @@ export const App = () => {
     applyRoute();
     window.addEventListener("hashchange", applyRoute);
 
-    // Canvas / audio runtime binding (ported from legacy `Editor.oncreate`)
+    // Bind the canvas/audio elements the render loop and engine need.
     let raf = 0;
     const bindRuntime = () => {
       runtime.canvas = document.getElementById("renderCanvas") as HTMLCanvasElement | null;
@@ -50,7 +50,7 @@ export const App = () => {
       runtime.audioEl = audioEl;
 
       if (!runtime.canvas || !audioEl) {
-        // Mithril hosts mount async — retry until VideoPreview has rendered.
+        // The preview mounts asynchronously — retry until VideoPreview has rendered.
         raf = requestAnimationFrame(bindRuntime);
         return;
       }
@@ -81,7 +81,7 @@ export const App = () => {
     };
     bindRuntime();
 
-    // Global drag listeners (legacy app-level listeners)
+    // Global drag listeners, bound once for the whole app.
     window.addEventListener("mousemove", handleDragMove as unknown as (ev: MouseEvent) => void);
     window.addEventListener("mouseup", handleDragEnd as unknown as EventListener);
     window.addEventListener("touchmove", handleDragMove as unknown as (ev: TouchEvent) => void, { passive: false } as AddEventListenerOptions);
@@ -152,7 +152,7 @@ export const App = () => {
         id="audioElement"
         crossOrigin="anonymous"
         onEnded={() => {
-          // poke subscribed panels (legacy used m.redraw())
+          // Poke subscribed panels so they re-read the store.
           bumpClips();
         }}
       />

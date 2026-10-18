@@ -35,6 +35,6 @@ bunx tsc --noEmit  # typecheck the app
 bunx tsc --noEmit -p worker/tsconfig.json  # typecheck the Worker
 ```
 
-Setup notes are kept in `AGENTS.md`; the ongoing Mithril → React migration is tracked in `REACT_MIGRATION.md`.
+Setup notes are kept in `AGENTS.md`.
 
 This project was created using `bun init` in bun v1.3.11. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

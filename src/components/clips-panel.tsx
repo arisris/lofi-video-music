@@ -69,12 +69,11 @@ export const ClipsPanel = () => {
   const selectedClipId = useEditorStore((s) => s.selectedClipId);
   const currentRoute = useEditorStore((s) => s.currentRoute);
   const globalSettingsMap = useEditorStore((s) => s.clipSettings);
-  // Re-render whenever the active clip source array is replaced (settings
-  // patches, uploads, deletes) — matches the legacy "redraw everything"
-  // behaviour after any settings mutation.
+  // Re-render whenever the active clip source array is replaced, which is how
+  // settings patches, uploads and deletes reach this panel.
   useEditorStore((s) => (s.currentRoute === "/image" ? s.videoClips : s.timelineClips));
 
-  // Derive the active clip from the store on each render (legacy semantics).
+  // Derive the active clip from the store on each render.
   const state = editorStore.getState();
   const clipsToSearch = getClipsToSearch(state);
   const timelineClip = clipsToSearch.find((c: any) => c.id === selectedClipId);

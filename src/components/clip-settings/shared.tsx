@@ -428,7 +428,7 @@ export const SharedTransformSettingsView = ({ settings, updateSettings }: Shared
 
 /** In/out/loop animation presets + audio-reactive toggle editor. */
 export const SharedAnimationSettingsView = ({ settings, updateSettings }: SharedSettingsProps) => {
-  // Ensure animations object exists with defaults (legacy did this on every redraw)
+  // Ensure the animations object exists so defaults are readable before any edit.
   useEffect(() => {
     if (settings && !settings.animations) {
       updateSettings({

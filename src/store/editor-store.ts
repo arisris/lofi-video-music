@@ -25,8 +25,10 @@ const storeMeta = (import.meta.hot?.data as { editorState?: Partial<EditorStore>
 
 /**
  * Single source of truth for the whole editor.
- * The legacy `State` Proxy bridge was removed once every module was converted;
- * engine modules now read/write this store directly.
+ *
+ * UI components read it through `useEditorStore`; engine modules in
+ * `src/lib/` read and write it directly via `editorStore.getState()` /
+ * `setState()` so the render loop never round-trips through React.
  */
 export const editorStore = createStore<EditorStore>()((set, get, api) => {
   const initial: EditorStore = Object.create(null);

@@ -7,9 +7,10 @@ import { editorStore, useEditorStore } from "../store/editor-store";
 type SubTab = "uploads" | "pixabay" | "pexels" | "emoji";
 
 /**
- * Panel-local state lives in a single ref-managed object (legacy Mithril
- * component properties). Mutations go through `apply`, which bumps a
- * force-update counter — the React equivalent of the old `m.redraw()`.
+ * Panel-local state lives in a single ref-managed object, so it survives
+ * re-renders without sitting in the global store. Mutations go through
+ * `apply`, which bumps a force-update counter because a ref mutation
+ * alone never triggers a re-render.
  */
 interface PanelState {
   activeSubTab: SubTab;
@@ -52,7 +53,7 @@ interface PanelState {
   showPixabayFilters: boolean;
 }
 
-/** Closest parity with the legacy defaults. */
+/** Default panel state, restored from persisted storage on mount. */
 const createPanelState = (): PanelState => ({
   activeSubTab: "uploads",
   activeUploadsCount: 0,
@@ -427,7 +428,7 @@ export const MediaLibraryPanel = () => {
     input.click();
   };
 
-  // Restore persisted panel state and lazy-load module data (legacy oninit).
+  // Restore persisted panel state and lazy-load module data on mount.
   useEffect(() => {
     const state = editorStore.getState() as unknown as Record<string, Partial<PanelState>>;
     const restored: Partial<PanelState> = {
@@ -467,7 +468,7 @@ export const MediaLibraryPanel = () => {
     }
 
     return () => {
-      // Persist sub-tab + search state across HMR/route switches (legacy onremove).
+      // Persist sub-tab + search state across HMR and route switches.
       const s = stRef.current;
       editorStore.setState({
         pexelsPanelState: {

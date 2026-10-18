@@ -13,9 +13,10 @@ import { runtime } from "../lib/runtime";
 import { editorStore, useEditorStore } from "../store/editor-store";
 
 /**
- * Drag/menu state lives at module level, mirroring the legacy Mithril version.
- * Handlers mutate these freely (they run outside React) and call `redraw()`
- * to schedule a re-render — the React equivalent of the old `m.redraw()`.
+ * Drag/menu state lives at module level so it survives re-renders.
+ * Handlers mutate these freely (they run outside React) and call
+ * `bumpClips()` afterwards, since plain variable changes are invisible to
+ * React and cannot trigger a re-render on their own.
  */
 let isDraggingPlayhead = false;
 type DragState = {
@@ -391,7 +392,7 @@ export const Timeline = () => {
   requestRedraw = forceUpdate;
 
   // External change triggers: per-frame playhead, cross-panel clip/selection
-  // updates (pushed through the store via the legacy State proxy) and zoom.
+  // updates (pushed through the store) and zoom.
   useEditorStore((s) => s.currentTime);
   useEditorStore((s) => s.selectedClipId);
   useEditorStore((s) => s.timelineZoom);

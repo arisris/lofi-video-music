@@ -5,7 +5,7 @@ import { loadGoogleFont } from "../lib/fonts";
 interface TextTemplate {
   name: string;
   settings: Record<string, unknown>;
-  /** Inline style string for the preview swatch (legacy passthrough). */
+  /** Inline style string for the preview swatch. */
   cssStyle: string;
 }
 
@@ -240,7 +240,7 @@ const addDefaultText = () => {
 /** Built-in text templates list. */
 export const TextPanel = () => {
   useEffect(() => {
-    // Load google fonts for the templates (legacy oninit)
+    // Load the Google fonts used by the templates.
     TEXT_TEMPLATES.forEach((t) => loadGoogleFont(t.settings.fontFamily as string));
   }, []);
 

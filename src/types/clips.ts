@@ -15,7 +15,7 @@ export interface ClipRegistryEntry {
   name: string;
   icon?: string;
   settings: Partial<ClipSettings>;
-  /** Legacy: renders the clip's inspector controls with Mithril. */
+  /** Renders the clip's inspector controls (a React component). */
   onSettings?: (clip: unknown) => unknown;
   [key: string]: unknown;
 }

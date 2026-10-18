@@ -9,7 +9,7 @@ export interface LayoutSlice {
   leftPanelCollapsed: boolean;
 }
 
-/** Width must match the legacy defaults in the old `state.js`. */
+/** Default sidebar width, in pixels. */
 const initialPanelWidth = (min: number, ratio: number): number =>
   typeof window !== "undefined" ? Math.max(min, Math.floor(window.innerWidth * ratio)) : min;
 

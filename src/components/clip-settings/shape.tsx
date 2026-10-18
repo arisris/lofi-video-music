@@ -24,7 +24,7 @@ const SHAPE_TYPES: { id: string; label: string; icon: string }[] = [
   { id: "icon", label: "Icon", icon: "icon-[ri--emotion-line]" },
 ];
 
-/** Async inline icon preview, mirrors the legacy IconPreviewInline helper. */
+/** Async inline icon preview: renders a shape swatch once the icon font loads. */
 const IconPreviewInline = ({ iconName }: { iconName: string }) => {
   const [svgText, setSvgText] = useState("");
   const loadedName = useRef("");

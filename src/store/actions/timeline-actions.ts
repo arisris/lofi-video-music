@@ -35,7 +35,7 @@ export function updateTimelineClipSettings(
 /**
  * Force a re-render of React panels that read clip data from the store.
  * Used after in-place mutations from imperative code (e.g. media upload
- * processing) that legacy code signalled with `m.redraw()`.
+ * processing) that need a store poke.
  */
 export function bumpClips(): void {
   const state = editorStore.getState();
@@ -48,7 +48,7 @@ export function bumpClips(): void {
 
 /**
  * Delete a clip from the active route's source (video snapshot during
- * thumbnail mode) and revoke its media URLs. Ported from the legacy delete
+ * thumbnail mode) and revoke its media URLs. Also used by the delete
  * handler in `clips-panel.js`.
  */
 export function deleteClip(clipId: string | null): void {
