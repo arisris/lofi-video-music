@@ -29,6 +29,20 @@ const readNumber = (settings: Record<string, unknown>, key: string, min: number,
   return Math.min(max, Math.max(min, n));
 };
 
+/**
+ * Coerces a stored colour into something <input type="color"> will accept.
+ *
+ * The native control rejects 8-digit values on some engines and shows nothing
+ * useful for a malformed one, so anything unparseable falls back to the
+ * brand blue rather than an empty swatch.
+ */
+const normaliseColor = (raw: string, withAlpha: boolean): string => {
+  const h = raw.replace(/^#/, "");
+  if (withAlpha && /^[0-9a-f]{8}$/i.test(h)) return `#${h.slice(0, 8).toLowerCase()}`;
+  if (/^[0-9a-f]{6}$/i.test(h)) return `#${h.toLowerCase()}`;
+  return withAlpha ? "#00000000" : "#3b82f6";
+};
+
 const SliderField = ({ field, settings, onChange }: {
   field: Extract<FieldSchema, { kind: "slider" }>;
   settings: Record<string, unknown>;
@@ -62,18 +76,24 @@ const ColorField = ({ field, settings, onChange }: {
   onChange: FieldsProps["onChange"];
 }) => {
   const raw = settings[field.key];
-  const value = typeof raw === "string" && /^#[0-9a-f]{6}$/i.test(raw) ? raw : "#3b82f6";
+  const value = normaliseColor(typeof raw === "string" ? raw : "", field.alpha === true);
+  const alpha = value.length === 9 ? Math.round(parseInt(value.slice(7, 9), 16) / 255 * 100) : 100;
+
   return (
     <div>
       <label className={`${LABEL} flex justify-between items-baseline`}>
         <span>{field.label}</span>
-        <span className={VALUE}>{value.toUpperCase()}</span>
+        <span className={VALUE}>
+          {value.toUpperCase()}{field.alpha ? `  ${alpha}%` : ""}
+        </span>
       </label>
       <input
         type="color"
+        // The native picker exposes an opacity slider for 8-digit values, which
+        // is why alpha-capable fields need no second control.
         value={value}
         className="w-full h-8 bg-transparent cursor-pointer rounded border border-slate-700"
-        onChange={(e) => onChange(field.key, e.target.value)}
+        onChange={(e) => onChange(field.key, field.alpha ? e.target.value.toLowerCase() : e.target.value)}
       />
     </div>
   );

@@ -21,6 +21,7 @@ uniform float u_spin;
 uniform float u_zoom;
 uniform float u_bands;
 uniform vec3  u_color;
+uniform vec4  u_background;
 
 const float TAU = 6.2831853;
 
@@ -49,11 +50,15 @@ void main() {
   // Concentric rings, each reading a different point of the spectrum.
   float ring = texture2D(u_audio, vec2(fract(r * u_bands - u_time * 0.10), 0.5)).r;
   col += u_color * ring * 0.55;
-
-  col *= smoothstep(0.78, 0.05, r);
   col += u_color * u_audioLevel * 0.12;
 
-  gl_FragColor = vec4(col, 1.0);
+  // The background the user picked, with the pattern dissolved radially into
+  // it. Alpha is mixed on the same falloff rather than scaled by it, so the
+  // pattern stays opaque where it exists and only the surround takes the
+  // background's alpha - scaling instead would make a transparent background
+  // hide the pattern too, which is the opposite of what it is for.
+  float fade = smoothstep(0.78, 0.05, r);
+  gl_FragColor = vec4(mix(u_background.rgb, col, fade), mix(u_background.a, 1.0, fade));
 }
 `;
 
@@ -69,6 +74,9 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
     zoom: 1.4,
     bands: 6,
     color: "#a855f7",
+    // Fully transparent by default: the visual floats over whatever backdrop the
+    // timeline already has instead of stamping an opaque square on top of it.
+    background: "#00000000",
     image: "",
     opacity: 1,
   },
@@ -78,6 +86,7 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
     { kind: "slider", key: "zoom", label: "Zoom", min: 0.2, max: 4, step: 0.05 },
     { kind: "slider", key: "bands", label: "Rings", min: 1, max: 24, step: 1 },
     { kind: "color", key: "color", label: "Tint" },
+    { kind: "color", key: "background", label: "Background", alpha: true },
     { kind: "image", key: "image", label: "Image", hint: "Optional. Warps a picture; without one it renders as light only." },
     { kind: "slider", key: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, scale: 100, unit: "%" },
   ],

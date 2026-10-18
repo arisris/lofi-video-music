@@ -31,7 +31,16 @@ export type FieldSchema =
       /** Multiplies the readout only, so a 0-1 control can read as a percentage. */
       scale?: number;
     }
-  | { kind: "color"; key: string; label: string }
+  | {
+      kind: "color";
+      key: string;
+      label: string;
+      /**
+       * Accepts 8-digit hex and pushes a vec4 instead of a vec3, so a shader
+       * can use it as a background the user can also make transparent.
+       */
+      alpha?: boolean;
+    }
   | { kind: "toggle"; key: string; label: string }
   | { kind: "select"; key: string; label: string; options: { value: string; label: string }[] }
   /** Custom image from the media pool. Stored as a URL, resolved at draw time. */

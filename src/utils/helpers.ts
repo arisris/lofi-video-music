@@ -169,6 +169,25 @@ export function hexToRGB(hex: string): [number, number, number] {
   ];
 }
 
+/**
+ * Same as hexToRGB but keeps alpha, accepting #rgb, #rgba, #rrggbb and
+ * #rrggbbaa. Used by colour fields that declare `alpha`, which shaders read
+ * as a vec4.
+ */
+export function hexToRGBA(hex: string): [number, number, number, number] {
+  let h = (hex || "").replace(/^#/, "");
+  if (h.length === 3 || h.length === 4) {
+    h = h.split("").map((c) => c + c).join("");
+  }
+  if (!/^[0-9a-f]{6}([0-9a-f]{2})?$/i.test(h)) return [0, 0, 0, 0];
+  return [
+    parseInt(h.substring(0, 2), 16) / 255,
+    parseInt(h.substring(2, 4), 16) / 255,
+    parseInt(h.substring(4, 6), 16) / 255,
+    h.length === 8 ? parseInt(h.substring(6, 8), 16) / 255 : 1,
+  ];
+}
+
 // Helper to convert hex to HSL
 export function hexToHSL(hex: string): HSL {
   hex = hex.replace(/^#/, '');

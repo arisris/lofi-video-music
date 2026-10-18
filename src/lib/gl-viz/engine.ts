@@ -8,7 +8,7 @@
 
 import { WebGLRenderer, type UniformValue } from "../webgl-renderer";
 import { runtime } from "../runtime";
-import { hexToRGB } from "../../utils/helpers";
+import { hexToRGB, hexToRGBA } from "../../utils/helpers";
 import { AUDIO_SAMPLER, IMAGE_SAMPLER, type BBox, type VisualizerDef } from "./types";
 import type { AudioSource } from "./types";
 
@@ -174,7 +174,9 @@ const buildUniforms = (
         uniforms[`u_${field.key}`] = value === true ? 1 : 0;
         break;
       case "color":
-        if (typeof value === "string") uniforms[`u_${field.key}`] = hexToRGB(value);
+        if (typeof value === "string") {
+          uniforms[`u_${field.key}`] = field.alpha ? hexToRGBA(value) : hexToRGB(value);
+        }
         break;
       case "select": {
         const option = field.options.find((o) => o.value === value);
