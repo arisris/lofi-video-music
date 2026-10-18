@@ -56,11 +56,11 @@ State is swapped between routes via the `mode` slice action (`swapRoute`). The Z
 
 ## Gotchas
 
-- **State updates must be immutable**: nested in-place mutations (e.g. `clip.settings.x = 5`) do **not** trigger React re-renders. Use the helpers in `src/store/actions/timeline-actions.ts` (`updateTimelineClipSettings`, `bumpClips`) or `src/store/actions/clip-settings.ts` (`updateClipSettings`). `bumpClips()` is the store poke that replaces the old `m.redraw()` calls.
+- **State updates must be immutable**: nested in-place mutations (e.g. `clip.settings.x = 5`) do **not** trigger React re-renders. Use the helpers in `src/store/actions/timeline-actions.ts` (`updateTimelineClipSettings`, `bumpClips`) or `src/store/actions/clip-settings.ts` (`updateClipSettings`). `bumpClips()` is the store poke to use after any imperative change that did not go through the store.
 - **HMR sync**: `src/store/editor-store.ts` snapshots state into `import.meta.hot.data`, and `App.tsx` re-syncs audio state on hot reload.
 - **Route prefix**: routing is hash-based with the `#!` prefix, parsed in `App.tsx`.
 - **Tailwind v4**: Uses `@plugin` directive syntax in `src/tailwind.css` (not the old `plugins` config). Iconify icons via `@iconify/tailwind4` plugin.
 - **No env file locally**: `.env` is gitignored. API keys are Cloudflare Worker env vars, not Vite env vars.
 - **Video recording**: Uses `MediaRecorder` API. Recording settings (resolution, FPS) are in `State.recordResolution` / `State.recordFps`.
 - **Clip renderer contract**: `onSettings` in `src/lib/clips/*` and `src/lib/vfx/*` is a React function component `(props: { clip? }) => JSX`; the renderers only reference the view, they never render UI themselves.
-- **Uncontrolled legacy inputs**: textarea/content inputs stay uncontrolled (`defaultValue` + `key` per clip id) so the canvas renderer keeps its own text state.
+- **Uncontrolled inputs**: textarea/content inputs stay uncontrolled (`defaultValue` + `key` per clip id) so the canvas renderer keeps its own text state.
