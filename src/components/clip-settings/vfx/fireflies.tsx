@@ -35,7 +35,7 @@ export const FirefliesSettingsView = ({ clip }: ClipViewProps) => {
 
       {/* Color Picker */}
       <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50">
-        <label className="block text-xs text-slate-400 mb-2 flex justify-between items-center font-bold">
+        <label className="text-xs text-slate-400 mb-2 flex justify-between items-center font-bold">
           <span>Firefly Color</span>
           <span className="text-slate-500 font-mono text-[10px]">{settings.color}</span>
         </label>

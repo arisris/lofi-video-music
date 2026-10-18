@@ -112,7 +112,7 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
         {/* Video speed control (only if video overlay) */}
         {settings.mediaType === "video" && (
           <div className="mt-4">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
               <span>Video Speed</span>
               <span className="text-blue-400 font-mono text-[10px]">{`${(settings.speed || 1.0).toFixed(2)}x`}</span>
             </label>
@@ -138,7 +138,7 @@ export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
 
         {/* Opacity slider */}
         <div className="mt-4">
-          <label className="block text-xs text-slate-400 mb-2 flex justify-between">
+          <label className="text-xs text-slate-400 mb-2 flex justify-between">
             <span>Opacity</span>
             <span className="text-slate-500">
               {`${Math.round((settings.opacity !== undefined ? settings.opacity : 1.0) * 100)}%`}

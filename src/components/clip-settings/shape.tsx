@@ -285,7 +285,7 @@ export const ShapeSettingsView = ({ clip }: ClipViewProps) => {
         </div>
 
         <div>
-          <label className="block text-[10px] text-slate-500 mb-1.5 flex justify-between">
+          <label className="text-[10px] text-slate-500 mb-1.5 flex justify-between">
             <span>Opacity</span>
             <span className="text-blue-400 font-mono text-[10px]">
               {`${Math.round((settings.opacity !== undefined ? settings.opacity : 1.0) * 100)}%`}

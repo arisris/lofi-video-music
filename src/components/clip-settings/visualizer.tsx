@@ -40,7 +40,7 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
         </label>
       </div>
       <div className="mb-4">
-        <label className="block text-xs text-slate-400 mb-2 flex justify-between items-center">
+        <label className="text-xs text-slate-400 mb-2 flex justify-between items-center">
           <span>Main Color</span>
           <span className="text-slate-500 font-mono">{settings.color}</span>
         </label>
@@ -78,7 +78,7 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
         </div>
       </div>
       <div className="mt-4">
-        <label className="block text-xs text-slate-400 mb-2 flex justify-between">
+        <label className="text-xs text-slate-400 mb-2 flex justify-between">
           <span>Size</span>
           <span className="text-slate-500">{`${Math.round((settings.size !== undefined ? settings.size : 1.0) * 100)}%`}</span>
         </label>
@@ -93,7 +93,7 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
         />
       </div>
       <div className="mt-4">
-        <label className="block text-xs text-slate-400 mb-2 flex justify-between">
+        <label className="text-xs text-slate-400 mb-2 flex justify-between">
           <span>Density</span>
           <span className="text-slate-500">{(settings.density ?? 1.5).toFixed(1)}</span>
         </label>
@@ -109,7 +109,7 @@ export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
       </div>
       {activeVis?.hasReflection && (
         <div className="mt-4">
-          <label className="block text-xs text-slate-400 mb-2 flex justify-between">
+          <label className="text-xs text-slate-400 mb-2 flex justify-between">
             <span>Reflection Opacity</span>
             <span className="text-slate-500">
               {`${Math.round((settings.reflectionOpacity !== undefined ? settings.reflectionOpacity : 0.25) * 100)}%`}

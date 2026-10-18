@@ -67,7 +67,7 @@ export const MusicSettingsView = ({ clip }: ClipViewProps) => {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
             <span>Volume</span>
             <span className="text-blue-400 font-mono">{`${Math.round((settings.volume ?? 1.0) * 100)}%`}</span>
           </label>
@@ -83,7 +83,7 @@ export const MusicSettingsView = ({ clip }: ClipViewProps) => {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
             <span>Playback Speed</span>
             <span className="text-blue-400 font-mono">{`${(settings.playbackRate ?? 1.0).toFixed(2)}x`}</span>
           </label>
@@ -99,7 +99,7 @@ export const MusicSettingsView = ({ clip }: ClipViewProps) => {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
             <span>Stereo Panning</span>
             <span className="text-blue-400 font-mono">
               {settings.pan === 0

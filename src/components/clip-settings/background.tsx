@@ -72,7 +72,7 @@ export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
       {/* Video speed control (only if video) */}
       {settings.bgType === "video" && (
         <div className="bg-slate-800/40 p-4 rounded-lg border border-slate-700/50">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between">
             <span>Video Speed</span>
             <span className="text-blue-400 font-mono text-[10px]">{`${(settings.speed || 1.0).toFixed(2)}x`}</span>
           </label>

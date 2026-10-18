@@ -238,7 +238,7 @@ export const SharedTextSettingsView = ({ settings, updateSettings }: SharedSetti
           {settings.textEffect === "typewriter" && (
             <>
               <div className="mb-3">
-                <label className="block text-[10px] text-slate-500 mb-1.5 flex justify-between">
+                <label className="text-[10px] text-slate-500 mb-1.5 flex justify-between">
                   <span>Typing Speed</span>
                   <span className="text-blue-400 font-mono text-[10px]">
                     {`${(settings.typewriterSpeed as number) || 15} char/s`}
@@ -277,7 +277,7 @@ export const SharedTextSettingsView = ({ settings, updateSettings }: SharedSetti
           {settings.textEffect === "wavy" && (
             <>
               <div className="mb-3">
-                <label className="block text-[10px] text-slate-500 mb-1.5 flex justify-between">
+                <label className="text-[10px] text-slate-500 mb-1.5 flex justify-between">
                   <span>Wave Amplitude</span>
                   <span className="text-blue-400 font-mono text-[10px]">
                     {`${settings.wavyAmplitude !== undefined ? settings.wavyAmplitude : 6} px`}
@@ -292,7 +292,7 @@ export const SharedTextSettingsView = ({ settings, updateSettings }: SharedSetti
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-[10px] text-slate-500 mb-1.5 flex justify-between">
+                <label className="text-[10px] text-slate-500 mb-1.5 flex justify-between">
                   <span>Wave Speed</span>
                   <span className="text-blue-400 font-mono text-[10px]">
                     {`${settings.wavyFrequency !== undefined ? settings.wavyFrequency : 4} Hz`}
@@ -308,7 +308,7 @@ export const SharedTextSettingsView = ({ settings, updateSettings }: SharedSetti
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-[10px] text-slate-500 mb-1.5 flex justify-between">
+                <label className="text-[10px] text-slate-500 mb-1.5 flex justify-between">
                   <span>Wave Letter Spacing</span>
                   <span className="text-blue-400 font-mono text-[10px]">
                     {`${settings.wavySpacing !== undefined ? settings.wavySpacing : 0.15}`}
@@ -366,7 +366,7 @@ export const SharedTransformSettingsView = ({ settings, updateSettings }: Shared
 
       {/* Uniform Size/Scale Slider */}
       <div className="mb-3 mt-1 bg-slate-950/20 border border-slate-800/40 p-2.5 rounded">
-        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex justify-between">
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex justify-between">
           <span>Uniform Size / Scale</span>
           <span className="text-blue-400 font-mono text-[10px]">{`${Math.round((settings.scaleX ?? 1) * 100)}%`}</span>
         </label>
