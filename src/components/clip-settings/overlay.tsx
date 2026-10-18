@@ -1,4 +1,3 @@
-import { State } from "../../lib/state";
 import { editorStore } from "../../store/editor-store";
 import { getClipsToSearch } from "../../utils/helpers";
 import { processOverlayUpload } from "../../lib/clips/overlay-clip";
@@ -25,7 +24,7 @@ interface ClipViewProps {
 /** Settings panel for the "overlay" timeline clip. */
 export const OverlaySettingsView = ({ clip }: ClipViewProps) => {
   const clipsToSearch = getClipsToSearch(editorStore.getState());
-  const selectedClip = clip || clipsToSearch.find((c: any) => c.id === State.selectedClipId && c.type === "overlay");
+  const selectedClip = clip || clipsToSearch.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "overlay");
 
   if (!selectedClip) return null;
 

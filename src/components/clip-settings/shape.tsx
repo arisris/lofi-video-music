@@ -1,5 +1,5 @@
+import { editorStore } from "../../store/editor-store";
 import { useRef, useState } from "react";
-import { State } from "../../lib/state";
 import { getIconFromDb } from "../../utils/indexed-db";
 import {
   SharedAnimationSettingsView,
@@ -50,7 +50,7 @@ const IconPreviewInline = ({ iconName }: { iconName: string }) => {
 export const ShapeSettingsView = ({ clip }: ClipViewProps) => {
   const isThumbnailMode = useThumbnailMode();
   const selectedClip =
-    clip || State.timelineClips.find((c: any) => c.id === State.selectedClipId && c.type === "shape");
+    clip || editorStore.getState().timelineClips.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "shape");
 
   if (!selectedClip) {
     return <div className="text-slate-500 text-xs italic text-center py-8">Select a shape to change settings</div>;

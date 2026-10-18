@@ -1,4 +1,3 @@
-import { State } from "../../lib/state";
 import { editorStore } from "../../store/editor-store";
 import { getVisualizer } from "../../lib/visualizers/index";
 import { getClipsToSearch } from "../../utils/helpers";
@@ -13,7 +12,7 @@ interface ClipViewProps {
 export const VisualizerSettingsView = ({ clip }: ClipViewProps) => {
   const clipsToSearch = getClipsToSearch(editorStore.getState());
   const selectedClip =
-    clip || clipsToSearch.find((c: any) => c.id === State.selectedClipId && c.type === "visualizer");
+    clip || clipsToSearch.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "visualizer");
 
   if (!selectedClip) {
     return <div className="text-slate-500 text-xs italic text-center py-8">Select a visualizer from the list to change settings</div>;

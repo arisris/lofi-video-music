@@ -1,4 +1,4 @@
-import { State } from "../../../lib/state";
+import { editorStore } from "../../../store/editor-store";
 import { updateTimelineClipSettings } from "../../../store/actions/timeline-actions";
 import { SliderControl, ToggleControl } from "../vfx-controls";
 
@@ -9,7 +9,7 @@ interface ClipViewProps {
 /** Settings panel for the WebGL "rain_gpu" VFX clip. */
 export const RainGpuSettingsView = ({ clip }: ClipViewProps) => {
   const selectedClip =
-    clip || State.timelineClips.find((c: any) => c.id === State.selectedClipId && c.type === "rain_gpu");
+    clip || editorStore.getState().timelineClips.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "rain_gpu");
   if (!selectedClip) return null;
 
   const settings = selectedClip.settings as Record<string, any>;

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import type { EditorRoute } from "../store/slices/mode";
 import { useEditorStore, editorStore } from "../store/editor-store";
-import { State } from "../lib/state";
 import { runtime } from "../lib/runtime";
 import { renderLoop } from "../lib/render";
 import { handleDragMove, handleDragEnd } from "../lib/drag";
@@ -56,19 +55,20 @@ export const App = () => {
         return;
       }
 
-      if (State.isAudioInit) {
-        const clipsToSearch = getClipsToSearch(State);
+      const audioState = editorStore.getState();
+      if (audioState.isAudioInit) {
+        const clipsToSearch = getClipsToSearch(audioState);
         const activeClip = clipsToSearch.find(
           (c: { type: string; start: number; duration: number; settings: { enabled?: boolean } }) =>
             c.type === "music" &&
             c.settings?.enabled !== false &&
-            State.currentTime >= c.start &&
-            State.currentTime <= c.start + c.duration
+            audioState.currentTime >= c.start &&
+            audioState.currentTime <= c.start + c.duration
         );
         if (activeClip) {
           audioEl.src = (activeClip.settings as { audioUrl?: string }).audioUrl ?? "";
           audioEl.currentTime =
-            State.currentTime - activeClip.start + ((activeClip.settings as { startOffset?: number }).startOffset || 0);
+            audioState.currentTime - activeClip.start + ((activeClip.settings as { startOffset?: number }).startOffset || 0);
           initAudioEngine();
           applyAudioSettings(activeClip);
         }
@@ -114,7 +114,7 @@ export const App = () => {
             side="left"
             order="md:order-1"
             onResize={(w) => {
-              State.mediaPoolWidth = w;
+              editorStore.setState({ mediaPoolWidth: w });
             }}
           />
         )}
@@ -134,7 +134,7 @@ export const App = () => {
           side="right"
           order="md:order-2"
           onResize={(w) => {
-            State.inspectorWidth = w;
+            editorStore.setState({ inspectorWidth: w });
           }}
         />
 

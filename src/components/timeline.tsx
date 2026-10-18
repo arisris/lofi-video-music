@@ -1,5 +1,4 @@
 import { useEffect, useReducer, useRef } from "react";
-import { State } from "../lib/state";
 import {
   formatTime,
   getTotalDuration,
@@ -59,21 +58,23 @@ const showContextMenu = (e: { clientX: number; clientY: number }, clipId: string
 };
 
 const seekGlobal = (globalTime: number) => {
-  if (State.isRecording) return;
-  const clipsToSearch = getClipsToSearch(State as never) as any[];
+  const state = editorStore.getState();
+  if (state.isRecording) return;
+  const clipsToSearch = getClipsToSearch(state as never) as any[];
   const totalDuration = getTotalDuration(clipsToSearch as never);
-  State.currentTime = Math.max(0, Math.min(totalDuration, globalTime));
+  const nextTime = Math.max(0, Math.min(totalDuration, globalTime));
+  editorStore.setState({ currentTime: nextTime });
 
   const activeClip = clipsToSearch.find(
     (c) =>
       c.type === "music" &&
       c.settings?.enabled !== false &&
-      State.currentTime >= c.start &&
-      State.currentTime <= c.start + c.duration
+      nextTime >= c.start &&
+      nextTime <= c.start + c.duration
   );
 
   if (activeClip) {
-    const localTime = State.currentTime - activeClip.start;
+    const localTime = nextTime - activeClip.start;
     const playheadTime = localTime + (activeClip.settings.startOffset || 0);
 
     const getAbsoluteUrl = (url: string) => {
@@ -97,7 +98,7 @@ const seekGlobal = (globalTime: number) => {
         if (playheadTime < (activeClip.settings.audioDuration || activeClip.duration)) {
           audio.currentTime = playheadTime;
           applyAudioSettings(activeClip);
-          if (State.isPlaying) {
+          if (editorStore.getState().isPlaying) {
             audio.play().catch(() => {});
           }
         } else {
@@ -110,7 +111,7 @@ const seekGlobal = (globalTime: number) => {
       if (playheadTime < (activeClip.settings.audioDuration || activeClip.duration)) {
         audio.currentTime = playheadTime;
         applyAudioSettings(activeClip);
-        if (State.isPlaying && audio.paused) {
+        if (editorStore.getState().isPlaying && audio.paused) {
           audio.play().catch(() => {});
         }
       } else {
@@ -126,8 +127,9 @@ const seekGlobal = (globalTime: number) => {
 };
 
 const handleWindowMouseMove = (e: MouseEvent) => {
-  const zoom = State.timelineZoom;
-  const scrollLeft = State.timelineScrollLeft;
+  const state = editorStore.getState();
+  const zoom = state.timelineZoom;
+  const scrollLeft = state.timelineScrollLeft;
 
   if (isDraggingPlayhead) {
     const timelineArea = document.getElementById("timeline-content-area");
@@ -143,20 +145,23 @@ const handleWindowMouseMove = (e: MouseEvent) => {
     const rect = timelineArea.getBoundingClientRect();
 
     // 1. Calculate Track Switching (Y-Axis)
-    const mouseY = e.clientY - rect.top + (State.timelineScrollTop || 0);
-    const trackIndex = Math.max(0, Math.min(State.timelineTracks.length - 1, Math.floor(mouseY / 48))); // 48 is track height
-    let targetTrackId = State.timelineTracks[trackIndex].id;
+    const mouseY = e.clientY - rect.top + (state.timelineScrollTop || 0);
+    const trackIndex = Math.max(0, Math.min(state.timelineTracks.length - 1, Math.floor(mouseY / 48))); // 48 is track height
+    let targetTrackId = state.timelineTracks[trackIndex].id;
 
     // 2. Calculate Time Displacement (X-Axis)
     const dx = (e.clientX - isDraggingClip.startX) / zoom;
-    const clip = State.timelineClips.find((c: any) => c.id === isDraggingClip?.clipId);
+    const clip = state.timelineClips.find((c: any) => c.id === isDraggingClip?.clipId) as any;
 
     if (clip) {
-      const currentTrack = State.timelineTracks.find((t: any) => t.id === clip.trackId);
+      // Work on a copy; the store is updated immutably once at the end of the drag step.
+      const nextClip: any = { ...clip, settings: { ...clip.settings } };
+      const nextSnapLines: any[] = [];
+      const currentTrack = state.timelineTracks.find((t: any) => t.id === clip.trackId);
 
       // Lock Check: Don't move if current track is locked (Track 1 is never locked from horizontal dragging)
       if (currentTrack && currentTrack.locked && currentTrack.id !== "track-1") {
-        State.snapLines = [];
+        editorStore.setState({ snapLines: [] });
         return;
       }
 
@@ -167,10 +172,10 @@ const handleWindowMouseMove = (e: MouseEvent) => {
         targetTrackId = clip.trackId !== "track-1" ? clip.trackId : "track-2";
       }
 
-      const targetTrack = State.timelineTracks.find((t: any) => t.id === targetTrackId);
+      const targetTrack = state.timelineTracks.find((t: any) => t.id === targetTrackId);
       if (targetTrack && !targetTrack.locked) {
-        clip.trackId = targetTrackId;
-        State.selectedTrackId = targetTrackId;
+        nextClip.trackId = targetTrackId;
+        editorStore.setState({ selectedTrackId: targetTrackId });
       }
 
       let newStart = clip.start;
@@ -201,7 +206,7 @@ const handleWindowMouseMove = (e: MouseEvent) => {
             newStart = isDraggingClip.initialStart + (maxOffset - (clip.settings.startOffset || 0));
           }
 
-          clip.settings.startOffset = newOffset;
+          nextClip.settings.startOffset = newOffset;
           newDur = Math.max(0.1, isDraggingClip.initialDuration - (newStart - isDraggingClip.initialStart));
         } else {
           newStart = Math.max(0, isDraggingClip.initialStart + dx);
@@ -211,13 +216,12 @@ const handleWindowMouseMove = (e: MouseEvent) => {
       }
 
       // 3. Snapping Logic
-      State.snapLines = [];
       const SNAP_THRESHOLD = 10 / zoom; // 10 pixels in time units
 
       const snapPoints: number[] = [];
 
       // 1. Snap to other clips
-      const clipsToSearch = getClipsToSearch(State as never) as any[];
+      const clipsToSearch = getClipsToSearch(state as never) as any[];
 
       clipsToSearch.forEach((other) => {
         if (other.id === clip.id) return;
@@ -226,7 +230,7 @@ const handleWindowMouseMove = (e: MouseEvent) => {
       });
 
       // 2. Snap to Playhead
-      snapPoints.push(getGlobalTime(State as never));
+      snapPoints.push(getGlobalTime(state as never));
 
       // 3. Snap to Music Clip Boundaries
       clipsToSearch
@@ -266,8 +270,8 @@ const handleWindowMouseMove = (e: MouseEvent) => {
         for (const point of videoSnapPoints) {
           if (Math.abs(newEnd - point) < SNAP_THRESHOLD) {
             newDur = point - newStart;
-            const trackIdx = State.timelineTracks.findIndex((t: any) => t.id === clip.trackId);
-            State.snapLines.push({
+            const trackIdx = state.timelineTracks.findIndex((t: any) => t.id === clip.trackId);
+            nextSnapLines.push({
               time: point,
               type: "end",
               isVideoSnap: true,
@@ -285,7 +289,7 @@ const handleWindowMouseMove = (e: MouseEvent) => {
           for (const point of snapPoints) {
             if (Math.abs(newStart - point) < SNAP_THRESHOLD) {
               newStart = point;
-              State.snapLines.push({ time: point, type: "start" });
+              nextSnapLines.push({ time: point, type: "start" });
               snapped = true;
               break;
             }
@@ -297,7 +301,7 @@ const handleWindowMouseMove = (e: MouseEvent) => {
             if (Math.abs(newEnd - point) < SNAP_THRESHOLD) {
               newStart = isDraggingClip?.type === "move" ? point - newDur : newStart;
               newDur = isDraggingClip?.type === "resize-end" ? point - newStart : newDur;
-              State.snapLines.push({ time: point, type: "end" });
+              nextSnapLines.push({ time: point, type: "end" });
               break;
             }
           }
@@ -310,8 +314,13 @@ const handleWindowMouseMove = (e: MouseEvent) => {
         newDur = (clip.settings.videoDuration || clip.duration) / speed;
       }
 
-      clip.start = Math.round(newStart * 100) / 100;
-      clip.duration = Math.round(newDur * 100) / 100;
+      nextClip.start = Math.round(newStart * 100) / 100;
+      nextClip.duration = Math.round(newDur * 100) / 100;
+
+      editorStore.setState({
+        snapLines: nextSnapLines as never,
+        timelineClips: state.timelineClips.map((c) => (c.id === nextClip.id ? nextClip : c)),
+      });
       redraw();
     }
   }
@@ -321,7 +330,7 @@ const handleWindowMouseUp = () => {
   if (isDraggingPlayhead || isDraggingClip) {
     isDraggingPlayhead = false;
     isDraggingClip = null;
-    State.snapLines = [];
+    editorStore.setState({ snapLines: [] });
     window.removeEventListener("mousemove", handleWindowMouseMove);
     window.removeEventListener("mouseup", handleWindowMouseUp);
     redraw();
@@ -587,7 +596,7 @@ export const Timeline = () => {
                             timelineTracks: state.timelineTracks.filter((t: any) => t.id !== track.id),
                             timelineClips: state.timelineClips.filter((c: any) => c.trackId !== track.id),
                           });
-                          clipsToDelete.forEach((c: any) => revokeClipUrls(c, State as never));
+                          clipsToDelete.forEach((c: any) => revokeClipUrls(c, state as never));
                           if (state.selectedTrackId === track.id) {
                             editorStore.setState({ selectedTrackId: state.timelineTracks[0].id });
                           }
@@ -915,7 +924,7 @@ export const Timeline = () => {
                   audio.src = URL.createObjectURL(file);
                   audio.onloadedmetadata = () => {
                     // Stack sequentially on Track 1
-                    const musicClips = (getClipsToSearch(State as never) as any[]).filter((c) => c.type === "music");
+                    const musicClips = (getClipsToSearch(editorStore.getState() as never) as any[]).filter((c) => c.type === "music");
                     let start = 0;
                     if (musicClips.length > 0) {
                       start = Math.max(...musicClips.map((c) => c.start + c.duration));
@@ -941,15 +950,17 @@ export const Timeline = () => {
                         enabled: true,
                       },
                     };
-                    if (State.isThumbnailMode) {
-                      if (!State.videoClips) State.videoClips = [];
-                      State.videoClips.push(newClip);
+                    const isThumbnailMode = state.currentRoute === "/image";
+                    if (isThumbnailMode) {
+                      editorStore.setState({ videoClips: [...(state.videoClips || []), newClip] });
                     } else {
-                      State.timelineClips.push(newClip);
+                      editorStore.setState({ timelineClips: [...state.timelineClips, newClip] });
                     }
-                    State.selectedClipId = newClip.id;
-                    State.activeClipTab = "music";
-                    State.activeInspectorTab = "properties";
+                    editorStore.setState({
+                      selectedClipId: newClip.id,
+                      activeClipTab: "music",
+                      activeInspectorTab: "properties",
+                    });
                     redraw();
                   };
                 });
@@ -1027,10 +1038,12 @@ export const Timeline = () => {
                   duration: original.duration,
                   settings: settingsCopy,
                 };
-                State.timelineClips.push(duplicate);
-                State.selectedClipId = duplicate.id;
-                State.activeClipTab = duplicate.type;
-                State.activeInspectorTab = "properties";
+                editorStore.setState({
+                  timelineClips: [...state.timelineClips, duplicate],
+                  selectedClipId: duplicate.id,
+                  activeClipTab: duplicate.type,
+                  activeInspectorTab: "properties",
+                });
               }
               closeContextMenu();
             }}
@@ -1047,7 +1060,7 @@ export const Timeline = () => {
                 timelineClips: state.timelineClips.filter((c: any) => c.id !== contextMenu?.clipId),
               });
               if (clipToDelete) {
-                revokeClipUrls(clipToDelete, State as never);
+                revokeClipUrls(clipToDelete, editorStore.getState() as never);
               }
               if (state.selectedClipId === contextMenu?.clipId) {
                 editorStore.setState({ selectedClipId: null });

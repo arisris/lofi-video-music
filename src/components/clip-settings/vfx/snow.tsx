@@ -1,4 +1,4 @@
-import { State } from "../../../lib/state";
+import { editorStore } from "../../../store/editor-store";
 import { updateTimelineClipSettings } from "../../../store/actions/timeline-actions";
 import { SliderControl, ToggleControl } from "../vfx-controls";
 
@@ -9,7 +9,7 @@ interface ClipViewProps {
 /** Settings panel for the canvas "snow" VFX clip. */
 export const SnowSettingsView = ({ clip }: ClipViewProps) => {
   const selectedClip =
-    clip || State.timelineClips.find((c: any) => c.id === State.selectedClipId && c.type === "snow");
+    clip || editorStore.getState().timelineClips.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "snow");
   if (!selectedClip) return null;
 
   const settings = selectedClip.settings as Record<string, any>;

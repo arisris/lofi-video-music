@@ -1,5 +1,5 @@
+import { editorStore } from "../../store/editor-store";
 import { useState } from "react";
-import { State } from "../../lib/state";
 import { updateTimelineClipSettings, bumpClips } from "../../store/actions/timeline-actions";
 import {
   SharedTextSettingsView,
@@ -19,7 +19,7 @@ export const TextSettingsView = ({ clip }: ClipViewProps) => {
   const [showCharBox, setShowCharBox] = useState(false);
   const [triggerEl, setTriggerEl] = useState<HTMLElement | null>(null);
   const selectedClip =
-    clip || State.timelineClips.find((c: any) => c.id === State.selectedClipId && c.type === "text");
+    clip || editorStore.getState().timelineClips.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "text");
 
   if (!selectedClip) {
     return (

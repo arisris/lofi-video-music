@@ -1,4 +1,3 @@
-import { State } from "../../lib/state";
 import { editorStore } from "../../store/editor-store";
 import { getClipsToSearch } from "../../utils/helpers";
 import { SharedTransformSettingsView, SharedAnimationSettingsView, useThumbnailMode } from "./shared";
@@ -23,7 +22,7 @@ const KEN_BURNS_OPTIONS = [
 export const BackgroundSettingsView = ({ clip }: ClipViewProps) => {
   const isThumbnailMode = useThumbnailMode();
   const clipsToSearch = getClipsToSearch(editorStore.getState());
-  const selectedClip = clip || clipsToSearch.find((c: any) => c.id === State.selectedClipId && c.type === "background");
+  const selectedClip = clip || clipsToSearch.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === "background");
 
   if (!selectedClip) {
     return (

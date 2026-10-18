@@ -1,5 +1,4 @@
 import { useEffect, useReducer, useRef } from "react";
-import { State } from "../lib/state";
 import { addClipToTimeline } from "../lib/clip-factory";
 import { processMediaFile, processMediaUrl } from "../lib/media-helper";
 import { cloneVids } from "../utils/helpers";
@@ -295,7 +294,7 @@ export const MediaLibraryPanel = () => {
 
   const handleAssetAdd = (asset: any, asType: string) => {
     // If it's already in the media pool, add immediately
-    const existing = (State.mediaPool as any[]).find((m) => m.id === asset.id || m.url === asset.url);
+    const existing = (editorStore.getState().mediaPool as any[]).find((m) => m.id === asset.id || m.url === asset.url);
     if (existing) {
       addAssetToTimeline(existing, asType);
       return;
@@ -306,7 +305,7 @@ export const MediaLibraryPanel = () => {
 
     processMediaUrl(asset.url, asset.type, asset.name, asset.source || "stock", (processedAsset: any) => {
       processedAsset.id = asset.id;
-      State.mediaPool.push(processedAsset);
+      editorStore.setState({ mediaPool: [...editorStore.getState().mediaPool, processedAsset] });
       apply({ loadingAssetId: null });
       addAssetToTimeline(processedAsset, asType);
       forceUpdate();
@@ -416,7 +415,7 @@ export const MediaLibraryPanel = () => {
 
       files.forEach((file) => {
         processMediaFile(file, (asset: any) => {
-          State.mediaPool.push(asset);
+          editorStore.setState({ mediaPool: [...editorStore.getState().mediaPool, asset] });
           apply({ activeUploadsCount: stRef.current.activeUploadsCount - 1 });
           if (stRef.current.activeUploadsCount === 0) {
             apply({ totalUploadsCount: 0 });
@@ -520,7 +519,7 @@ export const MediaLibraryPanel = () => {
   // Re-render when clips/selections change through addClipToTimeline's
   // top-level store writes (pushes to mediaPool are in-place, unobserved).
   useEditorStore((s) => s.selectedClipId);
-  const uploads = (State.mediaPool as any[]).filter(
+  const uploads = (editorStore.getState().mediaPool as any[]).filter(
     (m) => m.source === "upload" || m.source === "pexels" || m.source === "pixabay"
   );
 

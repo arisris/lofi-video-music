@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { State } from "../../lib/state";
 import { editorStore } from "../../store/editor-store";
 import { applyAudioSettings } from "../../lib/audio";
 import { getClipsToSearch } from "../../utils/helpers";
@@ -35,7 +34,7 @@ export const MusicSettingsView = ({ clip }: ClipViewProps) => {
 
     // Update the currently active audio element's settings
     const fresh = getClipsToSearch(editorStore.getState());
-    const now = State.currentTime;
+    const now = editorStore.getState().currentTime;
     const activeClip = fresh.find(
       (c: any) =>
         c.type === "music" &&
