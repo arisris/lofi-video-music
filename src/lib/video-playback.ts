@@ -4,33 +4,41 @@ import { State } from "./state";
  * Manages video playback for looping clips with crossfade.
  * Extracted from render.js to eliminate ~150 lines of duplicated code
  * between background-clip and overlay-clip video management.
- *
- * @param {Object} clip - The timeline clip object
- * @param {number} globalTime - Current global timeline time
- * @param {Object} options - Configuration options
- * @param {string} options.elementsKey - Key for video elements array ('bgElements' or 'mediaElements')
- * @param {string} options.typeKey - Key for media type ('bgType' or 'mediaType')
- * @param {string} options.typeValue - Expected type value ('video')
- * @param {boolean} [options.alwaysLoop=true] - Whether to force looping behavior
- * @param {number} [options.activeMargin=0] - Extra margin (seconds) before/after clip for activation
  */
-export const manageVideoPlayback = (clip, globalTime, options) => {
+export interface ManageVideoOptions {
+  /** Key for video elements array ('bgElements' or 'mediaElements') */
+  elementsKey: string;
+  /** Key for media type ('bgType' or 'mediaType') */
+  typeKey: string;
+  /** Expected type value ('video') */
+  typeValue?: string;
+  /** Whether to force looping behavior */
+  alwaysLoop?: boolean;
+  /** Extra margin (seconds) before/after clip for activation */
+  activeMargin?: number;
+}
+
+export const manageVideoPlayback = (
+  clip: Record<string, any>,
+  globalTime: number,
+  options: ManageVideoOptions,
+) => {
   const {
     elementsKey,
     typeKey,
     typeValue = "video",
     alwaysLoop = true,
-    activeMargin = 0
+    activeMargin = 0,
   } = options;
 
   const vids = clip.settings[elementsKey];
-  if (clip.settings[typeKey] !== typeValue || !vids || !Array.isArray(vids) || vids.length === 0 || vids.some(v => !v || typeof v.pause !== "function")) return;
+  if (clip.settings[typeKey] !== typeValue || !vids || !Array.isArray(vids) || vids.length === 0 || vids.some((v: HTMLVideoElement) => !v || typeof v.pause !== "function")) return;
 
   const isActive = (clip.settings.enabled !== false) &&
     (globalTime >= clip.start - activeMargin && globalTime <= clip.start + clip.duration + activeMargin);
 
   if (!isActive) {
-    vids.forEach(v => {
+    vids.forEach((v: HTMLVideoElement) => {
       if (v && typeof v.pause === "function" && !v.paused) {
         v.pause();
         v.currentTime = 0;
@@ -39,11 +47,11 @@ export const manageVideoPlayback = (clip, globalTime, options) => {
     return;
   }
 
-  const vid1 = vids[0];
+  const vid1: HTMLVideoElement = vids[0];
   const speed = clip.settings.speed || 1.0;
 
   // Enforce video playback rate
-  vids.forEach(v => {
+  vids.forEach((v: HTMLVideoElement) => {
     if (v.playbackRate !== speed) v.playbackRate = speed;
   });
 
@@ -54,16 +62,16 @@ export const manageVideoPlayback = (clip, globalTime, options) => {
   if (!duration) return;
 
   if (shouldLoop) {
-    manageLoopingPlayback(vids, localTime, duration, speed);
+    manageLoopingPlayback(vids as HTMLVideoElement[], localTime, duration, speed);
   } else {
-    manageNonLoopingPlayback(vids, localTime, duration, speed);
+    manageNonLoopingPlayback(vids as HTMLVideoElement[], localTime, duration, speed);
   }
 };
 
 /**
  * Handles looping playback with crossfade between two video elements.
  */
-const manageLoopingPlayback = (vids, localTime, duration, speed) => {
+const manageLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, duration: number, speed: number) => {
   const crossfadeDur = Math.min(1.5, duration / 4);
   const period = duration - crossfadeDur;
   const virtualTime = Math.max(0, localTime * speed);
@@ -127,7 +135,7 @@ const manageLoopingPlayback = (vids, localTime, duration, speed) => {
 /**
  * Handles non-looping playback (single play through).
  */
-const manageNonLoopingPlayback = (vids, localTime, duration, speed) => {
+const manageNonLoopingPlayback = (vids: HTMLVideoElement[], localTime: number, duration: number, speed: number) => {
   const targetTime = Math.max(0, Math.min(duration - 0.05, localTime * speed));
   const primaryVid = vids[0];
   const secondaryVid = vids[1];

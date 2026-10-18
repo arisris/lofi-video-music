@@ -1,4 +1,3 @@
-import m from "mithril";
 import { State } from "./state";
 import { runtime } from "./runtime";
 import { ClipRegistry } from "./clips/index";
@@ -11,7 +10,15 @@ import { stopRecording } from "./recorder";
 
 let lastTime = 0;
 
-const drawWithTransform = (ctx, settings, bbox, drawFn, localTime = 0, duration = Infinity, clipType = null) => {
+const drawWithTransform = (
+  ctx: CanvasRenderingContext2D,
+  settings: Record<string, any>,
+  bbox: { x: number; y: number; width: number; height: number },
+  drawFn: () => void,
+  localTime = 0,
+  duration = Infinity,
+  clipType: string | null = null,
+) => {
   const { x, y, scaleX, scaleY, rotation, originX, originY } = settings;
   ctx.save();
   
@@ -42,14 +49,13 @@ export const renderLoop = () => {
   dt = Math.min(dt, 0.1);
   lastTime = now;
 
-  const isThumbnailMode = State.currentRoute === "/image";
   const clipsToSearch = getClipsToSearch(State);
-  const bgClipsToSearch = clipsToSearch.filter(c => c.type === 'background');
-  const musicClipsToSearch = clipsToSearch.filter(c => c.type === 'music');
+  const bgClipsToSearch = clipsToSearch.filter((c: any) => c.type === 'background');
+  const musicClipsToSearch = clipsToSearch.filter((c: any) => c.type === 'music');
 
   // Increment currentTime if playing
   if (State.isPlaying) {
-    const activeClip = musicClipsToSearch.find(c => 
+    const activeClip = musicClipsToSearch.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
       State.currentTime >= c.start && 
@@ -57,7 +63,8 @@ export const renderLoop = () => {
     );
 
     if (activeClip && runtime.audioEl) {
-      const getAbsoluteUrl = (url) => {
+      const audioEl = runtime.audioEl!;
+      const getAbsoluteUrl = (url: string) => {
         if (!url) return "";
         try {
           return new URL(url, window.location.href).href;
@@ -66,33 +73,33 @@ export const renderLoop = () => {
         }
       };
 
-      const currentAudioSrc = getAbsoluteUrl(runtime.audioEl.src);
+      const currentAudioSrc = getAbsoluteUrl(audioEl.src);
       const targetAudioSrc = getAbsoluteUrl(activeClip.settings.audioUrl);
 
       if (currentAudioSrc !== targetAudioSrc) {
         // Change audio track to match the current active clip on timeline
-        runtime.audioEl.src = activeClip.settings.audioUrl;
+        audioEl.src = activeClip.settings.audioUrl;
         applyAudioSettings(activeClip);
-        
+
         const onLoaded = () => {
           const currentLocalTime = State.currentTime - activeClip.start;
           const currentPlayheadTime = currentLocalTime + (activeClip.settings.startOffset || 0);
           if (currentPlayheadTime < (activeClip.settings.audioDuration || activeClip.duration)) {
-            runtime.audioEl.currentTime = currentPlayheadTime;
+            audioEl.currentTime = currentPlayheadTime;
             applyAudioSettings(activeClip);
             if (State.isPlaying) {
-              runtime.audioEl.play().catch((e) => console.warn("Auto-play failed:", e));
+              audioEl.play().catch((e) => console.warn("Auto-play failed:", e));
             }
           }
-          runtime.audioEl.removeEventListener('loadedmetadata', onLoaded);
+          audioEl.removeEventListener('loadedmetadata', onLoaded);
         };
-        runtime.audioEl.addEventListener('loadedmetadata', onLoaded);
-        
+        audioEl.addEventListener('loadedmetadata', onLoaded);
+
         State.currentTime = (State.currentTime || 0) + dt;
       } else {
-        if (!runtime.audioEl.paused) {
+        if (!audioEl.paused) {
           // Sync timeline currentTime to active audio clip elapsed time to avoid drift
-          const localTime = runtime.audioEl.currentTime - (activeClip.settings.startOffset || 0);
+          const localTime = audioEl.currentTime - (activeClip.settings.startOffset || 0);
           State.currentTime = activeClip.start + localTime;
         } else {
           State.currentTime = (State.currentTime || 0) + dt;
@@ -127,10 +134,10 @@ export const renderLoop = () => {
         stopRecording();
       }
     }
-    m.redraw();
   }
 
   const ctx = runtime.ctx;
+  if (!ctx) return;
   const w = runtime.canvas.width;
   const h = runtime.canvas.height;
 
@@ -140,7 +147,7 @@ export const renderLoop = () => {
   // Manage video playback of all timeline clips
 
 
-  clipsToSearch.forEach(clip => {
+  clipsToSearch.forEach((clip: any) => {
     if (clip.type === 'background') {
       manageVideoPlayback(clip, globalTime, {
         elementsKey: 'bgElements',
@@ -160,7 +167,7 @@ export const renderLoop = () => {
   ctx.fillRect(0, 0, w, h);
 
   // Check active timeline background clips (with loaded media)
-  const activeBgClips = bgClipsToSearch.filter(clip => 
+  const activeBgClips = bgClipsToSearch.filter((clip: any) => 
     clip.type === 'background' && 
     clip.settings.enabled !== false &&
     globalTime >= clip.start - 0.5 && 
@@ -186,13 +193,13 @@ export const renderLoop = () => {
 
   // Draw backgrounds (Timeline overrides default playlist track background)
   if (hasTimelineBgNow) {
-    activeBgClipsSorted.forEach(clip => {
+    activeBgClipsSorted.forEach((clip: any) => {
       const localTime = globalTime - clip.start;
       let opacity = 1.0;
       
       // Calculate fade-in opacity if there is an adjacent preceding clip
       if (localTime >= -0.5 && localTime < 0.5) {
-        const prevClip = bgClipsToSearch.find(c => 
+        const prevClip = bgClipsToSearch.find((c: any) => 
           c.id !== clip.id &&
           c.type === 'background' &&
           Math.abs((c.start + c.duration) - clip.start) < 0.2
@@ -202,7 +209,7 @@ export const renderLoop = () => {
         }
       }
 
-      const drawClipBg = (mediaEl, clipOpacity = 1.0) => {
+      const drawClipBg = (mediaEl: HTMLImageElement | HTMLVideoElement, clipOpacity = 1.0) => {
         drawBackground(mediaEl, w, h, Math.max(0, localTime), clipOpacity, 0, 1.0, clip.settings);
       };
 
@@ -280,7 +287,7 @@ export const renderLoop = () => {
   });
 
   // Draw Timeline Clips
-  State.timelineClips.forEach(clip => {
+  State.timelineClips.forEach((clip: any) => {
     if (globalTime < clip.start || globalTime > clip.start + clip.duration) return;
     if (clip.settings && clip.settings.enabled === false) return;
 
@@ -312,7 +319,7 @@ export const renderLoop = () => {
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 4]);
     
-    State.canvasSnaps.forEach(snap => {
+    State.canvasSnaps.forEach((snap: any) => {
       ctx.beginPath();
       if (snap.type === 'x') {
         ctx.moveTo(snap.value, 0);
@@ -329,7 +336,7 @@ export const renderLoop = () => {
   // Draw selected clip's transform handles
   const selectedInfo = getSelectedClipInfo(State);
   if (selectedInfo && State.interactionMode === 'select') {
-    const { clip, settings, renderer } = selectedInfo;
+    const { settings, renderer } = selectedInfo;
     const bbox = renderer.getItemBoundingBox ? renderer.getItemBoundingBox(ctx, w, h, settings) : null;
     if (bbox) {
       const scaleY = settings.scaleY ?? 1;
@@ -362,7 +369,7 @@ export const renderLoop = () => {
       ctx.stroke();
 
       // Draw Corner Handles & Rotation Handle
-      const drawHandle = (pt, isCircle = false) => {
+      const drawHandle = (pt: { x: number; y: number }, isCircle = false) => {
         ctx.fillStyle = "#ffffff";
         ctx.strokeStyle = "#3b82f6";
         ctx.lineWidth = 2;

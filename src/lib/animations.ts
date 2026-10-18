@@ -8,7 +8,13 @@ import { runtime } from "./runtime";
  * @param {Number} localTime - Time in seconds since the clip started
  * @param {Number} duration - Total clip duration in seconds
  */
-export const applyClipAnimations = (ctx, settings, localTime, duration, clipType = null) => {
+export const applyClipAnimations = (
+  ctx: CanvasRenderingContext2D,
+  settings: Record<string, any>,
+  localTime: number,
+  duration: number,
+  clipType: string | null = null,
+) => {
   const isThumbnailMode = State.currentRoute === "/image";
   if (isThumbnailMode) {
     const vfxTypes = ["rain", "smoke", "flash", "snow", "fireflies", "filmgrain", "vignette"];
@@ -30,13 +36,12 @@ export const applyClipAnimations = (ctx, settings, localTime, duration, clipType
   let transX = 0;
   let transY = 0;
   let transScale = 1;
-  let transRotate = 0;
 
   // 1. IN TRANSITIONS
   if (localTime < TRANS_DUR) {
     const p = localTime / TRANS_DUR; // 0 to 1
-    const easeOutBack = (x) => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
-    const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+    const easeOutBack = (x: number) => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
+    const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 
     if (inType === "fade") {
       opacity = easeOutCubic(p);
@@ -58,7 +63,7 @@ export const applyClipAnimations = (ctx, settings, localTime, duration, clipType
   // 2. OUT TRANSITIONS
   if (localTime > (duration - TRANS_DUR)) {
     const p = (duration - localTime) / TRANS_DUR; // 1 to 0
-    const easeInCubic = (x) => x * x * x;
+    const easeInCubic = (x: number) => x * x * x;
 
     if (outType === "fade") {
       opacity = Math.min(opacity, easeInCubic(p));
