@@ -55,7 +55,8 @@ State is swapped between routes via the `mode` slice action (`swapRoute`). The Z
 - `src/components/clip-settings/` — settings views per clip type (the `onSettings` React components)
 - `src/lib/clips/` — clip type implementations (text, music, background, overlay, shape, etc.)
 - `src/lib/vfx/` — visual effects (rain, snow, fireflies, film grain, etc.)
-- `src/lib/visualizers/` — audio visualizers (bars, circle, waveform, etc.)
+- `src/lib/visualizers/` — legacy Canvas 2D audio visualizers (bars, circle, waveform, etc.), frozen
+- `src/lib/gl-viz/` — shader visualizers: one self-describing definition per file in `defs/`, plus the engine that renders them onto the 2D canvas
 - `src/lib/` — core engine: render loop (`render.ts`), audio, drag, recorder, `runtime.ts`
 - `src/utils/` — helpers, IndexedDB, UI helpers
 - `src/data/` — static JSON (emoji, character data)
@@ -66,7 +67,7 @@ State is swapped between routes via the `mode` slice action (`swapRoute`). The Z
 - Uses Cloudflare Cache API for caching responses
 - Env vars `PEXELS_API_KEY` and `PIXABAY_API_KEY` must be set in Cloudflare
 
-**Rendering**: Canvas-based. `src/lib/render.ts` runs the render loop and reads state through the `src/lib/state.ts` bridge. `src/lib/runtime.ts` holds the canvas context, audio graph refs, and other shared runtime references.
+**Rendering**: Canvas-based. `src/lib/render.ts` runs the render loop and reads state directly from the Zustand store. `src/lib/runtime.ts` holds the canvas context, audio graph refs, and other shared runtime references.
 
 ## Gotchas
 
