@@ -1,7 +1,6 @@
-import m from "mithril";
 import { State } from "../state";
 import { getClipsToSearch } from "../../utils/helpers";
-import { SharedTransformSettings, SharedTextSettings } from "../../components/shared-clip-settings";
+import { TitleSettingsView } from "../../components/clip-settings/title";
 import { drawEmojiText, measureEmojiText, drawWavyEmojiText } from "../emoji-render";
 
 export const TitleClip = {
@@ -172,10 +171,5 @@ export const TitleClip = {
     ctx.restore();
   },
 
-  onSettings() {
-    return [
-      SharedTextSettings("title"),
-      SharedTransformSettings("title")
-    ];
-  }
+  onSettings: TitleSettingsView,
 };

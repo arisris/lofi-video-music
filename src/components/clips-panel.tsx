@@ -3,7 +3,6 @@ import { getClipsToSearch } from "../utils/helpers";
 import { editorStore, useEditorStore } from "../store/editor-store";
 import { updateClipSettings } from "../store/actions/clip-settings";
 import { updateTimelineClipSettings, deleteClip } from "../store/actions/timeline-actions";
-import { MithrilBridge } from "../compat/mithril-bridge";
 
 type AnyClipSettings = Record<string, any>;
 
@@ -69,6 +68,11 @@ const EmptyState = () => (
 export const ClipsPanel = () => {
   const selectedClipId = useEditorStore((s) => s.selectedClipId);
   const currentRoute = useEditorStore((s) => s.currentRoute);
+  const globalSettingsMap = useEditorStore((s) => s.clipSettings);
+  // Re-render whenever the active clip source array is replaced (settings
+  // patches, uploads, deletes) — matches the legacy "redraw everything"
+  // behaviour after any settings mutation.
+  useEditorStore((s) => (s.currentRoute === "/image" ? s.videoClips : s.timelineClips));
 
   // Derive the active clip from the store on each render (legacy semantics).
   const state = editorStore.getState();
@@ -90,6 +94,7 @@ export const ClipsPanel = () => {
               ? `Visualizer (${settings.style || "bars"})`
               : activeClip?.name || "Timeline Clip";
     const clipIcon = activeClip?.icon || "icon-[ri--movie-2-line]";
+    const SettingsView = activeClip.onSettings as React.FC<{ clip?: Record<string, any> }>;
 
     return (
       <div className="bg-slate-900 p-5 flex flex-col overflow-hidden h-full w-full">
@@ -105,13 +110,10 @@ export const ClipsPanel = () => {
 
         {!isEnabled && <DisabledBanner />}
 
-        {/* Active Clip Setting Content (rendered by legacy Mithril module) */}
+        {/* Active clip settings content (React components from the registry) */}
         <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
           {activeClip && typeof activeClip.onSettings === "function" ? (
-            <MithrilBridge
-              key={`${timelineClip.type}-${selectedClipId}-${currentRoute}`}
-              render={() => activeClip.onSettings(timelineClip)}
-            />
+            <SettingsView key={`${timelineClip.type}-${selectedClipId}-${currentRoute}`} clip={timelineClip} />
           ) : (
             <div className="text-slate-500 text-xs italic">Preparing clip settings...</div>
           )}
@@ -123,10 +125,11 @@ export const ClipsPanel = () => {
   // Global layer branch (title / playlist)
   if (selectedClipId === "title" || selectedClipId === "playlist") {
     const globalClip = ClipRegistry.get(selectedClipId) as any;
-    const globalSettings = state.clipSettings[selectedClipId] as AnyClipSettings | undefined;
+    const globalSettings = globalSettingsMap[selectedClipId] as AnyClipSettings | undefined;
     const globalEnabled = globalSettings?.enabled !== false;
     const globalName = globalClip?.name || "Global Layer";
     const globalIcon = globalClip?.icon || "icon-[ri--layout-line]";
+    const GlobalSettingsView = globalClip.onSettings as React.FC<{ clip?: Record<string, any> }>;
 
     return (
       <div className="bg-slate-900 p-5 flex flex-col overflow-hidden h-full w-full">
@@ -141,7 +144,7 @@ export const ClipsPanel = () => {
 
         <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
           {globalClip && typeof globalClip.onSettings === "function" ? (
-            <MithrilBridge key={`${selectedClipId}-global`} render={() => globalClip.onSettings(null)} />
+            <GlobalSettingsView key={`${selectedClipId}-global`} />
           ) : (
             <div className="text-slate-500 text-xs italic">Preparing clip settings...</div>
           )}

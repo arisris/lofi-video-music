@@ -113,16 +113,16 @@ src/
 | 3 | `vfx-panel.js` | 52 | ✅ (with #4) |
 | 4 | `media-pool.js` | 79 | ✅ (with #3) |
 | 5 | `settings-panel.js` | 95 | ✅ |
-| 6 | `ui/scrub-input.js` | 80 | ☐ DEFERRED — used by legacy Mithril `shared-clip-settings`/`shape-clip`; convert after #15 |
-| 7 | `ui/color-input.js` | 83 | ☐ DEFERRED — same consumers as #6 |
+| 6 | `ui/scrub-input.js` | 80 | ✅ → `ui/scrub-input.tsx` (with #15) |
+| 7 | `ui/color-input.js` | 83 | ✅ → `ui/color-input.tsx` (with #15) |
 | 8 | `clips-panel.js` | 139 | ✅ |
 | 9 | `video-preview.js` | 133 | ✅ |
-| 10 | `char-box.js` | 159 | ☐ DEFERRED → Phase 4 — used by legacy Mithril `text-clip` renderer |
+| 10 | `char-box.js` | 159 | ✅ → `char-box.tsx` (with #15) |
 | 11 | `record-settings-modal.js` | 231 | ✅ |
 | 12 | `text-panel.js` | 279 | ✅ |
 | 13 | `transport-bar.js` | 301 | ✅ |
 | 14 | `shape-panel.js` | 451 | ✅ |
-| 15 | `shared-clip-settings.js` | 474 | ☐ DEFERRED → Phase 4 — consumed in-place by all legacy clip renderers (`title-clip`, `text-clip`, `playlist-clip`, …) which return its vnode trees from their Mithril views |
+| 15 | `shared-clip-settings.js` | 474 | ✅ → `clip-settings/shared.tsx` + per-clip views in `clip-settings/` (all legacy `onSettings` renderers converted; MithrilBridge removed) |
 | 16 | `timeline.js` | 879 | ✅ |
 | 17 | `media-library-panel.js` | 1117 | ✅ |
 
@@ -137,7 +137,14 @@ Conversion rules:
 ### Phase 4 — Typing `lib/` and `utils/`
 
 - [ ] Rename `.js` → `.ts` gradually, leaf-first order: `vfx/` → `visualizers/` → `clips/` → `render.js`, `audio.js`, `drag.js`, `recorder.js` → `utils/`
-- [ ] **First, convert the deferred clip-settings layer** (Mithril-rooted by `src/lib/clips/*` renderers): `shared-clip-settings.js`, `ui/scrub-input.js`, `ui/color-input.js`, `char-box.js` → React `.tsx`, replacing the remaining `MithrilBridge` call sites in `clips-panel.tsx` and the legacy `onSettings` render functions
+- [x] **First, convert the deferred clip-settings layer** (Mithril-rooted by `src/lib/clips/*` renderers) → DONE:
+  - `shared-clip-settings.js` → `clip-settings/shared.tsx` (`SharedTextSettingsView`, `SharedTransformSettingsView`, `SharedAnimationSettingsView`)
+  - `ui/scrub-input.tsx`, `ui/color-input.tsx`, `char-box.tsx` (React intersector/​picker equivalents)
+  - Per-clip settings views in `src/components/clip-settings/`: `shape`, `music`, `overlay`, `background`, `text`, `title`, `playlist`, `visualizer` + `vfx/*` (8 VFX views) + `vfx-controls`
+  - Registry contract change: `onSettings` is now a **React function component** `(props: { clip? }) => JSX`; renderer `.js` files merely reference their view
+  - `clips-panel.tsx` renders `onSettings` directly (MithrilBridge deleted); subscribes to the active clip source array so in-place/immutable settings updates re-render
+  - `updateTimelineClipSettings(clipId, patch, clipPatch?)` now also patches top-level clip props (`duration`, particle caches like `drops`/`snowballs`) and thumbnail-mode `videoClips`; new `bumpClips()` helper replaces legacy `m.redraw()` after imperative uploads
+  - Remaining `m.redraw()` calls in `lib/` (audio, drag, render loop, fonts, clip-factory, recorder) are no-ops now that no Mithril roots exist — they get removed during the `.js` → `.ts`Rename step below
 - [ ] Properly type `runtime.js` (holds refs to canvas/audio/video)
 - [ ] Tear down the legacy typed `State`; all state access goes through the typed store
 - [ ] Verify: clean build with no errors

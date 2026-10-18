@@ -1,5 +1,5 @@
-import m from "mithril";
 import { State } from "../state";
+import { FilmGrainSettingsView } from "../../components/clip-settings/vfx/filmgrain";
 import { getAudioReactivity } from "../../utils/helpers";
 
 export const FilmGrainVFX = {
@@ -113,93 +113,5 @@ export const FilmGrainVFX = {
     }
   },
 
-  onSettings(clip) {
-    const selectedClip = clip || State.timelineClips.find(c => c.id === State.selectedClipId && c.type === 'filmgrain');
-    if (!selectedClip) return null;
-
-    // Ensure defaults exist
-    if (selectedClip.settings.grainIntensity === undefined) selectedClip.settings.grainIntensity = 0.15;
-    if (selectedClip.settings.scanlinesOpacity === undefined) selectedClip.settings.scanlinesOpacity = 0.08;
-    if (selectedClip.settings.glitchFrequency === undefined) selectedClip.settings.glitchFrequency = 0.3;
-    if (selectedClip.settings.audioReactive === undefined) selectedClip.settings.audioReactive = false;
-
-    return m("div", { class: "space-y-4 animate-in fade-in duration-300" }, [
-      // Audio Reactive Toggle
-      m("div", { class: "bg-slate-800/40 p-3 rounded-lg border border-slate-700/50" }, [
-        m("label", { class: "flex items-center gap-2 cursor-pointer" }, [
-          m("input", {
-            type: "checkbox",
-            checked: selectedClip.settings.audioReactive || false,
-            class: "w-4 h-4 accent-blue-600 rounded",
-            onchange: (e) => {
-              selectedClip.settings.audioReactive = e.target.checked;
-              m.redraw();
-            },
-          }),
-          m("span", { class: "text-xs font-bold text-slate-300" }, "Audio Reactive Glitch"),
-        ]),
-        m("p", { class: "text-[10px] text-slate-500 mt-1" }, "VHS screen glitches will trigger instantly in sync with music bass drops")
-      ]),
-
-      // Grain Slider
-      m("div", { class: "bg-slate-800/40 p-3 rounded-lg border border-slate-700/50" }, [
-        m("label", { class: "block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider" }, `Film Grain: ${Math.round(selectedClip.settings.grainIntensity * 100)}%`),
-        m("input", {
-          type: "range",
-          min: 0.0,
-          max: 0.6,
-          step: 0.02,
-          class: "w-full cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none accent-blue-500",
-          value: selectedClip.settings.grainIntensity,
-          oninput: (e) => {
-            selectedClip.settings.grainIntensity = parseFloat(e.target.value);
-          }
-        }),
-        m("div", { class: "flex justify-between text-[9px] text-slate-500 mt-1.5 font-mono" }, [
-          m("span", "None"),
-          m("span", "Heavy")
-        ])
-      ]),
-
-      // Scanline Slider
-      m("div", { class: "bg-slate-800/40 p-3 rounded-lg border border-slate-700/50" }, [
-        m("label", { class: "block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider" }, `Scanlines: ${Math.round(selectedClip.settings.scanlinesOpacity * 100)}%`),
-        m("input", {
-          type: "range",
-          min: 0.0,
-          max: 0.4,
-          step: 0.02,
-          class: "w-full cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none accent-blue-500",
-          value: selectedClip.settings.scanlinesOpacity,
-          oninput: (e) => {
-            selectedClip.settings.scanlinesOpacity = parseFloat(e.target.value);
-          }
-        }),
-        m("div", { class: "flex justify-between text-[9px] text-slate-500 mt-1.5 font-mono" }, [
-          m("span", "None"),
-          m("span", "Visible")
-        ])
-      ]),
-
-      // Glitch Frequency Slider
-      m("div", { class: "bg-slate-800/40 p-3 rounded-lg border border-slate-700/50" }, [
-        m("label", { class: "block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider" }, `Glitch Frequency / Size: ${Math.round(selectedClip.settings.glitchFrequency * 100)}%`),
-        m("input", {
-          type: "range",
-          min: 0.0,
-          max: 1.0,
-          step: 0.05,
-          class: "w-full cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none accent-blue-500",
-          value: selectedClip.settings.glitchFrequency,
-          oninput: (e) => {
-            selectedClip.settings.glitchFrequency = parseFloat(e.target.value);
-          }
-        }),
-        m("div", { class: "flex justify-between text-[9px] text-slate-500 mt-1.5 font-mono" }, [
-          m("span", "Off"),
-          m("span", "Extreme")
-        ])
-      ])
-    ]);
-  }
+  onSettings: FilmGrainSettingsView,
 };

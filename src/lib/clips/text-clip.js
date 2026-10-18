@@ -1,7 +1,5 @@
-import m from "mithril";
 import { State } from "../state";
-import { SharedTransformSettings, SharedTextSettings, SharedAnimationSettings } from "../../components/shared-clip-settings";
-import { CharBox } from "../../components/char-box";
+import { TextSettingsView } from "../../components/clip-settings/text";
 import { drawEmojiText, measureEmojiText, drawWavyEmojiText } from "../emoji-render";
 
 export const TextClip = {
@@ -169,81 +167,5 @@ export const TextClip = {
 
   draw(ctx, w, h) {},
 
-  onSettings(clip) {
-    const selectedClip = clip || State.timelineClips.find(c => c.id === State.selectedClipId && c.type === 'text');
-    if (!selectedClip) {
-      return m(
-        "div",
-        { class: "text-slate-500 text-xs italic text-center py-8" },
-        "Select a text from the list to change settings",
-      );
-    }
-
-    const isThumbnailMode = State.currentRoute === "/image";
-
-    return m(
-      "div",
-      {
-        class: "space-y-4 animate-in fade-in slide-in-from-top-2 duration-300",
-      },
-      [
-        m("div", { class: "relative" }, [
-          m("textarea", {
-            id: "text-editor-" + selectedClip.id,
-            value: selectedClip.settings.content,
-            class:
-              "w-full bg-slate-800 text-white text-xs p-2 rounded border border-slate-700 focus:border-blue-500 outline-none min-h-[60px] resize-y",
-            oninput: (e) => (selectedClip.settings.content = e.target.value),
-          }),
-          m("div", { class: "flex items-center justify-between mt-1.5" }, [
-            m("div", { class: "relative" }, [
-              m("button", {
-                class: `flex items-center gap-1.5 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] text-slate-400 transition-all ${this.showCharBoxMap?.[selectedClip.id] ? "text-blue-400 border-blue-500/30" : ""}`,
-                oncreate: (v) => {
-                  this.charBoxTriggers = this.charBoxTriggers || {};
-                  this.charBoxTriggers[selectedClip.id] = v.dom;
-                },
-                onclick: () => {
-                  this.showCharBoxMap = this.showCharBoxMap || {};
-                  this.showCharBoxMap[selectedClip.id] = !this.showCharBoxMap[selectedClip.id];
-                }
-              }, [
-                m("i", { class: "icon-[ri--chat-smile-2-line] w-3 h-3" }),
-                "Emoji & Chars"
-              ]),
-              this.showCharBoxMap?.[selectedClip.id] && m(CharBox, {
-                trigger: this.charBoxTriggers?.[selectedClip.id],
-                onSelect: (char) => {
-                  const el = document.getElementById("text-editor-" + selectedClip.id);
-                  if (el) {
-                    const start = el.selectionStart;
-                    const end = el.selectionEnd;
-                    const text = selectedClip.settings.content;
-                    selectedClip.settings.content = text.substring(0, start) + char + text.substring(end);
-                    m.redraw();
-                    // Reset cursor position after redraw
-                    setTimeout(() => {
-                      el.focus();
-                      el.setSelectionRange(start + char.length, start + char.length);
-                    }, 0);
-                  } else {
-                      selectedClip.settings.content += char;
-                  }
-                   this.showCharBoxMap[selectedClip.id] = false;
-                 },
-                 onClose: () => {
-                   this.showCharBoxMap[selectedClip.id] = false;
-                   m.redraw();
-                 }
-               })
-             ]),
-             m("p", { class: "text-[10px] text-slate-500" }, "Use \\n for multiple lines"),
-           ]),
-         ]),
-        SharedTextSettings(null, -1, selectedClip.settings),
-        SharedTransformSettings(null, -1, selectedClip.settings),
-        !isThumbnailMode && SharedAnimationSettings(null, -1, selectedClip.settings),
-      ]
-    );
-  },
+  onSettings: TextSettingsView,
 };

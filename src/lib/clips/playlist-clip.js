@@ -1,7 +1,6 @@
-import m from "mithril";
 import { State } from "../state";
 import { getClipsToSearch } from "../../utils/helpers";
-import { SharedTransformSettings, SharedTextSettings } from "../../components/shared-clip-settings";
+import { PlaylistSettingsView } from "../../components/clip-settings/playlist";
 import { drawEmojiText, measureEmojiText } from "../emoji-render";
 
 export const PlaylistClip = {
@@ -240,42 +239,5 @@ export const PlaylistClip = {
     ctx.restore();
   },
 
-  onSettings() {
-    const settings = this.settings;
-    return [
-      m("div", { class: "grid grid-cols-2 gap-4 mb-4" }, [
-        m("div", [
-          m("label", { class: "block text-xs text-slate-400 mb-2" }, "Max Tracks"),
-          m("input", {
-            type: "range",
-            min: 3,
-            max: 15,
-            step: 1,
-            value: settings.maxItems,
-            class: "w-full accent-blue-500",
-            oninput: (e) => {
-              settings.maxItems = parseInt(e.target.value);
-              m.redraw();
-            }
-          }),
-        ]),
-        m("div", { class: "flex flex-col justify-end" }, [
-          m("button", {
-            class: `flex items-center justify-between px-3 h-8 rounded-lg transition-colors ${settings.truncateText ? "bg-blue-600/20 text-blue-400 border border-blue-600/30" : "bg-slate-800 text-slate-400 border border-slate-700"}`,
-            onclick: () => {
-              settings.truncateText = !settings.truncateText;
-              m.redraw();
-            }
-          }, [
-            m("span", { class: "text-[10px] font-bold uppercase" }, "Truncate"),
-            m("div", {
-              class: `w-3 h-3 rounded-full transition-all ${settings.truncateText ? "bg-blue-400" : "bg-slate-600"}`
-            })
-          ])
-        ])
-      ]),
-      SharedTextSettings("playlist"),
-      SharedTransformSettings("playlist")
-    ];
-  }
+  onSettings: PlaylistSettingsView,
 };

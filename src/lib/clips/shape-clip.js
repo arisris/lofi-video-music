@@ -1,9 +1,6 @@
-import m from "mithril";
 import { State } from "../state";
-import { SharedTransformSettings, SharedAnimationSettings } from "../../components/shared-clip-settings";
-import { ColorInput } from "../../components/ui/color-input";
-import { ScrubInput } from "../../components/ui/scrub-input";
 import { getIconFromDb } from "../../utils/indexed-db";
+import { ShapeSettingsView } from "../../components/clip-settings/shape";
 
 const iconDataCache = {};
 const iconImageCache = {};
@@ -17,7 +14,6 @@ const getIconDataAsync = (iconName) => {
   iconDataCache[iconName] = null;
   getIconFromDb(iconName).then(data => {
     iconDataCache[iconName] = data;
-    m.redraw();
   });
   
   return null;
@@ -64,7 +60,6 @@ const getIconImage = (iconName, iconData, color, color2, fillType, strokeColor, 
   state.img.onload = () => {
     state.loaded = true;
     URL.revokeObjectURL(blobUrl);
-    m.redraw();
   };
   state.img.onerror = () => {
     URL.revokeObjectURL(blobUrl);
@@ -72,32 +67,6 @@ const getIconImage = (iconName, iconData, color, color2, fillType, strokeColor, 
   state.img.src = blobUrl;
 
   return state;
-};
-
-// Inline icon preview for Inspector Panel
-const IconPreviewInline = {
-  oninit(vnode) {
-    vnode.state.svgText = "";
-    this.loadedName = "";
-  },
-  view(vnode) {
-    const iconName = vnode.attrs.iconName;
-    if (this.loadedName !== iconName) {
-      this.loadedName = iconName;
-      getIconFromDb(iconName).then(data => {
-        if (data) {
-          vnode.state.svgText = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${data.width} ${data.height}" class="w-4.5 h-4.5 text-slate-350" fill="currentColor">${data.body}</svg>`;
-        } else {
-          vnode.state.svgText = "";
-        }
-        m.redraw();
-      });
-    }
-    if (!vnode.state.svgText) {
-      return m("i", { class: "icon-[ri--image-line] text-slate-600 w-4 h-4" });
-    }
-    return m.trust(vnode.state.svgText);
-  }
 };
 
 export const ShapeClip = {
@@ -289,247 +258,5 @@ export const ShapeClip = {
 
   draw(ctx, w, h) {},
 
-  onSettings(clip) {
-    const selectedClip = clip || State.timelineClips.find(c => c.id === State.selectedClipId && c.type === "shape");
-    if (!selectedClip) {
-      return m("div", { class: "text-slate-500 text-xs italic text-center py-8" }, "Select a shape to change settings");
-    }
-
-    const settings = selectedClip.settings;
-
-    const update = (key, val) => {
-      settings[key] = val;
-      m.redraw();
-    };
-
-    const isThumbnailMode = State.currentRoute === "/image";
-
-    return m("div", { class: "space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" }, [
-      // 1. Shape Type Selection
-      m("div", { class: "bg-slate-800/40 p-4 rounded-lg border border-slate-700/50 space-y-3" }, [
-        m("label", { class: "block text-[10px] font-bold text-slate-500 uppercase tracking-widest" }, "Shape Type"),
-        m("div", { class: "grid grid-cols-4 gap-1.5" }, [
-          { id: "rectangle", label: "Rect", icon: "icon-[ri--rectangle-line]" },
-          { id: "circle", label: "Circle", icon: "icon-[ri--checkbox-blank-circle-line]" },
-          { id: "triangle", label: "Triangle", icon: "icon-[ri--triangle-line]" },
-          { id: "star", label: "Star", icon: "icon-[ri--star-line]" },
-          { id: "polygon", label: "Polygon", icon: "icon-[ri--hexagon-line]" },
-          { id: "heart", label: "Heart", icon: "icon-[ri--heart-line]" },
-          { id: "icon", label: "Icon", icon: "icon-[ri--emotion-line]" },
-        ].map(shape => {
-          const isActive = settings.shapeType === shape.id;
-          return m("button", {
-            class: `py-1.5 px-1 rounded flex flex-col items-center gap-1 border text-[9px] font-semibold transition-all cursor-pointer ${
-              isActive
-                ? "bg-blue-600/20 border-blue-500/40 text-blue-400"
-                : "bg-slate-900/45 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-            }`,
-            onclick: () => update("shapeType", shape.id),
-          }, [
-            m("i", { class: `${shape.icon} w-3.5 h-3.5` }),
-            shape.label,
-          ]);
-        })),
-
-        // Shape Specific Parameters
-        settings.shapeType === "rectangle" && m("div", { class: "mt-3" }, [
-          m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Corner Radius"),
-          m(ScrubInput, {
-            label: "R",
-            value: settings.cornerRadius || 0,
-            min: 0,
-            max: 100,
-            onUpdate: (val) => update("cornerRadius", val),
-          }),
-        ]),
-
-        settings.shapeType === "star" && m("div", { class: "mt-3 grid grid-cols-2 gap-3" }, [
-          m("div", [
-            m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Spikes"),
-            m(ScrubInput, {
-              label: "S",
-              value: settings.starSpikes || 5,
-              min: 3,
-              max: 30,
-              onUpdate: (val) => update("starSpikes", Math.round(val)),
-            }),
-          ]),
-          m("div", [
-            m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Inner Ratio"),
-            m(ScrubInput, {
-              label: "IR",
-              value: settings.starInnerRatio || 0.4,
-              step: 0.05,
-              min: 0.1,
-              max: 0.9,
-              onUpdate: (val) => update("starInnerRatio", val),
-            }),
-          ]),
-        ]),
-
-        settings.shapeType === "polygon" && m("div", { class: "mt-3" }, [
-          m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Sides"),
-          m(ScrubInput, {
-            label: "S",
-            value: settings.polygonSides || 6,
-            min: 3,
-            max: 20,
-            onUpdate: (val) => update("polygonSides", Math.round(val)),
-          }),
-        ]),
-
-        settings.shapeType === "icon" && m("div", { class: "mt-3 space-y-2" }, [
-          m("label", { class: "block text-[10px] text-slate-500 mb-1" }, "Icon ID"),
-          m("div", { class: "flex items-center gap-2" }, [
-            m("input", {
-              type: "text",
-              class: "flex-1 bg-slate-900 border border-slate-700/60 rounded px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-blue-500",
-              value: settings.iconName || "",
-              oninput: (e) => update("iconName", e.target.value)
-            }),
-            m("div", { class: "w-8 h-8 rounded border border-slate-800 bg-slate-950 flex items-center justify-center shrink-0" }, 
-              settings.iconName && m(IconPreviewInline, { iconName: settings.iconName })
-            )
-          ]),
-          m("p", { class: "text-[9px] text-slate-500" }, "Format: prefix:name (e.g. ri:music-2-fill or mdi:laptop)"),
-        ]),
-      ]),
-
-      // 2. Color & Fill Settings
-      m("div", { class: "bg-slate-800/40 p-4 rounded-lg border border-slate-700/50 space-y-4" }, [
-        m("div", { class: "flex items-center justify-between" }, [
-          m("label", { class: "block text-[10px] font-bold text-slate-500 uppercase tracking-widest" }, "Fill Settings"),
-          m("div", { class: "flex bg-slate-900 p-0.5 rounded border border-slate-800" }, [
-            m("button", {
-              class: `px-2 py-0.5 text-[9px] font-semibold rounded cursor-pointer transition-all ${
-                settings.fillType !== "gradient" ? "bg-slate-800 text-slate-200" : "text-slate-500 hover:text-slate-300"
-              }`,
-              onclick: () => update("fillType", "solid"),
-            }, "Solid"),
-            m("button", {
-              class: `px-2 py-0.5 text-[9px] font-semibold rounded cursor-pointer transition-all ${
-                settings.fillType === "gradient" ? "bg-slate-800 text-slate-200" : "text-slate-500 hover:text-slate-300"
-              }`,
-              onclick: () => update("fillType", "gradient"),
-            }, "Gradient"),
-          ]),
-        ]),
-
-        m(ColorInput, {
-          label: settings.fillType === "gradient" ? "Start Color" : "Fill Color",
-          value: settings.fillColor || "#3b82f6",
-          onUpdate: (val) => update("fillColor", val),
-        }),
-
-        settings.fillType === "gradient" && m(ColorInput, {
-          label: "End Color",
-          value: settings.fillColor2 || "#8b5cf6",
-          onUpdate: (val) => update("fillColor2", val),
-        }),
-      ]),
-
-      // 3. Size Settings
-      m("div", { class: "bg-slate-800/40 p-4 rounded-lg border border-slate-700/50 space-y-3" }, [
-        m("label", { class: "block text-[10px] font-bold text-slate-500 uppercase tracking-widest" }, "Dimensions"),
-        m("div", { class: "grid grid-cols-2 gap-3" }, [
-          m("div", [
-            m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Width"),
-            m(ScrubInput, {
-              label: "W",
-              value: settings.width || 150,
-              min: 10,
-              max: 2000,
-              onUpdate: (val) => update("width", val),
-            }),
-          ]),
-          m("div", [
-            m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Height"),
-            m(ScrubInput, {
-              label: "H",
-              value: settings.height || 150,
-              min: 10,
-              max: 2000,
-              onUpdate: (val) => update("height", val),
-            }),
-          ]),
-        ]),
-      ]),
-
-      // 4. Stroke & Shadow
-      m("div", { class: "bg-slate-800/40 p-4 rounded-lg border border-slate-700/50 space-y-4" }, [
-        m("h4", { class: "text-[10px] font-bold text-slate-500 uppercase tracking-widest" }, "Stroke & Shadow"),
-
-        m(ColorInput, {
-          label: "Stroke Color",
-          value: settings.strokeColor || "#ffffff",
-          onUpdate: (val) => update("strokeColor", val),
-        }),
-
-        m("div", [
-          m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Stroke Width"),
-          m(ScrubInput, {
-            label: "SW",
-            value: settings.strokeWidth || 0,
-            min: 0,
-            max: 50,
-            onUpdate: (val) => update("strokeWidth", val),
-          }),
-        ]),
-
-        m(ColorInput, {
-          label: "Shadow Color",
-          value: settings.shadowColor || "rgba(0,0,0,0.5)",
-          onUpdate: (val) => update("shadowColor", val),
-        }),
-
-        m("div", { class: "grid grid-cols-3 gap-3" }, [
-          m("div", [
-            m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Blur"),
-            m(ScrubInput, {
-              label: "B",
-              value: settings.shadowBlur || 0,
-              min: 0,
-              max: 50,
-              onUpdate: (val) => update("shadowBlur", val),
-            }),
-          ]),
-          m("div", [
-            m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Offset X"),
-            m(ScrubInput, {
-              label: "OX",
-              value: settings.shadowOffsetX || 0,
-              onUpdate: (val) => update("shadowOffsetX", val),
-            }),
-          ]),
-          m("div", [
-            m("label", { class: "block text-[10px] text-slate-500 mb-1.5" }, "Offset Y"),
-            m(ScrubInput, {
-              label: "OY",
-              value: settings.shadowOffsetY || 0,
-              onUpdate: (val) => update("shadowOffsetY", val),
-            }),
-          ]),
-        ]),
-
-        m("div", [
-          m("label", { class: "block text-[10px] text-slate-500 mb-1.5 flex justify-between" }, [
-            m("span", "Opacity"),
-            m("span", { class: "text-blue-400 font-mono text-[10px]" }, `${Math.round((settings.opacity !== undefined ? settings.opacity : 1.0) * 100)}%`),
-          ]),
-          m("input", {
-            type: "range",
-            min: 0,
-            max: 1,
-            step: 0.01,
-            value: settings.opacity !== undefined ? settings.opacity : 1.0,
-            class: "w-full accent-blue-500 cursor-pointer h-1 bg-slate-800 rounded-full appearance-none",
-            oninput: (e) => update("opacity", parseFloat(e.target.value)),
-          }),
-        ]),
-      ]),
-
-      SharedTransformSettings(null, -1, settings),
-      !isThumbnailMode && SharedAnimationSettings(null, -1, settings),
-    ]);
-  },
+  onSettings: ShapeSettingsView,
 };

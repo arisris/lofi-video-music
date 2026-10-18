@@ -1,7 +1,6 @@
-import m from "mithril";
 import { State } from "../state";
+import { RainSettingsView } from "../../components/clip-settings/vfx/rain";
 import { getAudioReactivity } from "../../utils/helpers";
-import { SliderControl, ToggleControl } from "./shared-controls";
 import { BaseParticle } from "./base-particle";
 
 export class Drop extends BaseParticle {
@@ -90,84 +89,5 @@ export const RainVFX = {
     }
   },
 
-  onSettings(clip) {
-    const selectedClip = clip || State.timelineClips.find(c => c.id === State.selectedClipId && c.type === 'rain');
-    if (!selectedClip) return null;
-
-    // Ensure defaults exist
-    if (selectedClip.settings.speed === undefined) selectedClip.settings.speed = 1.0;
-    if (selectedClip.settings.size === undefined) selectedClip.settings.size = 1.0;
-    if (selectedClip.settings.opacity === undefined) selectedClip.settings.opacity = 1.0;
-    if (selectedClip.settings.audioReactive === undefined) selectedClip.settings.audioReactive = false;
-
-    return m("div", { class: "space-y-4 animate-in fade-in duration-300" }, [
-      // Audio Reactive Toggle
-      m(ToggleControl, {
-        label: "Audio Reactive",
-        checked: selectedClip.settings.audioReactive,
-        description: "Rain intensity, fall speed, and opacity will react to music volume",
-        onchange: (e) => {
-          selectedClip.settings.audioReactive = e.target.checked;
-          m.redraw();
-        }
-      }),
-
-      // Intensity Slider
-      m(SliderControl, {
-        label: `Rain Intensity: ${selectedClip.settings.intensity || 200}`,
-        min: 50,
-        max: 500,
-        step: 10,
-        value: selectedClip.settings.intensity || 200,
-        minLabel: "Light",
-        maxLabel: "Heavy",
-        oninput: (e) => {
-          selectedClip.settings.intensity = parseInt(e.target.value);
-          clip.drops = null; // Recreate drops with new intensity
-        }
-      }),
-
-      // Speed Slider
-      m(SliderControl, {
-        label: `Fall Speed: ${Math.round(selectedClip.settings.speed * 100)}%`,
-        min: 0.1,
-        max: 3.0,
-        step: 0.1,
-        value: selectedClip.settings.speed,
-        minLabel: "Slow",
-        maxLabel: "Fast",
-        oninput: (e) => {
-          selectedClip.settings.speed = parseFloat(e.target.value);
-        }
-      }),
-
-      // Size Slider
-      m(SliderControl, {
-        label: `Drop Size: ${Math.round(selectedClip.settings.size * 100)}%`,
-        min: 0.2,
-        max: 3.0,
-        step: 0.1,
-        value: selectedClip.settings.size,
-        minLabel: "Thin/Short",
-        maxLabel: "Thick/Long",
-        oninput: (e) => {
-          selectedClip.settings.size = parseFloat(e.target.value);
-        }
-      }),
-
-      // Opacity Slider
-      m(SliderControl, {
-        label: `Rain Opacity: ${Math.round(selectedClip.settings.opacity * 100)}%`,
-        min: 0.1,
-        max: 1.0,
-        step: 0.05,
-        value: selectedClip.settings.opacity,
-        minLabel: "Faint",
-        maxLabel: "Solid",
-        oninput: (e) => {
-          selectedClip.settings.opacity = parseFloat(e.target.value);
-        }
-      })
-    ]);
-  }
+  onSettings: RainSettingsView,
 };

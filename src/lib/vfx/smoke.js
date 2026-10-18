@@ -1,7 +1,6 @@
-import m from "mithril";
 import { State } from "../state";
+import { SmokeSettingsView } from "../../components/clip-settings/vfx/smoke";
 import { getAudioReactivity } from "../../utils/helpers";
-import { SliderControl, ToggleControl } from "./shared-controls";
 import { BaseParticle } from "./base-particle";
 
 export class SmokeParticle extends BaseParticle {
@@ -99,38 +98,5 @@ export const SmokeVFX = {
     });
   },
 
-  onSettings(clip) {
-    const selectedClip = clip || State.timelineClips.find(c => c.id === State.selectedClipId && c.type === 'smoke');
-    if (!selectedClip) return null;
-
-    if (selectedClip.settings.audioReactive === undefined) selectedClip.settings.audioReactive = false;
-
-    return m("div", { class: "space-y-4 animate-in fade-in duration-300" }, [
-      // Audio Reactive Toggle
-      m(ToggleControl, {
-        label: "Audio Reactive",
-        checked: selectedClip.settings.audioReactive,
-        description: "Smoke speed, drift, growth, and density will react to music bass beats",
-        onchange: (e) => {
-          selectedClip.settings.audioReactive = e.target.checked;
-          m.redraw();
-        }
-      }),
-
-      // Intensity Slider
-      m(SliderControl, {
-        label: `Smoke Density: ${selectedClip.settings.intensity || 40}`,
-        min: 10,
-        max: 150,
-        step: 5,
-        value: selectedClip.settings.intensity || 40,
-        minLabel: "Mist",
-        maxLabel: "Thick",
-        oninput: (e) => {
-          selectedClip.settings.intensity = parseInt(e.target.value);
-          clip.particles = null; // Recreate particles with new intensity
-        }
-      })
-    ]);
-  }
+  onSettings: SmokeSettingsView,
 };

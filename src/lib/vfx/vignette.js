@@ -1,5 +1,5 @@
-import m from "mithril";
 import { State } from "../state";
+import { VignetteSettingsView } from "../../components/clip-settings/vfx/vignette";
 import { getAudioReactivity } from "../../utils/helpers";
 
 export const VignetteVFX = {
@@ -54,69 +54,5 @@ export const VignetteVFX = {
     ctx.restore();
   },
 
-  onSettings(clip) {
-    const selectedClip = clip || State.timelineClips.find(c => c.id === State.selectedClipId && c.type === 'vignette');
-    if (!selectedClip) return null;
-
-    // Ensure defaults exist
-    if (selectedClip.settings.opacity === undefined) selectedClip.settings.opacity = 0.4;
-    if (selectedClip.settings.color === undefined) selectedClip.settings.color = "#000000";
-    if (selectedClip.settings.audioReactive === undefined) selectedClip.settings.audioReactive = false;
-
-    return m("div", { class: "space-y-4 animate-in fade-in duration-300" }, [
-      // Audio Reactive Toggle
-      m("div", { class: "bg-slate-800/40 p-3 rounded-lg border border-slate-700/50" }, [
-        m("label", { class: "flex items-center gap-2 cursor-pointer" }, [
-          m("input", {
-            type: "checkbox",
-            checked: selectedClip.settings.audioReactive || false,
-            class: "w-4 h-4 accent-blue-600 rounded",
-            onchange: (e) => {
-              selectedClip.settings.audioReactive = e.target.checked;
-              m.redraw();
-            },
-          }),
-          m("span", { class: "text-xs font-bold text-slate-300" }, "Audio Reactive"),
-        ]),
-        m("p", { class: "text-[10px] text-slate-500 mt-1" }, "Vignette shadow will expand and pulse to the music bass beats")
-      ]),
-
-      // Color Picker
-      m("div", { class: "bg-slate-800/40 p-3 rounded-lg border border-slate-700/50" }, [
-        m("label", { class: "block text-xs text-slate-400 mb-2 flex justify-between items-center font-bold" }, [
-          m("span", "Shadow Color"),
-          m("span", { class: "text-slate-500 font-mono text-[10px]" }, selectedClip.settings.color),
-        ]),
-        m("input", {
-          type: "color",
-          value: selectedClip.settings.color,
-          class: "w-full h-10 bg-transparent cursor-pointer rounded border border-slate-700",
-          oninput: (e) => {
-            selectedClip.settings.color = e.target.value;
-            m.redraw();
-          },
-        }),
-      ]),
-
-      // Opacity Slider
-      m("div", { class: "bg-slate-800/40 p-3 rounded-lg border border-slate-700/50" }, [
-        m("label", { class: "block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider" }, `Vignette Opacity: ${Math.round(selectedClip.settings.opacity * 100)}%`),
-        m("input", {
-          type: "range",
-          min: 0.0,
-          max: 1.0,
-          step: 0.05,
-          class: "w-full cursor-pointer h-1.5 bg-slate-700 rounded-lg appearance-none accent-blue-500",
-          value: selectedClip.settings.opacity,
-          oninput: (e) => {
-            selectedClip.settings.opacity = parseFloat(e.target.value);
-          }
-        }),
-        m("div", { class: "flex justify-between text-[9px] text-slate-500 mt-1.5 font-mono" }, [
-          m("span", "Faint"),
-          m("span", "Solid")
-        ])
-      ])
-    ]);
-  }
+  onSettings: VignetteSettingsView,
 };

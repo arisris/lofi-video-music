@@ -1,17 +1,49 @@
-import type { ClipSettings } from "../../types/clips";
+import type { ClipSettings, TimelineClip } from "../../types/clips";
 import { editorStore } from "../editor-store";
 import { revokeClipUrls } from "../../utils/helpers";
 
 /**
  * Immutable update of a timeline clip's own settings object (per-clip values
  * such as content/colors live on the clip itself, not the global registry).
+ *
+ * Also handles thumbnail-mode clips (stored in `videoClips`) and lets callers
+ * patch top-level clip props (e.g. `duration`, particle caches) alongside the
+ * settings patch.
  */
-export function updateTimelineClipSettings(clipId: string, patch: Partial<ClipSettings>): void {
+export function updateTimelineClipSettings(
+  clipId: string,
+  patch: Partial<ClipSettings>,
+  clipPatch: Partial<TimelineClip> = {},
+): void {
   const state = editorStore.getState();
-  const next = state.timelineClips.map((c) =>
-    c.id === clipId ? { ...c, settings: { ...c.settings, ...patch } } : c,
+
+  const apply = (clips: TimelineClip[]) =>
+    clips.map((c) =>
+      c.id === clipId
+        ? ({ ...c, ...clipPatch, settings: { ...c.settings, ...patch } } as TimelineClip)
+        : c,
+    );
+
+  const nextTimeline = apply(state.timelineClips);
+  const nextVideo = state.currentRoute === "/image" ? apply(state.videoClips ?? []) : undefined;
+
+  editorStore.setState(
+    nextVideo ? { timelineClips: nextTimeline, videoClips: nextVideo } : { timelineClips: nextTimeline },
   );
-  editorStore.setState({ timelineClips: next });
+}
+
+/**
+ * Force a re-render of React panels that read clip data from the store.
+ * Used after in-place mutations from imperative code (e.g. media upload
+ * processing) that legacy code signalled with `m.redraw()`.
+ */
+export function bumpClips(): void {
+  const state = editorStore.getState();
+  const patch: Record<string, unknown> = { timelineClips: [...state.timelineClips] };
+  if (state.currentRoute === "/image" && state.videoClips) {
+    patch.videoClips = [...state.videoClips];
+  }
+  editorStore.setState(patch);
 }
 
 /**
@@ -26,10 +58,17 @@ export function deleteClip(clipId: string | null): void {
   if (state.currentRoute === "/image" && state.videoClips?.some((c) => c.id === clipId)) {
     const dead = state.videoClips.find((c) => c.id === clipId);
     if (dead) revokeClipUrls(dead, state);
-    editorStore.setState({ videoClips: state.videoClips.filter((c) => c.id !== clipId), selectedClipId: null });
-  } else {
-    const dead = state.timelineClips.find((c) => c.id === clipId);
-    if (dead) revokeClipUrls(dead, state);
-    editorStore.setState({ timelineClips: state.timelineClips.filter((c) => c.id !== clipId), selectedClipId: null });
+    editorStore.setState({
+      videoClips: state.videoClips.filter((c) => c.id !== clipId),
+      selectedClipId: null,
+    });
+    return;
   }
+
+  const dead = state.timelineClips.find((c) => c.id === clipId);
+  if (dead) revokeClipUrls(dead, state);
+  editorStore.setState({
+    timelineClips: state.timelineClips.filter((c) => c.id !== clipId),
+    selectedClipId: null,
+  });
 }

@@ -1,4 +1,3 @@
-import m from "mithril";
 import { useEffect } from "react";
 import type { EditorRoute } from "../store/slices/mode";
 import { useEditorStore, editorStore } from "../store/editor-store";
@@ -17,6 +16,7 @@ import { InspectorPanel } from "../components/inspector-panel";
 import { RecordSettingsModal } from "../components/record-settings-modal";
 
 import { getClipsToSearch } from "../utils/helpers";
+import { bumpClips } from "../store/actions/timeline-actions";
 
 /** Set once per page session so HMR re-mounts never double-schedule the rAF loop. */
 let renderLoopStarted = false;
@@ -152,7 +152,8 @@ export const App = () => {
         id="audioElement"
         crossOrigin="anonymous"
         onEnded={() => {
-          m.redraw();
+          // poke subscribed panels (legacy used m.redraw())
+          bumpClips();
         }}
       />
 

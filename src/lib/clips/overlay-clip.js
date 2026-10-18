@@ -1,6 +1,6 @@
-import m from "mithril";
 import { State } from "../state";
-import { SharedTransformSettings, SharedAnimationSettings } from "../../components/shared-clip-settings";
+import { bumpClips } from "../../store/actions/timeline-actions";
+import { OverlaySettingsView } from "../../components/clip-settings/overlay";
 import { generateThumbnail, getClipsToSearch, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
 
 const triggerFilePicker = (onSelect) => {
@@ -57,10 +57,10 @@ export const processOverlayUpload = (file, clip, onComplete) => {
         generateThumbnail(vid1, true).then(thumb => {
           clip.settings.thumbnail = thumb;
           if (onComplete) onComplete();
-          m.redraw();
+          bumpClips();
         });
 
-        m.redraw();
+        bumpClips();
 
         // Revoke old URLs after replacing elements
         oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, State));
@@ -91,10 +91,10 @@ export const processOverlayUpload = (file, clip, onComplete) => {
       generateThumbnail(img).then(thumb => {
         clip.settings.thumbnail = thumb;
         if (onComplete) onComplete();
-        m.redraw();
+        bumpClips();
       });
 
-      m.redraw();
+      bumpClips();
 
       // Revoke old URLs after replacing elements
       oldUrls.forEach(oldUrl => revokeUrlIfUnused(oldUrl, State));
@@ -198,125 +198,5 @@ export const OverlayClip = {
     }
   },
 
-  onSettings(clip) {
-    const clipsToSearch = getClipsToSearch(State);
-    const selectedClip = clip || clipsToSearch.find(c => c.id === State.selectedClipId && c.type === 'overlay');
-    if (!selectedClip) return null;
-
-    return m("div", { class: "space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" }, [
-      // Change File Button
-      m("div", { class: "bg-slate-800/40 p-4 rounded-lg border border-slate-700/50 space-y-3" }, [
-        m("label", { class: "block text-[10px] font-bold text-slate-500 uppercase tracking-widest" }, "Media Settings"),
-        
-        m("button", {
-          class: "w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded border border-slate-700 flex items-center justify-center gap-2 transition-all",
-          onclick: () => {
-            triggerFilePicker((file) => {
-              processOverlayUpload(file, selectedClip, () => {
-                m.redraw();
-              });
-            });
-          }
-        }, [
-          m("i", { class: "icon-[ri--folder-open-line]" }),
-          "Replace Media Source"
-        ]),
-
-        // Loop Video Option (Only for Video overlays)
-        selectedClip.settings.mediaType === "video" && m("div", {
-          class: "flex items-center justify-between p-2.5 bg-slate-800/40 border border-slate-700/50 rounded-lg mt-2"
-        }, [
-          m("div", { class: "flex flex-col" }, [
-            m("span", { class: "text-[10px] font-bold text-slate-300" }, "Loop Video"),
-            m("span", { class: "text-[9px] text-slate-500" }, selectedClip.settings.loop ? "Loops continuously" : "Locks timeline clip to video length"),
-          ]),
-          m("button", {
-            class: `w-8 h-4 rounded-full relative transition-colors ${selectedClip.settings.loop !== false ? "bg-blue-600" : "bg-slate-700"}`,
-            onclick: () => {
-              selectedClip.settings.loop = selectedClip.settings.loop === false ? true : false;
-              // Enforce duration locking
-              if (selectedClip.settings.loop === false && selectedClip.settings.videoDuration) {
-                selectedClip.duration = selectedClip.settings.videoDuration / (selectedClip.settings.speed || 1.0);
-              }
-              m.redraw();
-            }
-          }, [
-            m("div", { 
-              class: `absolute top-0.5 bottom-0.5 w-3 bg-white rounded-full transition-all ${selectedClip.settings.loop !== false ? "right-0.5" : "left-0.5"}` 
-            })
-          ]),
-        ]),
-
-        // Video speed control (only if video overlay)
-        selectedClip.settings.mediaType === "video" && m("div", { class: "mt-4" }, [
-          m("label", { class: "block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex justify-between" }, [
-            m("span", "Video Speed"),
-            m("span", { class: "text-blue-400 font-mono text-[10px]" }, `${(selectedClip.settings.speed || 1.0).toFixed(2)}x`),
-          ]),
-          m("div", { class: "flex items-center gap-3" }, [
-            m("input", {
-              type: "range",
-              min: 0.25,
-              max: 4.0,
-              step: 0.05,
-              value: selectedClip.settings.speed || 1.0,
-              class: "flex-1 h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-blue-500",
-              oninput: (e) => {
-                const val = parseFloat(e.target.value);
-                selectedClip.settings.speed = val;
-                if (selectedClip.settings.mediaElements) {
-                  selectedClip.settings.mediaElements.forEach(v => {
-                    v.playbackRate = val;
-                  });
-                }
-                // Adjust duration if loop is disabled
-                if (selectedClip.settings.loop === false && selectedClip.settings.videoDuration) {
-                  selectedClip.duration = selectedClip.settings.videoDuration / val;
-                }
-                m.redraw();
-              },
-            }),
-            m("button", {
-              class: "px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded hover:text-white transition-colors text-[10px]",
-              onclick: () => {
-                selectedClip.settings.speed = 1.0;
-                if (selectedClip.settings.mediaElements) {
-                  selectedClip.settings.mediaElements.forEach(v => {
-                    v.playbackRate = 1.0;
-                  });
-                }
-                if (selectedClip.settings.loop === false && selectedClip.settings.videoDuration) {
-                  selectedClip.duration = selectedClip.settings.videoDuration;
-                }
-                m.redraw();
-              }
-            }, "Reset")
-          ])
-        ]),
-
-        // Opacity slider
-        m("div", { class: "mt-4" }, [
-          m("label", { class: "block text-xs text-slate-400 mb-2 flex justify-between" }, [
-            m("span", "Opacity"),
-            m("span", { class: "text-slate-500" }, `${Math.round((selectedClip.settings.opacity !== undefined ? selectedClip.settings.opacity : 1.0) * 100)}%`),
-          ]),
-          m("input", {
-            type: "range",
-            min: 0,
-            max: 1,
-            step: 0.05,
-            value: selectedClip.settings.opacity !== undefined ? selectedClip.settings.opacity : 1.0,
-            class: "w-full accent-blue-500",
-            oninput: (e) => {
-              selectedClip.settings.opacity = parseFloat(e.target.value);
-              m.redraw();
-            },
-          }),
-        ]),
-      ]),
-
-      SharedTransformSettings(null, -1, selectedClip.settings),
-      SharedAnimationSettings(null, -1, selectedClip.settings),
-    ]);
-  }
+  onSettings: OverlaySettingsView,
 };
