@@ -140,7 +140,11 @@ void main() {
     if (rel.x > 0.0 && rel.x < 1.0 && rel.y > 0.0 && rel.y < 1.0) {
       // Alpha is honoured, so a logo cut out of a transparent PNG still shows
       // the silhouette through it rather than stamping its empty corners down.
-      vec4 markTex = texture2D(u_image, rel);
+      //
+      // v is flipped: an uploaded texture is read top-down from its first row,
+      // while v_texCoord.y runs bottom-up out of the quad's geometry. Without
+      // this the picture comes out upside down.
+      vec4 markTex = texture2D(u_image, vec2(rel.x, 1.0 - rel.y));
       col = mix(col, markTex.rgb, markTex.a);
       mark = markTex.a;
     }

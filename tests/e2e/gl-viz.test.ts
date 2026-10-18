@@ -336,6 +336,54 @@ describe("gl-viz Aura", () => {
     });
   });
 
+  e2e("stands the picture the right way up", async () => {
+    // An uploaded texture is read top-down from its first row, while
+    // v_texCoord.y runs bottom-up from the quad geometry. Sampling the picture
+    // straight off that coordinate shows it upside down.
+    await withApp(async (t) => {
+      const r = await t.eval<{ dx: number; dy: number }>(`(async () => {
+        const e = window.__e2e;
+        const N = 200;
+
+        // Painted in one corner only, so a flip has somewhere to show.
+        const c = document.createElement("canvas");
+        c.width = 200; c.height = 200;
+        const g = c.getContext("2d");
+        g.fillStyle = "#ff0000";
+        g.fillRect(0, 0, 100, 100);
+        const url = c.toDataURL("image/png");
+
+        const settings = {
+          image: url, markSize: 0.6, glow: 0,
+          fill: "#000000", background: "#000000ff",
+        };
+        await e.renderDef("aura", settings, N, N);
+        await e.wait(700);
+        const img = await e.renderDef("aura", settings, N, N);
+
+        let minX = N, maxX = -1, minY = N, maxY = -1;
+        for (let y = 0; y < N; y++) {
+          for (let x = 0; x < N; x++) {
+            const i = (y * N + x) * 4;
+            if (img.pixels[i] > 150 && img.pixels[i + 1] < 80) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+        // Where the red landed, relative to the centre of the frame.
+        return { dx: (minX + maxX) / 2 - N / 2, dy: (minY + maxY) / 2 - N / 2 };
+      })()`);
+
+      // The marker was painted in the image's top-left. Canvas y grows downward,
+      // so it has to land ABOVE the centre: a negative dy.
+      expect(r.dx).toBeLessThan(0);
+      expect(r.dy).toBeLessThan(0);
+    });
+  });
+
   e2e("the halo tracks the bass", async () => {
     await withApp(async (t) => {
       const r = await t.eval<{ still: number; reactive: number; db: number }>(`(async () => {
