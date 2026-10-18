@@ -87,6 +87,15 @@ export const WebGLRenderer = {
     return true;
   },
 
+  /**
+   * The raw context, for callers that need texture management on top of the
+   * quad path. drawQuad owns uniforms and the draw call; texture work has to
+   * run on this same context, before it.
+   */
+  getContext(): WebGLRenderingContext | null {
+    return this.init() ? gl : null;
+  },
+
   compileProgram(vsSource: string, fsSource: string): WebGLProgram | null {
     if (!this.init()) return null;
     const g = gl as WebGLRenderingContext;
@@ -134,6 +143,12 @@ export const WebGLRenderer = {
     uniforms: Record<string, UniformValue>,
     w: number,
     h: number,
+    /**
+     * Integer uniforms. Texture samplers must go through uniform1i, and the
+     * `uniforms` map routes plain numbers through uniform1f, so they need a
+     * separate channel.
+     */
+    intUniforms?: Record<string, number>,
   ): HTMLCanvasElement | null {
     if (!this.init()) return null;
     const g = gl as WebGLRenderingContext;
@@ -181,6 +196,13 @@ export const WebGLRenderer = {
     }
 
     // Render quad
+    if (intUniforms) {
+      for (const [name, val] of Object.entries(intUniforms)) {
+        const loc = getUniformLocation(g, program, name);
+        if (loc !== null) g.uniform1i(loc, val);
+      }
+    }
+
     g.drawArrays(g.TRIANGLES, 0, 6);
 
     return canvas;

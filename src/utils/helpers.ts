@@ -151,6 +151,24 @@ export const getClipsToSearch = (state: any): any[] => {
     : state.timelineClips;
 };
 
+/**
+ * Normalises a hex colour to its 6-digit form and returns 0-1 RGB channels.
+ * Falls back to opaque blue for anything unparseable so a bad settings value
+ * degrades to a visible colour rather than a black shader.
+ */
+export function hexToRGB(hex: string): [number, number, number] {
+  let h = (hex || "").replace(/^#/, "");
+  if (h.length === 3) {
+    h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  }
+  if (!/^[0-9a-f]{6}$/i.test(h)) return [0.231, 0.51, 0.965];
+  return [
+    parseInt(h.substring(0, 2), 16) / 255,
+    parseInt(h.substring(2, 4), 16) / 255,
+    parseInt(h.substring(4, 6), 16) / 255,
+  ];
+}
+
 // Helper to convert hex to HSL
 export function hexToHSL(hex: string): HSL {
   hex = hex.replace(/^#/, '');
