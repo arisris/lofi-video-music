@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { EditorStore } from "../store-types";
-import type { CanvasSnap, DragPivot, SnapLine } from "../../types/clips";
+import type { CanvasSnap, CanvasSnapTarget, DragPivot, SnapLine } from "../../types/clips";
 
 /** Transient canvas interaction state (dragging, transforms, snapping). */
 export interface InteractionSlice {
@@ -20,13 +20,13 @@ export interface InteractionSlice {
 
   /** Cursor override while dragging (null = default). */
   canvasCursor: string | null;
-  transformMode: string;
+  transformMode: string | null;
   interactionMode: string;
 
   snapLines: SnapLine[];
   canvasSnaps: CanvasSnap[];
-  staticSnapTargetsX: number[] | null;
-  staticSnapTargetsY: number[] | null;
+  staticSnapTargetsX: CanvasSnapTarget[] | null;
+  staticSnapTargetsY: CanvasSnapTarget[] | null;
 }
 
 export const createInteractionSlice: StateCreator<EditorStore, [], [], InteractionSlice> = () => ({

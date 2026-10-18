@@ -25,8 +25,8 @@ const storeMeta = (import.meta.hot?.data as { editorState?: Partial<EditorStore>
 
 /**
  * Single source of truth for the whole editor.
- * `src/lib/state.js` (legacy global `State`) is a Proxy bridge on top of this
- * store, so every legacy read/write keeps working during the migration.
+ * The legacy `State` Proxy bridge was removed once every module was converted;
+ * engine modules now read/write this store directly.
  */
 export const editorStore = createStore<EditorStore>()((set, get, api) => {
   const initial: EditorStore = Object.create(null);

@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 import { runtime } from "./runtime";
 import { ClipRegistry } from "./clips/index";
 import { applyClipAnimations } from "./animations";
@@ -49,17 +49,18 @@ export const renderLoop = () => {
   dt = Math.min(dt, 0.1);
   lastTime = now;
 
-  const clipsToSearch = getClipsToSearch(State);
+  const state = editorStore.getState();
+  const clipsToSearch = getClipsToSearch(state);
   const bgClipsToSearch = clipsToSearch.filter((c: any) => c.type === 'background');
   const musicClipsToSearch = clipsToSearch.filter((c: any) => c.type === 'music');
 
   // Increment currentTime if playing
-  if (State.isPlaying) {
+  if (state.isPlaying) {
     const activeClip = musicClipsToSearch.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
-      State.currentTime >= c.start && 
-      State.currentTime <= c.start + c.duration
+      state.currentTime >= c.start && 
+      state.currentTime <= c.start + c.duration
     );
 
     if (activeClip && runtime.audioEl) {
@@ -82,12 +83,12 @@ export const renderLoop = () => {
         applyAudioSettings(activeClip);
 
         const onLoaded = () => {
-          const currentLocalTime = State.currentTime - activeClip.start;
+          const currentLocalTime = editorStore.getState().currentTime - activeClip.start;
           const currentPlayheadTime = currentLocalTime + (activeClip.settings.startOffset || 0);
           if (currentPlayheadTime < (activeClip.settings.audioDuration || activeClip.duration)) {
             audioEl.currentTime = currentPlayheadTime;
             applyAudioSettings(activeClip);
-            if (State.isPlaying) {
+            if (state.isPlaying) {
               audioEl.play().catch((e) => console.warn("Auto-play failed:", e));
             }
           }
@@ -95,42 +96,43 @@ export const renderLoop = () => {
         };
         audioEl.addEventListener('loadedmetadata', onLoaded);
 
-        State.currentTime = (State.currentTime || 0) + dt;
+        editorStore.setState({ currentTime: (state.currentTime || 0) + dt });
       } else {
         if (!audioEl.paused) {
           // Sync timeline currentTime to active audio clip elapsed time to avoid drift
           const localTime = audioEl.currentTime - (activeClip.settings.startOffset || 0);
-          State.currentTime = activeClip.start + localTime;
+          editorStore.setState({ currentTime: activeClip.start + localTime });
         } else {
-          State.currentTime = (State.currentTime || 0) + dt;
+          editorStore.setState({ currentTime: (state.currentTime || 0) + dt });
         }
       }
     } else {
       if (runtime.audioEl && !runtime.audioEl.paused) {
         runtime.audioEl.pause();
       }
-      State.currentTime = (State.currentTime || 0) + dt;
+      editorStore.setState({ currentTime: (state.currentTime || 0) + dt });
     }
 
     let shouldStop = false;
     const totalDur = getTotalDuration(clipsToSearch);
 
-    if (State.isRecording && State.recordingMode === "clip") {
-      if (State.currentTime >= State.recordingTargetClipEnd) {
-        State.currentTime = State.recordingTargetClipEnd;
+    const liveState = editorStore.getState();
+    if (liveState.isRecording && liveState.recordingMode === "clip") {
+      if (liveState.currentTime >= liveState.recordingTargetClipEnd) {
+        editorStore.setState({ currentTime: liveState.recordingTargetClipEnd });
         shouldStop = true;
       }
     } else {
-      if (State.currentTime >= totalDur) {
-        State.currentTime = totalDur;
+      if (liveState.currentTime >= totalDur) {
+        editorStore.setState({ currentTime: totalDur });
         shouldStop = true;
       }
     }
 
     if (shouldStop) {
-      State.isPlaying = false;
+      editorStore.setState({ isPlaying: false });
       if (runtime.audioEl) runtime.audioEl.pause();
-      if (State.isRecording) {
+      if (editorStore.getState().isRecording) {
         stopRecording();
       }
     }
@@ -142,7 +144,7 @@ export const renderLoop = () => {
   const h = runtime.canvas.height;
 
   // Master timeline time
-  const globalTime = getGlobalTime(State);
+  const globalTime = getGlobalTime(state);
 
   // Manage video playback of all timeline clips
 
@@ -259,7 +261,7 @@ export const renderLoop = () => {
   }
 
   // Update Visualizer Data
-  if (runtime.analyser && State.isPlaying) {
+  if (runtime.analyser && state.isPlaying) {
     runtime.analyser.getByteFrequencyData(runtime.dataArray);
   } else if (runtime.analyser) {
     for (let i = 0; i < runtime.dataArray.length; i++) {
@@ -274,7 +276,7 @@ export const renderLoop = () => {
     try {
       if (!clip || typeof clip.draw !== "function") return;
       
-      const settings = State.clipSettings[clip.id];
+      const settings = state.clipSettings[clip.id];
       if (!settings) return;
       if (settings.enabled === false) return;
 
@@ -287,12 +289,12 @@ export const renderLoop = () => {
   });
 
   // Draw Timeline Clips
-  State.timelineClips.forEach((clip: any) => {
+  state.timelineClips.forEach((clip: any) => {
     if (globalTime < clip.start || globalTime > clip.start + clip.duration) return;
     if (clip.settings && clip.settings.enabled === false) return;
 
     // Check if this clip type is disabled globally via ClipRegistry settings
-    const globalSettings = State.clipSettings[clip.type];
+    const globalSettings = state.clipSettings[clip.type];
     if (globalSettings && globalSettings.enabled === false) return;
 
     const renderer = ClipRegistry.get(clip.type);
@@ -313,13 +315,13 @@ export const renderLoop = () => {
   });
 
   // Draw Canvas Snap Guides
-  if (State.canvasSnaps && State.canvasSnaps.length > 0) {
+  if (state.canvasSnaps && state.canvasSnaps.length > 0) {
     ctx.save();
     ctx.strokeStyle = "#f43f5e"; // Rose-500 red alignment line
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 4]);
     
-    State.canvasSnaps.forEach((snap: any) => {
+    state.canvasSnaps.forEach((snap: any) => {
       ctx.beginPath();
       if (snap.type === 'x') {
         ctx.moveTo(snap.value, 0);
@@ -334,8 +336,8 @@ export const renderLoop = () => {
   }
 
   // Draw selected clip's transform handles
-  const selectedInfo = getSelectedClipInfo(State);
-  if (selectedInfo && State.interactionMode === 'select') {
+  const selectedInfo = getSelectedClipInfo(state);
+  if (selectedInfo && state.interactionMode === 'select') {
     const { settings, renderer } = selectedInfo;
     const bbox = renderer.getItemBoundingBox ? renderer.getItemBoundingBox(ctx, w, h, settings) : null;
     if (bbox) {

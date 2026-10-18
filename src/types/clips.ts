@@ -96,3 +96,9 @@ export interface CanvasSnap {
   type: string;
   value: number;
 }
+
+/** Pre-computed alignment targets used by canvas snapping while dragging. */
+export interface CanvasSnapTarget {
+  value: number;
+  label: string;
+}

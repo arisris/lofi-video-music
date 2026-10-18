@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 import { runtime } from "./runtime";
 import { formatTime } from "../utils/helpers";
 import { bumpClips } from "../store/actions/timeline-actions";
@@ -10,34 +10,37 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
     runtime.audioCtx.resume().catch((e) => console.warn(e));
   }
   
-  const oldSnaps = State.canvasSnaps || [];
+  const state = editorStore.getState();
+  const oldSnaps = state.canvasSnaps || [];
   
   let activeClip = null;
   if (mode === "clip") {
-    activeClip = State.timelineClips.find((c: any) => 
+    activeClip = state.timelineClips.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
-      State.currentTime >= c.start && 
-      State.currentTime <= c.start + c.duration
-    );
+      state.currentTime >= c.start && 
+      state.currentTime <= c.start + c.duration
+    ) as any;
     if (!activeClip) {
       alert("Please place the playhead over a music clip first to record it.");
       return;
     }
     
-    State.recordingTargetClipEnd = activeClip.start + activeClip.duration;
-    State.currentTime = activeClip.start;
+    editorStore.setState({
+      recordingTargetClipEnd: activeClip.start + activeClip.duration,
+      currentTime: activeClip.start,
+    });
   } else {
-    State.currentTime = 0;
+    editorStore.setState({ currentTime: 0 });
   }
-  
-  State.recordingMode = mode;
+
+  editorStore.setState({ recordingMode: mode });
   runtime.recordedChunks = [];
   
   // Set canvas size based on selected resolution before capture
-  const resolution = State.recordResolution || "720p";
+  const resolution = state.recordResolution || "720p";
   if (runtime.canvas) {
-    if (State.aspectRatio === "16:9") {
+    if (state.aspectRatio === "16:9") {
       if (resolution === "1080p") {
         runtime.canvas.width = 1920;
         runtime.canvas.height = 1080;
@@ -62,7 +65,7 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
     }
   }
 
-  const fps = State.recordFps || 30;
+  const fps = state.recordFps || 30;
   const canvasStream = runtime.canvas!.captureStream(fps);
   const audioStream = runtime.dest.stream;
   const tracks = [...canvasStream.getTracks(), ...audioStream.getTracks()];
@@ -101,7 +104,7 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
     });
 
     const ext = options.mimeType.includes("mp4") ? "mp4" : "webm";
-    const duration = Date.now() - State.recordStartTime;
+    const duration = Date.now() - editorStore.getState().recordStartTime;
 
     const processDownload = (finalBlob: Blob) => {
       const url = URL.createObjectURL(finalBlob);
@@ -128,7 +131,7 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
       setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        State.canvasSnaps = oldSnaps;
+        editorStore.setState({ canvasSnaps: oldSnaps });
         bumpClips();
       }, 200);
     };
@@ -148,17 +151,18 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
   };
 
   runtime.mediaRecorder.start(100); // Record in 100ms chunks to prevent loss on stop
-  State.isRecording = true;
-  State.recordStartTime = Date.now();
+  const now = Date.now();
+  editorStore.setState({ isRecording: true, recordStartTime: now });
   const updateTimer = () => {
-    if (!State.isRecording) return;
-    const diff = Math.floor((Date.now() - State.recordStartTime) / 1000);
-    State.recordingTime = formatTime(diff);
+    const live = editorStore.getState();
+    if (!live.isRecording) return;
+    const diff = Math.floor((Date.now() - live.recordStartTime) / 1000);
+    editorStore.setState({ recordingTime: formatTime(diff) });
     bumpClips();
     setTimeout(updateTimer, 1000);
   };
   updateTimer();
-  if (!State.isPlaying) playAudio();
+  if (!editorStore.getState().isPlaying) playAudio();
   bumpClips();
 };
 
@@ -166,12 +170,12 @@ export const stopRecording = () => {
   if (runtime.mediaRecorder && runtime.mediaRecorder.state !== "inactive") {
     runtime.mediaRecorder.stop();
   }
-  State.isRecording = false;
+  editorStore.setState({ isRecording: false });
   pauseAudio();
 
   // Restore canvas dimensions to standard preview resolution
   if (runtime.canvas) {
-    if (State.aspectRatio === "16:9") {
+    if (editorStore.getState().aspectRatio === "16:9") {
       runtime.canvas.width = 1280;
       runtime.canvas.height = 720;
     } else {

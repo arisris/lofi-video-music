@@ -1,8 +1,9 @@
 import type { StateCreator } from "zustand";
 import type { EditorStore } from "../store-types";
 
-export type RecordMode = "track" | "playlist";
-export type PendingRecordMode = "timeline" | "clip";
+/** Legacy recording modes: full timeline or a single music clip. */
+export type RecordMode = "timeline" | "clip";
+export type PendingRecordMode = RecordMode;
 export type RecordResolution = "720p" | "1080p" | "1440p";
 export type RecordFps = 30 | 60;
 
@@ -25,7 +26,7 @@ export interface RecordingSlice {
 
 export const createRecordingSlice: StateCreator<EditorStore, [], [], RecordingSlice> = () => ({
   isRecording: false,
-  recordingMode: "track",
+  recordingMode: "timeline",
   recordStartTime: 0,
   recordingTime: "00:00",
   recordingTargetClipEnd: 0,

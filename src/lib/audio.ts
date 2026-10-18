@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 import { runtime } from "./runtime";
 import { getClipsToSearch } from "../utils/helpers";
 import { bumpClips } from "../store/actions/timeline-actions";
@@ -47,7 +47,7 @@ export const applyAudioSettings = (clip: Record<string, any> | { settings?: Reco
 
   // Apply volume. Keep base HTML5 volume fader at 1.0 maximum.
   // If the audio engine is not initialized yet, fall back to setting audioEl.volume (up to 1.0).
-  if (!State.isAudioInit) {
+  if (!editorStore.getState().isAudioInit) {
     runtime.audioEl.volume = Math.min(1.0, volumeVal);
   } else {
     runtime.audioEl.volume = 1.0;
@@ -57,7 +57,7 @@ export const applyAudioSettings = (clip: Record<string, any> | { settings?: Reco
   runtime.audioEl.playbackRate = (clip.settings as Record<string, any>)?.playbackRate ?? 1.0;
 
   // Apply EQ, Gain (Volume Boost) & Panning settings if audio engine is initialized
-  if (State.isAudioInit && runtime.audioCtx) {
+  if (editorStore.getState().isAudioInit && runtime.audioCtx) {
     const time = runtime.audioCtx.currentTime;
     if (runtime.gainNode) {
       runtime.gainNode.gain.setValueAtTime(volumeVal, time);
@@ -78,7 +78,7 @@ export const applyAudioSettings = (clip: Record<string, any> | { settings?: Reco
 };
 
 export const initAudioEngine = () => {
-  if (State.isAudioInit) {
+  if (editorStore.getState().isAudioInit) {
     reconnectAudioEngine();
     return;
   }
@@ -143,7 +143,7 @@ export const initAudioEngine = () => {
   const bufferLength = runtime.analyser.frequencyBinCount;
   runtime.dataArray = new Uint8Array(bufferLength);
 
-  State.isAudioInit = true;
+  editorStore.setState({ isAudioInit: true });
 };
 
 export const playAudio = () => {
@@ -156,19 +156,20 @@ export const playAudio = () => {
   if (!runtime.audioEl) return;
   const audioEl = runtime.audioEl;
 
-  const clipsToSearch = getClipsToSearch(State);
+  const state = editorStore.getState();
+  const clipsToSearch = getClipsToSearch(state);
 
   const activeClip = clipsToSearch.find((c: any) =>
     c.type === 'music' &&
     c.settings?.enabled !== false &&
-    State.currentTime >= c.start &&
-    State.currentTime <= c.start + c.duration
+    state.currentTime >= c.start &&
+    state.currentTime <= c.start + c.duration
   );
 
-  State.isPlaying = true;
+  editorStore.setState({ isPlaying: true });
 
   if (activeClip) {
-    const localTime = State.currentTime - activeClip.start;
+    const localTime = state.currentTime - activeClip.start;
     const playheadTime = localTime + (activeClip.settings.startOffset || 0);
 
     if (audioEl.src !== activeClip.settings.audioUrl) {
@@ -198,12 +199,12 @@ export const pauseAudio = () => {
   if (runtime.audioEl) {
     runtime.audioEl.pause();
   }
-  State.isPlaying = false;
+  editorStore.setState({ isPlaying: false });
   bumpClips();
 };
 
 export const skipToNextTrack = () => {
-  const clipsToSearch = getClipsToSearch(State);
+  const clipsToSearch = getClipsToSearch(editorStore.getState());
 
   const musicClips = clipsToSearch
     .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
@@ -211,14 +212,14 @@ export const skipToNextTrack = () => {
 
   if (musicClips.length === 0) return;
 
-  const nextClip = musicClips.find((c: any) => c.start > (State.currentTime || 0) + 0.1);
+  const nextClip = musicClips.find((c: any) => c.start > (editorStore.getState().currentTime || 0) + 0.1);
   if (nextClip) {
-    State.currentTime = nextClip.start;
+    editorStore.setState({ currentTime: nextClip.start });
   } else {
-    State.currentTime = musicClips[0].start;
+    editorStore.setState({ currentTime: musicClips[0].start });
   }
 
-  if (State.isPlaying) {
+  if (editorStore.getState().isPlaying) {
     playAudio();
   } else {
     bumpClips();
@@ -226,7 +227,7 @@ export const skipToNextTrack = () => {
 };
 
 export const skipToPrevTrack = () => {
-  const clipsToSearch = getClipsToSearch(State);
+  const clipsToSearch = getClipsToSearch(editorStore.getState());
 
   const musicClips = clipsToSearch
     .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
@@ -234,28 +235,28 @@ export const skipToPrevTrack = () => {
 
   if (musicClips.length === 0) return;
 
-  const curTime = State.currentTime || 0;
+  const curTime = editorStore.getState().currentTime || 0;
   const currentClipIdx = musicClips.findIndex((c: any) => curTime >= c.start && curTime <= c.start + c.duration);
 
   if (currentClipIdx !== -1) {
     const currentClip = musicClips[currentClipIdx];
     if (curTime - currentClip.start > 2) {
-      State.currentTime = currentClip.start;
+      editorStore.setState({ currentTime: currentClip.start });
     } else if (currentClipIdx > 0) {
-      State.currentTime = musicClips[currentClipIdx - 1].start;
+      editorStore.setState({ currentTime: musicClips[currentClipIdx - 1].start });
     } else {
-      State.currentTime = currentClip.start;
+      editorStore.setState({ currentTime: currentClip.start });
     }
   } else {
     const prevClip = [...musicClips].reverse().find((c: any) => c.start + c.duration < curTime);
     if (prevClip) {
-      State.currentTime = prevClip.start;
+      editorStore.setState({ currentTime: prevClip.start });
     } else {
-      State.currentTime = musicClips[0].start;
+      editorStore.setState({ currentTime: musicClips[0].start });
     }
   }
 
-  if (State.isPlaying) {
+  if (editorStore.getState().isPlaying) {
     playAudio();
   } else {
     bumpClips();

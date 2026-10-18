@@ -1,8 +1,10 @@
-import { State } from "./state";
+import { editorStore } from "../store/editor-store";
 import { runtime } from "./runtime";
 import { ClipRegistry } from "./clips/registry";
 import { getGlobalTime, getClipsToSearch, transformPoint, inverseTransformPoint, getSelectedClipInfo } from "../utils/helpers";
-import { bumpClips } from "../store/actions/timeline-actions";
+import { bumpClips, updateTimelineClipSettings } from "../store/actions/timeline-actions";
+import { updateClipSettings } from "../store/actions/clip-settings";
+import type { CanvasSnap } from "../types/clips";
 
 /** Minimal structural pointer event (mouse or touch). */
 export interface DragPointerEvent {
@@ -39,8 +41,8 @@ export const findClipAtPos = (pos: { x: number; y: number }) => {
   const h = runtime.canvas!.height;
   
   // 1. Check Timeline Clips first (they are usually on top)
-  const globalTime = getGlobalTime(State);
-  const clipsToSearch = getClipsToSearch(State);
+  const globalTime = getGlobalTime(editorStore.getState());
+  const clipsToSearch = getClipsToSearch(editorStore.getState());
 
   // Sort timeline clips by track index reverse (top tracks first) and filter out background clips
   const sortedClips = [...clipsToSearch]
@@ -66,7 +68,7 @@ export const findClipAtPos = (pos: { x: number; y: number }) => {
   for (const clip of globalClips) {
     if (clip.id === 'text' || clip.id === 'background' || clip.id === 'visualizer') continue; // Skip timeline clips
 
-    const settings = State.clipSettings[clip.id];
+    const settings = editorStore.getState().clipSettings[clip.id];
     if (!settings) continue;
     
     const bbox = clip.getBoundingBox ? clip.getBoundingBox(ctx, w, h) : { x: 0, y: 0, width: w, height: h };
@@ -102,21 +104,21 @@ export const findHandleAtPos = (pos: { x: number; y: number }, bbox: { x: number
 
 export const handleDragStart = (e: DragPointerEvent) => {
   const pos = getEventPos(e);
-  State.startDragX = pos.x;
-  State.startDragY = pos.y;
+  editorStore.setState({ startDragX: pos.x });
+  editorStore.setState({ startDragY: pos.y });
 
-  if (State.interactionMode === 'pan') {
-    const clipsToSearch = getClipsToSearch(State);
-    const selectedClip = clipsToSearch.find((c: any) => c.id === State.selectedClipId && c.type === 'background');
+  if (editorStore.getState().interactionMode === 'pan') {
+    const clipsToSearch = getClipsToSearch(editorStore.getState());
+    const selectedClip = clipsToSearch.find((c: any) => c.id === editorStore.getState().selectedClipId && c.type === 'background');
     if (selectedClip) {
-      State.isDragging = true;
-      State.transformMode = 'background';
-      State.initialOffsetX = selectedClip.settings.bgOffsetX || 0;
-      State.initialOffsetY = selectedClip.settings.bgOffsetY || 0;
+      editorStore.setState({ isDragging: true });
+      editorStore.setState({ transformMode: 'background' });
+      editorStore.setState({ initialOffsetX: selectedClip.settings.bgOffsetX || 0 });
+      editorStore.setState({ initialOffsetY: selectedClip.settings.bgOffsetY || 0 });
     }
   } else {
     // Check if clicked on a handle of the currently selected clip first
-    const selectedInfo = getSelectedClipInfo(State);
+    const selectedInfo = getSelectedClipInfo(editorStore.getState());
     let clickedHandle: string | null = null;
     if (selectedInfo) {
       const { settings, renderer } = selectedInfo;
@@ -134,47 +136,45 @@ export const handleDragStart = (e: DragPointerEvent) => {
       const h = runtime.canvas!.height;
       const bbox = renderer.getItemBoundingBox(runtime.ctx!, w, h, settings);
 
-      State.isDragging = true;
-      State.transformMode = clickedHandle;
-      State.initialRotation = settings.rotation || 0;
-      State.initialScaleX = settings.scaleX || 1;
-      State.initialScaleY = settings.scaleY || 1;
+      editorStore.setState({ isDragging: true });
+      editorStore.setState({ transformMode: clickedHandle });
+      editorStore.setState({ initialRotation: settings.rotation || 0 });
+      editorStore.setState({ initialScaleX: settings.scaleX || 1 });
+      editorStore.setState({ initialScaleY: settings.scaleY || 1 });
 
       const originX = settings.originX !== undefined ? settings.originX : 0.5;
       const originY = settings.originY !== undefined ? settings.originY : 0.5;
       const cx = bbox.x + bbox.width * originX;
       const cy = bbox.y + bbox.height * originY;
 
-      State.dragPivot = {
-        x: cx + (settings.x || 0),
-        y: cy + (settings.y || 0)
-      };
+      const dragPivot = { x: cx + (settings.x || 0), y: cy + (settings.y || 0) };
+      editorStore.setState({ dragPivot });
 
-      const dx = pos.x - State.dragPivot.x;
-      const dy = pos.y - State.dragPivot.y;
-      State.initialDragDistance = Math.sqrt(dx * dx + dy * dy);
-      State.initialDragAngle = Math.atan2(dy, dx);
+      const dx = pos.x - dragPivot.x;
+      const dy = pos.y - dragPivot.y;
+      editorStore.setState({ initialDragDistance: Math.sqrt(dx * dx + dy * dy) });
+      editorStore.setState({ initialDragAngle: Math.atan2(dy, dx) });
       
       // Lock cursor during handle drag
       if (clickedHandle === 'rotate') {
-        State.canvasCursor = 'crosshair';
+        editorStore.setState({ canvasCursor: 'crosshair' });
       } else if (clickedHandle === 'resize-tl' || clickedHandle === 'resize-br') {
-        State.canvasCursor = 'nwse-resize';
+        editorStore.setState({ canvasCursor: 'nwse-resize' });
       } else if (clickedHandle === 'resize-tr' || clickedHandle === 'resize-bl') {
-        State.canvasCursor = 'nesw-resize';
+        editorStore.setState({ canvasCursor: 'nesw-resize' });
       }
     } else {
       const hit = findClipAtPos(pos);
       if (hit) {
-        State.selectedClipId = hit.id;
-        State.isDragging = true;
-        State.transformMode = 'clip';
-        State.canvasCursor = 'move';
+        editorStore.setState({ selectedClipId: hit.id });
+        editorStore.setState({ isDragging: true });
+        editorStore.setState({ transformMode: 'clip' });
+        editorStore.setState({ canvasCursor: 'move' });
         
         if (hit.isTimeline) {
-          State.activeClipTab = hit.clip.type;
-          State.initialOffsetX = hit.clip.settings.x || 0;
-          State.initialOffsetY = hit.clip.settings.y || 0;
+          editorStore.setState({ activeClipTab: hit.clip.type });
+          editorStore.setState({ initialOffsetX: hit.clip.settings.x || 0 });
+          editorStore.setState({ initialOffsetY: hit.clip.settings.y || 0 });
 
           // Pre-calculate and cache static snap targets
           const timelineClip = hit.clip;
@@ -192,9 +192,9 @@ export const handleDragStart = (e: DragPointerEvent) => {
               { value: h, label: 'Bottom Border' }
             ];
 
-            const globalTime = getGlobalTime(State);
+            const globalTime = getGlobalTime(editorStore.getState());
 
-            State.timelineClips.forEach((other: any) => {
+            editorStore.getState().timelineClips.forEach((other: any) => {
               if (other.id === timelineClip.id || other.type === 'background') return;
               if (globalTime < other.start || globalTime > other.start + other.duration) return;
 
@@ -228,19 +228,17 @@ export const handleDragStart = (e: DragPointerEvent) => {
               }
             });
 
-            State.staticSnapTargetsX = snapTargetsX;
-            State.staticSnapTargetsY = snapTargetsY;
+            editorStore.setState({ staticSnapTargetsX: snapTargetsX, staticSnapTargetsY: snapTargetsY });
           }
         } else {
-          State.activeClipTab = hit.id;
-          const target = State.clipSettings[hit.id];
-          State.initialOffsetX = target.x || 0;
-          State.initialOffsetY = target.y || 0;
+          editorStore.setState({ activeClipTab: hit.id });
+          const target = editorStore.getState().clipSettings[hit.id] as Record<string, any>;
+          editorStore.setState({ initialOffsetX: target.x || 0, initialOffsetY: target.y || 0 });
         }
-        State.activeInspectorTab = "properties";
+        editorStore.setState({ activeInspectorTab: "properties" });
       } else {
-        State.selectedClipId = null;
-        State.canvasCursor = null;
+        editorStore.setState({ selectedClipId: null });
+        editorStore.setState({ canvasCursor: null });
       }
     }
   }
@@ -249,73 +247,84 @@ export const handleDragStart = (e: DragPointerEvent) => {
 };
 
 export const handleDragMove = (e: DragPointerEvent) => {
-  if (!State.isDragging) return;
+  const state = editorStore.getState();
+  if (!state.isDragging) return;
   const pos = getEventPos(e);
-  const dx = pos.x - State.startDragX;
-  const dy = pos.y - State.startDragY;
+  const dx = pos.x - state.startDragX;
+  const dy = pos.y - state.startDragY;
 
-  if (State.transformMode === 'background') {
-    const clipsToSearch = getClipsToSearch(State);
-    const selectedClip = clipsToSearch.find((c: any) => c.id === State.selectedClipId && c.type === 'background');
-    if (selectedClip) {
-      selectedClip.settings.bgOffsetX = State.initialOffsetX + dx;
-      selectedClip.settings.bgOffsetY = State.initialOffsetY + dy;
+  // Helper: apply a settings patch to either a timeline clip or a global clip
+  const applySettingsPatch = (info: any, patch: Record<string, any>) => {
+    if (info.isTimeline) {
+      updateTimelineClipSettings(info.clip.id, patch);
+    } else {
+      updateClipSettings(info.clip.id, patch);
     }
-  } else if (State.transformMode === 'rotate') {
-    const selectedInfo = getSelectedClipInfo(State);
-    if (selectedInfo && State.dragPivot) {
-      const currentAngle = Math.atan2(pos.y - State.dragPivot.y, pos.x - State.dragPivot.x);
-      const deltaAngle = currentAngle - State.initialDragAngle;
-      let newRotation = State.initialRotation + deltaAngle * 180 / Math.PI;
+  };
+
+  if (state.transformMode === 'background') {
+    const clipsToSearch = getClipsToSearch(state);
+    const selectedClip = clipsToSearch.find((c: any) => c.id === state.selectedClipId && c.type === 'background');
+    if (selectedClip) {
+      updateTimelineClipSettings(selectedClip.id, {
+        bgOffsetX: state.initialOffsetX + dx,
+        bgOffsetY: state.initialOffsetY + dy,
+      });
+    }
+  } else if (state.transformMode === 'rotate') {
+    const selectedInfo = getSelectedClipInfo(state);
+    if (selectedInfo && state.dragPivot) {
+      const currentAngle = Math.atan2(pos.y - state.dragPivot.y, pos.x - state.dragPivot.x);
+      const deltaAngle = currentAngle - state.initialDragAngle;
+      let newRotation = state.initialRotation + (deltaAngle * 180) / Math.PI;
 
       if (e.shiftKey) {
         newRotation = Math.round(newRotation / 15) * 15;
       }
-      
-      selectedInfo.settings.rotation = newRotation;
+
+      applySettingsPatch(selectedInfo, { rotation: newRotation });
     }
-  } else if (State.transformMode && State.transformMode.startsWith('resize')) {
-    const selectedInfo = getSelectedClipInfo(State);
-    if (selectedInfo && State.dragPivot) {
-      const currentDx = pos.x - State.dragPivot.x;
-      const currentDy = pos.y - State.dragPivot.y;
+  } else if (state.transformMode?.startsWith('resize')) {
+    const selectedInfo = getSelectedClipInfo(state);
+    if (selectedInfo && state.dragPivot) {
+      const currentDx = pos.x - state.dragPivot.x;
+      const currentDy = pos.y - state.dragPivot.y;
       const currentDist = Math.sqrt(currentDx * currentDx + currentDy * currentDy);
 
       let scaleFactor = 1;
-      if (State.initialDragDistance > 0) {
-        scaleFactor = currentDist / State.initialDragDistance;
-        
+      if (state.initialDragDistance > 0) {
+        scaleFactor = currentDist / state.initialDragDistance;
+
         // Dot product to check if we dragged to the opposite side of the pivot
-        const mxStart = State.startDragX - State.dragPivot.x;
-        const myStart = State.startDragY - State.dragPivot.y;
+        const mxStart = state.startDragX - state.dragPivot.x;
+        const myStart = state.startDragY - state.dragPivot.y;
         const dot = currentDx * mxStart + currentDy * myStart;
         if (dot < 0) {
           scaleFactor = -scaleFactor;
         }
       }
 
-      const newScaleX = Math.max(0.05, State.initialScaleX * scaleFactor);
-      const newScaleY = Math.max(0.05, State.initialScaleY * scaleFactor);
-
-      selectedInfo.settings.scaleX = newScaleX;
-      selectedInfo.settings.scaleY = newScaleY;
+      applySettingsPatch(selectedInfo, {
+        scaleX: Math.max(0.05, state.initialScaleX * scaleFactor),
+        scaleY: Math.max(0.05, state.initialScaleY * scaleFactor),
+      });
     }
-  } else if (State.transformMode === 'clip') {
-    const clipsToSearch = getClipsToSearch(State);
-    const timelineClip = clipsToSearch.find((c: any) => c.id === State.selectedClipId);
+  } else if (state.transformMode === 'clip') {
+    const clipsToSearch = getClipsToSearch(state);
+    const timelineClip = clipsToSearch.find((c: any) => c.id === state.selectedClipId);
+    const canvasSnaps: CanvasSnap[] = [];
+
     if (timelineClip) {
-      const track = State.timelineTracks.find((t: any) => t.id === timelineClip.trackId);
+      const track = state.timelineTracks.find((t: any) => t.id === timelineClip.trackId);
       if (track && track.locked) return; // Prevent drag if track is locked
 
-      let targetX = State.initialOffsetX + dx;
-      let targetY = State.initialOffsetY + dy;
+      let targetX = state.initialOffsetX + dx;
+      let targetY = state.initialOffsetY + dy;
 
       const w = runtime.canvas?.width;
       const h = runtime.canvas?.height;
       const renderer = ClipRegistry.get(timelineClip.type);
-      
-      State.canvasSnaps = [];
- 
+
       if (w && h && renderer && typeof renderer.getItemBoundingBox === "function") {
         const bbox = renderer.getItemBoundingBox(runtime.ctx, w, h, timelineClip.settings);
         if (bbox) {
@@ -337,8 +346,8 @@ export const handleDragMove = (e: DragPointerEvent) => {
           const currentTop = currentCy - hitH * originY;
           const currentBottom = currentTop + hitH;
 
-          const snapTargetsX = State.staticSnapTargetsX || [];
-          const snapTargetsY = State.staticSnapTargetsY || [];
+          const snapTargetsX = state.staticSnapTargetsX || [];
+          const snapTargetsY = state.staticSnapTargetsY || [];
 
           const SNAP_THRESHOLD = 15; // 15 pixels snapping threshold
 
@@ -347,19 +356,19 @@ export const handleDragMove = (e: DragPointerEvent) => {
             // Center to target
             if (Math.abs(currentCx - target.value) < SNAP_THRESHOLD) {
               targetX = target.value - baseCx;
-              State.canvasSnaps.push({ type: 'x', value: target.value });
+              canvasSnaps.push({ type: 'x', value: target.value });
               break;
             }
             // Left to target
             if (Math.abs(currentLeft - target.value) < SNAP_THRESHOLD) {
               targetX = target.value - baseCx + hitW * originX;
-              State.canvasSnaps.push({ type: 'x', value: target.value });
+              canvasSnaps.push({ type: 'x', value: target.value });
               break;
             }
             // Right to target
             if (Math.abs(currentRight - target.value) < SNAP_THRESHOLD) {
               targetX = target.value - baseCx - hitW * (1 - originX);
-              State.canvasSnaps.push({ type: 'x', value: target.value });
+              canvasSnaps.push({ type: 'x', value: target.value });
               break;
             }
           }
@@ -369,43 +378,44 @@ export const handleDragMove = (e: DragPointerEvent) => {
             // Center to target
             if (Math.abs(currentCy - target.value) < SNAP_THRESHOLD) {
               targetY = target.value - baseCy;
-              State.canvasSnaps.push({ type: 'y', value: target.value });
+              canvasSnaps.push({ type: 'y', value: target.value });
               break;
             }
             // Top to target
             if (Math.abs(currentTop - target.value) < SNAP_THRESHOLD) {
               targetY = target.value - baseCy + hitH * originY;
-              State.canvasSnaps.push({ type: 'y', value: target.value });
+              canvasSnaps.push({ type: 'y', value: target.value });
               break;
             }
             // Bottom to target
             if (Math.abs(currentBottom - target.value) < SNAP_THRESHOLD) {
               targetY = target.value - baseCy - hitH * (1 - originY);
-              State.canvasSnaps.push({ type: 'y', value: target.value });
+              canvasSnaps.push({ type: 'y', value: target.value });
               break;
             }
           }
         }
       }
 
-      timelineClip.settings.x = targetX;
-      timelineClip.settings.y = targetY;
-    } else if (State.clipSettings[State.selectedClipId]) {
-      const target = State.clipSettings[State.selectedClipId];
-      target.x = State.initialOffsetX + dx;
-      target.y = State.initialOffsetY + dy;
+      editorStore.setState({ canvasSnaps });
+      updateTimelineClipSettings(timelineClip.id, { x: targetX, y: targetY });
+    } else if (state.clipSettings[state.selectedClipId as string]) {
+      updateClipSettings(state.selectedClipId as string, {
+        x: state.initialOffsetX + dx,
+        y: state.initialOffsetY + dy,
+      });
     }
   }
-
-  bumpClips();
 };
 
 export const handleDragEnd = () => {
-  State.isDragging = false;
-  State.transformMode = null;
-  State.canvasSnaps = [];
-  State.staticSnapTargetsX = null;
-  State.staticSnapTargetsY = null;
-  State.canvasCursor = null;
+  editorStore.setState({
+    isDragging: false,
+    transformMode: null,
+    canvasSnaps: [],
+    staticSnapTargetsX: null,
+    staticSnapTargetsY: null,
+    canvasCursor: null,
+  });
   bumpClips();
 };
