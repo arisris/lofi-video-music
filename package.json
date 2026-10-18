@@ -9,8 +9,7 @@
     "deploy": "bun run build && wrangler deploy",
     "test": "bun test tests/",
     "check:tailwind": "bun scripts/check-tailwind.ts",
-    "check:canonical": "bun x @laststance/tailwind-suggest-canonical-classes \"src/**/*.{ts,tsx}\" --css src/tailwind.css --check",
-    "fix:canonical": "bun x @laststance/tailwind-suggest-canonical-classes \"src/**/*.{ts,tsx}\" --css src/tailwind.css",
+    "fix:tailwind": "bun scripts/check-tailwind.ts --fix",
     "clean": "rm -rf node_modules && bun i"
   },
   "dependencies": {
@@ -28,6 +27,7 @@
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/ri": "^1.2.10",
     "@iconify/tailwind4": "^1.2.3",
+    "@laststance/tailwind-suggest-canonical-classes": "^0.1.2",
     "@tailwindcss/vite": "^4.2.4",
     "@types/bun": "^1.4.3",
     "@types/react": "^19.3.0",

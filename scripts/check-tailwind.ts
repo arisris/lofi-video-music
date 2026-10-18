@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { twMerge } from "tailwind-merge";
 
 const ROOT = path.resolve(import.meta.dir, "..", "src");
+const CANONICAL_BIN = path.resolve(import.meta.dir, "..", "node_modules", ".bin", "tailwind-suggest-canonical-classes");
 const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
 
 function walk(dir: string): string[] {
@@ -56,9 +58,27 @@ for (const file of walk(ROOT)) {
   if (fix && changed) fs.writeFileSync(file, content);
 }
 
+let hasIssues = !fix && conflicts > 0;
+
 if (conflicts > 0) {
   console.log(`\nFound ${conflicts} conflicting className string(s).`);
-  process.exit(1);
 } else {
   console.log("No conflicting Tailwind className strings found.");
 }
+
+// Canonical class suggestions (via @laststance/tailwind-suggest-canonical-classes)
+console.log("\nChecking canonical Tailwind classes...");
+const canonicalArgs = ["src/**/*.{ts,tsx}", "--css", "src/tailwind.css"];
+if (!fix) canonicalArgs.push("--check");
+const canonicalResult = spawnSync(CANONICAL_BIN, canonicalArgs, {
+  cwd: path.resolve(import.meta.dir, ".."),
+  stdio: "inherit",
+});
+if (!fix && canonicalResult.status !== 0) hasIssues = true;
+
+if (hasIssues) {
+  console.log("\nTailwind issues found.");
+  process.exit(1);
+}
+
+console.log("\nAll Tailwind checks passed.");
