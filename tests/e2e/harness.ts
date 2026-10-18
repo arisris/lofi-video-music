@@ -16,19 +16,126 @@
  */
 export const TIMEOUT = 60_000;
 
-export const PORT = 5173;
-export const BASE = `http://localhost:${PORT}/`;
+import { readdirSync, statSync } from "node:fs";
+import { homedir } from "node:os";
+import { delimiter, join } from "node:path";
 
 /**
- * Chrome for Bun.WebView to drive.
+ * Dev server port for the suite.
+ *
+ * Deliberately not 5173: that belongs to the development server, and a test
+ * run that hijacks it leaves `bun run dev` talking to a store it no longer
+ * controls. Overridable, but 5173 is never the default.
+ */
+export const PORT = Number(process.env.E2E_PORT ?? 5174);
+export const BASE = `http://localhost:${PORT}/`;
+
+/** Where each browser cache keeps its executable. */
+const BINARY = {
+  playwright: "chrome-linux64/chrome",
+  puppeteer: "chrome-linux64/chrome",
+};
+
+const isFile = (path: string): boolean => {
+  try {
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Newest build first.
+ *
+ * Version directories sort descending as strings well enough for these
+ * prefixes, and the newest build is the one most likely to know any protocol
+ * method the runner uses.
+ */
+const scanCache = (root: string, relative: string): string | null => {
+  let entries: string[];
+  try {
+    entries = readdirSync(root);
+  } catch {
+    return null;
+  }
+  for (const dir of entries.sort().reverse()) {
+    const candidate = join(root, dir, relative);
+    if (isFile(candidate)) return candidate;
+  }
+  return null;
+};
+
+/** The first of these names that resolves on PATH. */
+const fromPath = (names: string[]): string | null => {
+  const dirs = (process.env.PATH ?? "").split(delimiter).filter(Boolean);
+  for (const name of names) {
+    for (const dir of dirs) {
+      const candidate = join(dir, name);
+      if (isFile(candidate)) return candidate;
+    }
+  }
+  return null;
+};
+
+/**
+ * Locates a browser for Bun.WebView to drive.
  *
  * WebView drives an installed browser rather than downloading one, so this
- * points at the Chromium already in the Playwright cache. Override with
- * BUN_CHROME_PATH or CHROME_PATH when it is not there.
+ * walks where one is likely to already be, in the order of how likely: an
+ * explicit override, the Playwright cache, the Puppeteer cache, then whatever
+ * Chrome or Chromium the system has on PATH.
+ *
+ * Browsers also land outside PATH - a .deb install or a Homebrew cask with no
+ * symlink, most often - so each family is checked in its cache before its PATH
+ * name is tried. Brave is deliberately absent: Chromium underneath, but it
+ * brings its own profile layout and nothing here needs it.
+ *
+ * Linux only. The cache layouts below are Linux ones, and the project targets
+ * Linux, so there is no point carrying paths for platforms never used.
  */
-const CHROME =
-  process.env.CHROME_PATH ??
-  `${process.env.HOME}/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome`;
+const findBrowser = (): string => {
+  if (process.platform !== "linux") {
+    throw new Error(
+      `the e2e browser lookup is Linux-only, running on ${process.platform}`,
+    );
+  }
+
+  const override = process.env.CHROME_PATH;
+  if (override) {
+    if (isFile(override)) return override;
+    throw new Error(`CHROME_PATH points at "${override}", which is not a file`);
+  }
+
+  // $HOME rather than os.homedir(): the caches being searched belong to the
+  // user, and reading the variable also keeps this testable against a fake
+  // home - Bun caches homedir() and would ignore a changed $HOME.
+  const home = process.env.HOME ?? homedir();
+  const tried: string[] = [];
+
+  const playwrightRoot = join(home, ".cache/ms-playwright");
+  const fromPlaywright = scanCache(playwrightRoot, BINARY.playwright);
+  if (fromPlaywright) return fromPlaywright;
+  tried.push(playwrightRoot);
+
+  const puppeteerRoot = join(home, ".cache/puppeteer/chrome");
+  const fromPuppeteer = scanCache(puppeteerRoot, BINARY.puppeteer);
+  if (fromPuppeteer) return fromPuppeteer;
+  tried.push(puppeteerRoot);
+
+  const chromium = fromPath([
+    "google-chrome-stable",
+    "google-chrome",
+    "chromium",
+    "chromium-browser",
+  ]);
+  if (chromium) return chromium;
+
+  throw new Error(
+    "no Chrome or Chromium found for Bun.WebView.\n" +
+      `Looked in: ${tried.join(", ")}, then PATH for google-chrome and chromium.\n` +
+      "Install one, or point CHROME_PATH at the executable.",
+  );
+};
 
 let server: ReturnType<typeof Bun.spawn> | null = null;
 let startup: Promise<void> | null = null;
@@ -303,7 +410,7 @@ const bootApp = async (): Promise<AppView> => {
     height: 1000,
     backend: {
       type: "chrome",
-      path: CHROME,
+      path: findBrowser(),
       argv: [
         "--use-gl=swiftshader",
         "--enable-unsafe-swiftshader",
