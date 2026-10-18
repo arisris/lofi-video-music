@@ -10,6 +10,8 @@
     "test": "bun test tests/",
     "check:tailwind": "bun scripts/check-tailwind.ts",
     "fix:tailwind": "bun scripts/check-tailwind.ts --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "clean": "rm -rf node_modules && bun i"
   },
   "dependencies": {
@@ -32,6 +34,9 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "prettier": "^3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "prettier-plugin-tailwindcss-canonical-classes": "^0.1.6",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.2.4",
     "typescript": "^7.0.2",

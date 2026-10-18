@@ -1,0 +1,8 @@
+{
+  "plugins": [
+    "prettier-plugin-tailwindcss",
+    "prettier-plugin-tailwindcss-canonical-classes"
+  ],
+  "tailwindStylesheet": "./src/tailwind.css",
+  "tailwindcssCanonicalStylesheet": "./src/tailwind.css"
+}
