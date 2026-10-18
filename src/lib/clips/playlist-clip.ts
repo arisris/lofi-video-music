@@ -26,7 +26,7 @@ export const PlaylistClip = {
     bgRadius: 16,
   },
 
-  getBoundingBox(ctx, w, h) {
+  getBoundingBox(ctx: CanvasRenderingContext2D, w: number, _h: number) {
     const margin = 30;
     const settings = this.settings;
     const innerPadding = settings.bgPadding || 25;
@@ -44,9 +44,9 @@ export const PlaylistClip = {
     
     const clipsToSearch = getClipsToSearch(State);
     const musicClips = clipsToSearch
-      .filter(c => c.type === 'music' && c.settings?.enabled !== false)
-      .sort((a, b) => a.start - b.start);
-    const activeIndex = musicClips.findIndex(c => State.currentTime >= c.start && State.currentTime <= c.start + c.duration);
+      .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
+      .sort((a: any, b: any) => a.start - b.start);
+    const activeIndex = musicClips.findIndex((c: any) => State.currentTime >= c.start && State.currentTime <= c.start + c.duration);
 
     const displayCount = Math.min(musicClips.length, settings.maxItems);
     if (displayCount === 0) return { x: 0, y: 0, width: 0, height: 0 };
@@ -84,7 +84,7 @@ export const PlaylistClip = {
     let boxW = innerPadding + indexWidth + maxTextW + eqWidth + innerPadding;
     boxW = Math.max(260, boxW);
 
-    let boxX, boxY, boxH;
+    let boxX: number, boxY: number, boxH: number;
 
     if (State.aspectRatio === "16:9") {
       boxX = w - boxW - margin;
@@ -99,14 +99,14 @@ export const PlaylistClip = {
     return { x: boxX, y: boxY, width: boxW, height: boxH };
   },
 
-  draw(ctx, w, h) {
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const clipsToSearch = getClipsToSearch(State);
     const musicClips = clipsToSearch
-      .filter(c => c.type === 'music' && c.settings?.enabled !== false)
-      .sort((a, b) => a.start - b.start);
+      .filter((c: any) => c.type === 'music' && c.settings?.enabled !== false)
+      .sort((a: any, b: any) => a.start - b.start);
     if (musicClips.length === 0) return;
 
-    const activeIndex = musicClips.findIndex(c => State.currentTime >= c.start && State.currentTime <= c.start + c.duration);
+    const activeIndex = musicClips.findIndex((c: any) => State.currentTime >= c.start && State.currentTime <= c.start + c.duration);
 
     const settings = this.settings;
     const bbox = this.getBoundingBox(ctx, w, h);

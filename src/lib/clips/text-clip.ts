@@ -11,7 +11,7 @@ export const TextClip = {
     items: [],
   },
 
-  getItemBoundingBox(ctx, w, h, item) {
+  getItemBoundingBox(ctx: CanvasRenderingContext2D, w: number, h: number, item: Record<string, any>) {
     ctx.save();
     const family = item.fontFamily || "sans-serif";
     const weight = item.fontWeight || "normal";
@@ -19,7 +19,7 @@ export const TextClip = {
     const lineHeight = item.lineHeight || 1.2;
     ctx.font = `${weight} ${fontSize}px ${family}`;
     
-    const lines = (item.content || "").split(/\n|\\n/);
+    const lines: string[] = (item.content || "").split(/\n|\\n/);
     let maxWidth = 0;
     lines.forEach(line => {
       const width = measureEmojiText(ctx, line, fontSize);
@@ -42,7 +42,7 @@ export const TextClip = {
     };
   },
 
-  drawItem(ctx, w, h, item, localTime = 0, clip = null) {
+  drawItem(ctx: CanvasRenderingContext2D, w: number, h: number, item: Record<string, any>, localTime: number, clip: Record<string, any> | null) {
     if (!item.content) return;
     
     ctx.save();
@@ -56,7 +56,7 @@ export const TextClip = {
     ctx.font = `${weight} ${fontSize}px ${family}`;
     ctx.textBaseline = "top";
 
-    const lines = (item.content || "").split(/\n|\\n/);
+    const lines: string[] = (item.content || "").split(/\n|\\n/);
     const lineInfo = lines.map(line => {
       const width = measureEmojiText(ctx, line, fontSize);
       return { content: line, width };
@@ -99,7 +99,7 @@ export const TextClip = {
     }
 
     // Slice content if typewriter effect is active
-    let contentToDraw = item.content || "";
+    let contentToDraw: string = item.content || "";
     const isThumbnailMode = State.currentRoute === "/image";
     if (item.textEffect === "typewriter" && !isThumbnailMode) {
       const speed = item.typewriterSpeed || 15;
@@ -118,7 +118,7 @@ export const TextClip = {
         contentToDraw = contentToDraw.slice(0, -1);
       }
     }
-    const linesToDraw = contentToDraw.split(/\n|\\n/);
+    const linesToDraw: string[] = contentToDraw.split(/\n|\\n/);
 
     // Draw Lines
     linesToDraw.forEach((lineText, i) => {
@@ -165,7 +165,7 @@ export const TextClip = {
     ctx.restore();
   },
 
-  draw(ctx, w, h) {},
+  draw(_ctx: CanvasRenderingContext2D, _w: number, _h: number) {},
 
   onSettings: TextSettingsView,
 };

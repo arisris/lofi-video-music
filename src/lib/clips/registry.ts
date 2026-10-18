@@ -1,9 +1,9 @@
 import { State } from "../state";
 
 export const ClipRegistry = {
-  clips: [],
+  clips: [] as Record<string, any>[],
 
-  register(clip) {
+  register(clip: Record<string, any>) {
     if (this.clips.some(c => c.id === clip.id)) {
       // Update existing clip reference
       const idx = this.clips.findIndex(c => c.id === clip.id);
@@ -43,7 +43,7 @@ export const ClipRegistry = {
     this.clips = [];
   },
 
-  get(id) {
+  get(id: string) {
     return this.clips.find(c => c.id === id);
   },
 

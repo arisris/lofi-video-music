@@ -1,15 +1,15 @@
 import { State } from "../state";
 import { bumpClips } from "../../store/actions/timeline-actions";
 import { BackgroundSettingsView } from "../../components/clip-settings/background";
-import { getRandomKenBurnsEffect, generateThumbnail, getClipsToSearch, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
+import { generateThumbnail, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
 import { showDragHint } from "../../utils/ui-helpers";
 
-export const triggerFilePicker = (onSelect) => {
+export const triggerFilePicker = (onSelect: (file: File) => void) => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
-  input.onchange = (e) => {
-    const file = e.target.files[0];
+  input.onchange = (e: Event) => {
+    const file = (e.target as HTMLInputElement).files![0];
     if (file) {
       onSelect(file);
     }
@@ -17,13 +17,13 @@ export const triggerFilePicker = (onSelect) => {
   input.click();
 };
 
-export const processBgClipUpload = (file, clip, onComplete) => {
+export const processBgClipUpload = (file: File, clip: Record<string, any>, onComplete?: () => void) => {
   const oldUrls = getMediaUrls(clip);
   const url = URL.createObjectURL(file);
 
   // Clean up previous video elements if any
   if (clip.settings.bgType === "video" && clip.settings.bgElements) {
-    clip.settings.bgElements.forEach((v) => {
+    clip.settings.bgElements.forEach((v: HTMLVideoElement) => {
       v.pause();
       v.removeAttribute("src");
       v.load();
@@ -104,7 +104,7 @@ export const BackgroundClip = {
 
   settings: {},
 
-  getItemBoundingBox(ctx, w, h, settings) {
+  getItemBoundingBox(_ctx: CanvasRenderingContext2D, w: number, h: number, _settings: Record<string, any>) {
     return {
       x: 0,
       y: 0,
@@ -113,7 +113,7 @@ export const BackgroundClip = {
     };
   },
 
-  drawItem(ctx, w, h, settings) {},
+  drawItem(_ctx: CanvasRenderingContext2D, _w: number, _h: number, _settings: Record<string, any>) {},
 
   onSettings: BackgroundSettingsView,
 };

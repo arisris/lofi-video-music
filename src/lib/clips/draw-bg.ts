@@ -2,7 +2,17 @@ import { State } from "../state";
 import { runtime } from "../runtime";
 
 
-export const drawBackground = (mediaEl, cw, ch, time, alpha, xTransitionOffset, scaleMult = 1.0, trackObj = null, ctx = runtime.ctx) => {
+export const drawBackground = (
+  mediaEl: HTMLImageElement | HTMLVideoElement,
+  cw: number,
+  ch: number,
+  time: number,
+  alpha: number,
+  xTransitionOffset: number,
+  scaleMult = 1.0,
+  trackObj: Record<string, any> | null = null,
+  ctx: CanvasRenderingContext2D = runtime.ctx as CanvasRenderingContext2D,
+) => {
   if (!mediaEl) return;
   ctx.save();
   ctx.globalAlpha = alpha;

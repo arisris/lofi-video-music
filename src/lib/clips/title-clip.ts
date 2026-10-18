@@ -33,14 +33,14 @@ export const TitleClip = {
     wavySpacing: 0.15
   },
 
-  getBoundingBox(ctx, w, h) {
+  getBoundingBox(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const padding = 40;
     const settings = this.settings;
     
     ctx.save();
     ctx.font = `${settings.fontWeight} ${settings.fontSize}px ${settings.fontFamily}`;
     const clipsToSearch = getClipsToSearch(State);
-    const activeClip = clipsToSearch.find(c => 
+    const activeClip = clipsToSearch.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
       State.currentTime >= c.start && 
@@ -53,7 +53,7 @@ export const TitleClip = {
     const boxWidth = width + (settings.bgPadding || 0) * 2; 
     const height = settings.fontSize * (settings.lineHeight || 1.2) + (settings.bgPadding || 0) * 2;
     
-    let x, y;
+    let x: number, y: number;
     if (State.aspectRatio === "16:9") {
       x = padding;
       y = h - padding - height;
@@ -68,9 +68,9 @@ export const TitleClip = {
     return { x, y, width: boxWidth, height };
   },
 
-  draw(ctx, w, h) {
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const clipsToSearch = getClipsToSearch(State);
-    const activeClip = clipsToSearch.find(c => 
+    const activeClip = clipsToSearch.find((c: any) => 
       c.type === 'music' && 
       c.settings?.enabled !== false &&
       State.currentTime >= c.start && 
@@ -137,7 +137,7 @@ export const TitleClip = {
     if (textAlign === "center") {
       textX = bbox.x + bbox.width / 2 - textWidth / 2;
     }
-    const textY = bbox.y + bbox.height / 2 - size / 2; // drawEmojiText uses top baseline internally or we adjust
+    // Note: vertical position is handled by drawEmojiText using the top baseline
 
     if (settings.textEffect === "wavy") {
       const time = performance.now() / 1000;

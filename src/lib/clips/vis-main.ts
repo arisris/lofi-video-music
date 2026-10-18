@@ -1,8 +1,6 @@
-import { State } from "../state";
 import { runtime } from "../runtime";
 import { VisualizerSettingsView } from "../../components/clip-settings/visualizer";
 import { getVisualizer } from "../visualizers/index";
-import { getClipsToSearch } from "../../utils/helpers";
 
 export const VisualizerClip = {
   id: "visualizer",
@@ -20,7 +18,7 @@ export const VisualizerClip = {
     size: 1.0,
   },
 
-  getItemBoundingBox(ctx, w, h, settings) {
+  getItemBoundingBox(_ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
     if (settings.style === "circle") {
       const radius = Math.min(w, h) * 0.25;
       const size = (radius + 50) * 2;
@@ -37,11 +35,11 @@ export const VisualizerClip = {
     return { x: 0, y: h / 2, width: w, height: h / 2 };
   },
 
-  getBoundingBox(ctx, w, h) {
+  getBoundingBox(ctx: CanvasRenderingContext2D, w: number, h: number) {
     return this.getItemBoundingBox(ctx, w, h, this.settings);
   },
 
-  drawItem(ctx, w, h, settings) {
+  drawItem(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
     if (!runtime.analyser) return;
     
     const { style, color, opacity } = settings;
@@ -71,7 +69,7 @@ export const VisualizerClip = {
     ctx.restore();
   },
 
-  draw(ctx, w, h) {},
+  draw(_ctx: CanvasRenderingContext2D, _w: number, _h: number) {},
 
   onSettings: VisualizerSettingsView,
 };

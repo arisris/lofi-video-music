@@ -1,6 +1,3 @@
-import { State } from "../state";
-import { applyAudioSettings } from "../audio";
-import { getClipsToSearch } from "../../utils/helpers";
 import { MusicSettingsView } from "../../components/clip-settings/music";
 
 export const MusicClip = {
@@ -22,7 +19,7 @@ export const MusicClip = {
     enabled: true
   },
 
-  drawItem(ctx, w, h, item, localTime = 0, clip = null) {
+  drawItem(_ctx: CanvasRenderingContext2D, _w: number, _h: number, _item: Record<string, any>, _localTime = 0, _clip = null) {
     // Music clips are audio-only and do not render on the preview canvas
   },
 

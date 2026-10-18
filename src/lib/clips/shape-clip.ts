@@ -1,12 +1,11 @@
-import { State } from "../state";
 import { getIconFromDb } from "../../utils/indexed-db";
 import { ShapeSettingsView } from "../../components/clip-settings/shape";
 
-const iconDataCache = {};
-const iconImageCache = {};
+const iconDataCache: Record<string, any> = {};
+const iconImageCache: Record<string, { img: HTMLImageElement; loaded: boolean }> = {};
 
 // Asynchronously fetch icon data and cache it
-const getIconDataAsync = (iconName) => {
+const getIconDataAsync = (iconName: string): any => {
   if (iconDataCache[iconName] !== undefined) {
     return iconDataCache[iconName];
   }
@@ -20,7 +19,15 @@ const getIconDataAsync = (iconName) => {
 };
 
 // Parse raw icon body, inject colors/gradients, and load as canvas image
-const getIconImage = (iconName, iconData, color, color2, fillType, strokeColor, strokeWidth) => {
+const getIconImage = (
+  iconName: string,
+  iconData: any,
+  color: string,
+  color2: string,
+  fillType: string,
+  strokeColor: string,
+  strokeWidth: number,
+) => {
   const cacheKey = `${iconName}_${color}_${color2}_${fillType}_${strokeColor}_${strokeWidth}`;
   if (iconImageCache[cacheKey]) {
     return iconImageCache[cacheKey];
@@ -95,7 +102,7 @@ export const ShapeClip = {
     opacity: 1.0,
   },
 
-  getItemBoundingBox(ctx, w, h, settings) {
+  getItemBoundingBox(_ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
     const width = settings.width || 150;
     const height = settings.height || 150;
     return {
@@ -106,7 +113,7 @@ export const ShapeClip = {
     };
   },
 
-  drawItem(ctx, w, h, settings, localTime = 0, clip = null) {
+  drawItem(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>, _localTime = 0, _clip: Record<string, any> | null = null) {
     ctx.save();
 
     const width = settings.width || 150;
@@ -256,7 +263,7 @@ export const ShapeClip = {
     ctx.restore();
   },
 
-  draw(ctx, w, h) {},
+  draw(_ctx: CanvasRenderingContext2D, _w: number, _h: number) {},
 
   onSettings: ShapeSettingsView,
 };

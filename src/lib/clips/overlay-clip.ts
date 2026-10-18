@@ -1,28 +1,16 @@
 import { State } from "../state";
 import { bumpClips } from "../../store/actions/timeline-actions";
 import { OverlaySettingsView } from "../../components/clip-settings/overlay";
-import { generateThumbnail, getClipsToSearch, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
+import { generateThumbnail, getMediaUrls, revokeUrlIfUnused } from "../../utils/helpers";
 
-const triggerFilePicker = (onSelect) => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*,video/*";
-  input.onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      onSelect(file);
-    }
-  };
-  input.click();
-};
 
-export const processOverlayUpload = (file, clip, onComplete) => {
+export const processOverlayUpload = (file: File, clip: Record<string, any>, onComplete?: () => void) => {
   const oldUrls = getMediaUrls(clip);
   const url = URL.createObjectURL(file);
 
   // Clean up previous video elements if any
   if (clip.settings.mediaType === "video" && clip.settings.mediaElements) {
-    clip.settings.mediaElements.forEach((v) => {
+    clip.settings.mediaElements.forEach((v: HTMLVideoElement) => {
       v.pause();
       v.removeAttribute("src");
       v.load();
@@ -113,7 +101,7 @@ export const OverlayClip = {
     loop: true,
   },
 
-  getItemBoundingBox(ctx, w, h, settings) {
+  getItemBoundingBox(_ctx: CanvasRenderingContext2D, _w: number, _h: number, settings: Record<string, any>) {
     if (settings.mediaType === "image" && settings.mediaElement) {
       const img = settings.mediaElement;
       return { x: 0, y: 0, width: img.naturalWidth || 300, height: img.naturalHeight || 200 };
@@ -129,7 +117,7 @@ export const OverlayClip = {
     return { x: 0, y: 0, width: 300, height: 200 };
   },
 
-  drawItem(ctx, w, h, settings, localTime) {
+  drawItem(ctx: CanvasRenderingContext2D, _w: number, _h: number, settings: Record<string, any>, localTime: number) {
     const { mediaType, mediaElement, mediaElements, loop, videoDuration } = settings;
     const opacity = settings.opacity !== undefined ? settings.opacity : 1.0;
     ctx.globalAlpha = ctx.globalAlpha * opacity;
