@@ -71,10 +71,8 @@ export const MediaPool = () => {
         return m(MediaLibraryPanel); // legacy (Phase 3 #17)
       case "shapes":
         return m(ShapePanel); // legacy (#14)
-      case "text":
-        return m(TextPanel); // legacy (#12)
       default:
-        return null; // "settings" and "vfx" are React components now
+        return null; // "text", "settings", and "vfx" are React components now
     }
   };
 
@@ -112,6 +110,8 @@ export const MediaPool = () => {
       >
         {activeLeftTab === "vfx" ? (
           <VFXPanel />
+        ) : activeLeftTab === "text" ? (
+          <TextPanel />
         ) : activeLeftTab === "settings" ? (
           <SettingsPanel />
         ) : (
