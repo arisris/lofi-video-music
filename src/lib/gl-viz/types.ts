@@ -58,7 +58,9 @@ export interface VisualizerDef {
   audio: AudioSource;
   /**
    * Samples uploaded per frame. Defaults to the analyser's frequencyBinCount.
-   * Shaders sample it as `texture2D(u_audio, vec2(i / bins, 0.5))`.
+   * The texture is two rows tall: the live reading and a decaying peak hold,
+   * sampled at AUDIO_LIVE_V and AUDIO_PEAK_V. Linear filtering cannot blend
+   * them, since those are exactly the two texel centres.
    */
   bins?: number;
   /**
@@ -82,3 +84,12 @@ export interface VisualizerDef {
 export const AUDIO_SAMPLER = "u_audio";
 /** Bound to a 1x1 white texture when a def declares no custom image. */
 export const IMAGE_SAMPLER = "u_image";
+
+/** Row of u_audio holding this frame's reading. */
+export const AUDIO_LIVE_V = 0.25;
+/**
+ * Row of u_audio holding the peak each bin has reached recently, decaying over
+ * roughly a second. Only meaningful for `audio: "fft"`; waveform rows carry
+ * zero here, since a peak of a centred signal is not a useful height.
+ */
+export const AUDIO_PEAK_V = 0.75;

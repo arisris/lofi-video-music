@@ -4,8 +4,12 @@
 // picture set it warps that picture; without one it falls back to the 1x1 white
 // texture and reads as a pure light pattern, so the style is usable either way.
 
-import type { VisualizerDef } from "../types";
+import { AUDIO_LIVE_V, type VisualizerDef } from "../types";
 
+// The audio texture carries a peak-hold row as well as the live one, so every
+// sample names the row it wants. Leaving these at the midpoint would quietly
+// blend the two and make this style follow decaying peaks instead of the
+// actual signal.
 const FRAGMENT = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -41,7 +45,7 @@ void main() {
 
   // Bass swells the zoom, and the overall level speeds the drift, so the
   // pattern breathes with the track instead of spinning at a constant rate.
-  float bass = texture2D(u_audio, vec2(0.02, 0.5)).r;
+  float bass = texture2D(u_audio, vec2(0.02, ${AUDIO_LIVE_V})).r;
   float zoom = u_zoom * (1.0 + bass * 0.35 + u_audioLevel * 0.20);
   float spin = u_time * u_spin * (0.40 + u_audioLevel * 1.60);
 
@@ -49,7 +53,7 @@ void main() {
   vec3 col = texture2D(u_image, fract(q)).rgb * u_color;
 
   // Concentric rings, each reading a different point of the spectrum.
-  float ring = texture2D(u_audio, vec2(fract(r * u_bands - u_time * 0.10), 0.5)).r;
+  float ring = texture2D(u_audio, vec2(fract(r * u_bands - u_time * 0.10), ${AUDIO_LIVE_V})).r;
   col += u_color * ring * 0.55;
   col += u_color * u_audioLevel * 0.12;
 
