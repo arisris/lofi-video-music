@@ -30,12 +30,28 @@
   running, and reuses an existing one when there is. It drives its own headless
   Chrome, not the Playwright MCP session below.
 
+## Dev server
+
+**The user runs the dev server. Do not start it.** If a task seems to need one
+running, say so and let them start it. Starting one silently takes the port out
+from under the session they already have open, and HMR state, open tabs and any
+page they were mid-way through all go with it.
+
+This applies to `bun run dev` on 5173. It does **not** apply to `bun test`: the
+suite starts and stops its own server on port 5174 as part of running, and that
+is expected.
+
+Before any browser work, check whether a server is already up and use it if so:
+
+    curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/
+
 ## Browser checks
 
 Two ways in, for two different jobs.
 
 **Interactive work** — drive the browser with the Playwright MCP tools rather
-than a script: the session is visible and interruptible.
+than a script: the session is visible and interruptible. This needs the dev
+server running, which means it needs the user to have started it.
 
 **Repeatable checks** — `bun test`. It uses `Bun.WebView`, so it needs a Chrome
 or Chromium on the machine (`CHROME_PATH` overrides the default, which points at
