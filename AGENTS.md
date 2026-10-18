@@ -4,10 +4,11 @@
 
 - **Runtime**: Bun
 - **Bundler**: Vite 8 + Cloudflare Vite plugin (`@cloudflare/vite-plugin`)
-- **UI**: Mithril.js (virtual DOM, not React/Vue) + Tailwind CSS v4
+- **UI**: React 19 (`src/components/`, `src/app/`) + Tailwind CSS v4
+- **State**: Zustand store (`src/store/editor-store.ts` + slices in `src/store/slices/`)
 - **Backend**: Cloudflare Worker (`src/worker.js`) — proxies Pexels/Pixabay API calls
 - **Deploy**: Cloudflare Workers via `wrangler deploy`
-- **Language**: Pure JS (no TypeScript, no unit tests, no linting)
+- **Language**: TypeScript (`src/**/*.ts(x)`), except `src/worker.js` which stays JS
 
 ## Commands
 
@@ -17,23 +18,26 @@
 - `bun run preview` — build then `vite preview`
 - `bun run deploy` — build then `wrangler deploy`
 - `bun run clean` — remove node_modules and reinstall
-
-No test, lint, or typecheck commands exist. Do not invent them.
+- `bunx tsc -noEmit` — typecheck (no npm, no lint/tests configured — do not invent them)
 
 ## Architecture
 
-**Two routes** defined in `src/main.js` via `m.route`:
+**Two routes** defined in `src/app/App.tsx` via hashchange + regex parser:
 - `/` — video editor mode
 - `/image` — thumbnail editor mode
 
-State is swapped between routes via `swapRouteClips()`. Both share the same `State` object (`src/lib/state.js`).
+State is swapped between routes via the `mode` slice action (`swapRoute`). The Zustand store is the single source of truth.
 
 **Key directories**:
-- `src/components/` — Mithril components (UI panels, timeline, inspector)
+- `src/app/` — React shell, hash router, runtime binding
+- `src/store/` — Zustand store, slices, and actions (`src/store/actions/`)
+- `src/types/` — shared TypeScript types (clips, media, panels)
+- `src/components/` — React components (UI panels, timeline, inspector, clip settings views)
+- `src/components/clip-settings/` — settings views per clip type (the `onSettings` React components)
 - `src/lib/clips/` — clip type implementations (text, music, background, overlay, shape, etc.)
 - `src/lib/vfx/` — visual effects (rain, snow, fireflies, film grain, etc.)
 - `src/lib/visualizers/` — audio visualizers (bars, circle, waveform, etc.)
-- `src/lib/` — core engine: render loop, audio, drag, recorder, state
+- `src/lib/` — core engine: render loop (`render.ts`), audio, drag, recorder, `runtime.ts`
 - `src/utils/` — helpers, IndexedDB, UI helpers
 - `src/data/` — static JSON (emoji, character data)
 
@@ -43,13 +47,15 @@ State is swapped between routes via `swapRouteClips()`. Both share the same `Sta
 - Uses Cloudflare Cache API for caching responses
 - Env vars `PEXELS_API_KEY` and `PIXABAY_API_KEY` must be set in Cloudflare
 
-**Rendering**: Canvas-based. `src/lib/render.js` runs the render loop. `src/lib/runtime.js` holds the canvas context and shared runtime references.
+**Rendering**: Canvas-based. `src/lib/render.ts` runs the render loop and reads state through the `src/lib/state.ts` bridge. `src/lib/runtime.ts` holds the canvas context, audio graph refs, and other shared runtime references.
 
 ## Gotchas
 
-- **Mithril, not React**: Components use `m()` JSX-like calls, not JSX. Views return virtual DOM via `m(tag, attrs, children)`. State triggers redraws via `m.redraw()`.
-- **HMR sync**: `src/main.js` has explicit HMR handling to re-sync audio state on hot reload. State is persisted across reloads via `src/lib/state.js`.
-- **Route prefix**: Mithril route prefix is `#!` (hash-based routing).
+- **State updates must be immutable**: nested in-place mutations (e.g. `clip.settings.x = 5`) do **not** trigger React re-renders. Use the helpers in `src/store/actions/timeline-actions.ts` (`updateTimelineClipSettings`, `bumpClips`) or `src/store/actions/clip-settings.ts` (`updateClipSettings`). `bumpClips()` is the store poke that replaces the old `m.redraw()` calls.
+- **HMR sync**: `src/store/editor-store.ts` snapshots state into `import.meta.hot.data`, and `App.tsx` re-syncs audio state on hot reload.
+- **Route prefix**: routing is hash-based with the `#!` prefix, parsed in `App.tsx`.
 - **Tailwind v4**: Uses `@plugin` directive syntax in `src/tailwind.css` (not the old `plugins` config). Iconify icons via `@iconify/tailwind4` plugin.
 - **No env file locally**: `.env` is gitignored. API keys are Cloudflare Worker env vars, not Vite env vars.
 - **Video recording**: Uses `MediaRecorder` API. Recording settings (resolution, FPS) are in `State.recordResolution` / `State.recordFps`.
+- **Clip renderer contract**: `onSettings` in `src/lib/clips/*` and `src/lib/vfx/*` is a React function component `(props: { clip? }) => JSX`; the renderers only reference the view, they never render UI themselves.
+- **Uncontrolled legacy inputs**: textarea/content inputs stay uncontrolled (`defaultValue` + `key` per clip id) so the canvas renderer keeps its own text state.

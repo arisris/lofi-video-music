@@ -132,11 +132,24 @@ Conversion rules:
 - `attrs` → typed props
 - `oncreate/onremove` → `useEffect` + cleanup
 - Components subscribe only to the slices they need (granular state), never the whole store
-- [ ] After all components are `.tsx`: remove `mithril` from `package.json` and remove all remaining `m.redraw()` calls
+- [x] After all components are `.tsx`: remove `mithril` from `package.json` and remove all remaining `m.redraw()` calls — DONE in `e7bc9a8` (dependencies removed; every `m.redraw()` no-op replaced by `bumpClips()` or dropped where the render loop already repaints)
 
 ### Phase 4 — Typing `lib/` and `utils/`
 
-- [ ] Rename `.js` → `.ts` gradually, leaf-first order: `vfx/` → `visualizers/` → `clips/` → `render.js`, `audio.js`, `drag.js`, `recorder.js` → `utils/`
+- [x] Rename `.js` → `.ts` gradually, leaf-first order: `vfx/` → `visualizers/` → `clips/` → `render.js`, `audio.js`, `drag.js`, `recorder.js` → `utils/` — DONE, one commit per batch:
+  | Commit | Scope |
+  |---|---|
+  | `065e833` | `lib/vfx/*.ts` (10 files) + `lib/webgl-renderer.ts` |
+  | `f7ca994` | `lib/visualizers/*.ts` + `lib/runtime.ts` (`RuntimeRefs`: engine refs non-null, UI refs nullable) |
+  | `f6fc890` | `lib/clips/*.ts` (11 files: registry, index, renderers, `draw-bg`, upload helpers) |
+  | `7dc1f82` | `lib/render.ts` (per-frame `m.redraw()` removed), `lib/video-playback.ts` (`ManageVideoOptions`), `lib/animations.ts` |
+  | `268e15d` | `lib/audio.ts` (mithril import dropped, 4× `m.redraw()` → `bumpClips()`, `runtime.source` type fix) |
+  | `2d61e5e` | `lib/drag.ts` (`DragPointerEvent`), `lib/recorder.ts` (`runtime.recordedChunks`), `lib/clip-factory.ts`, `lib/templates.ts` |
+  | `8f842a3` | `lib/fonts.ts`, `lib/emoji-render.ts`, `lib/media-helper.ts` (`MediaItem`, `MediaComplete`) |
+  | `181ee3e` | `utils/helpers.ts` (`BBox`, `HSL`), `utils/indexed-db.ts` (`IconRecord`), `utils/ui-helpers.ts` |
+  | `24d3e62` | `lib/state.ts` (Proxy bridge kept, typed as `LegacyStateView`) |
+
+  Conventions: renderer entry points are `(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>, localTime, clip)`; unused params are prefixed with `_`; `Uint8Array<ArrayBuffer>` for the analyser FFT buffer; `runtime.recordedChunks` added for the recorder.
 - [x] **First, convert the deferred clip-settings layer** (Mithril-rooted by `src/lib/clips/*` renderers) → DONE:
   - `shared-clip-settings.js` → `clip-settings/shared.tsx` (`SharedTextSettingsView`, `SharedTransformSettingsView`, `SharedAnimationSettingsView`)
   - `ui/scrub-input.tsx`, `ui/color-input.tsx`, `char-box.tsx` (React intersector/​picker equivalents)
@@ -145,14 +158,14 @@ Conversion rules:
   - `clips-panel.tsx` renders `onSettings` directly (MithrilBridge deleted); subscribes to the active clip source array so in-place/immutable settings updates re-render
   - `updateTimelineClipSettings(clipId, patch, clipPatch?)` now also patches top-level clip props (`duration`, particle caches like `drops`/`snowballs`) and thumbnail-mode `videoClips`; new `bumpClips()` helper replaces legacy `m.redraw()` after imperative uploads
   - Remaining `m.redraw()` calls in `lib/` (audio, drag, render loop, fonts, clip-factory, recorder) are no-ops now that no Mithril roots exist — they get removed during the `.js` → `.ts`Rename step below
-- [ ] Properly type `runtime.js` (holds refs to canvas/audio/video)
-- [ ] Tear down the legacy typed `State`; all state access goes through the typed store
-- [ ] Verify: clean build with no errors
+- [x] Properly type `runtime.js` (holds refs to canvas/audio/video) → `lib/runtime.ts` with a `RuntimeRefs` interface; engine refs (`audioCtx`, `analyser`, EQ/gain/panner, `dataArray`) are non-null because the audio engine builds them before the render loop starts, while UI refs (`canvas`, `ctx`, `audioEl`, `mediaRecorder`) stay nullable for React consumers
+- [ ] Tear down the legacy typed `State`; all state access goes through the typed store — *bridge is now `lib/state.ts` and still in use; removal is the last remaining Phase 4 item*
+- [x] Verify: clean build with no errors (`bunx tsc -noEmit` clean, `bun run build` green, Playwright smoke test on the production preview build: shape clip + canvas drag + Rain VFX slider + 3s playback + thumbnail route, zero console errors)
 
 ### Phase 5 — Cleanup & finalization
 
 - [ ] `tsconfig.json`: turn off `allowJs`, enable `strict` for all files (or use per-directory overrides)
-- [ ] Remove `mithril` from `package.json`, clean node_modules (`bun install`)
+- [x] Remove `mithril` from `package.json`, clean node_modules (`bun install`) — done in `e7bc9a8` (`bun remove mithril @types/mithril`)
 - [ ] Update `README.md` & `AGENTS.md`: new stack (TypeScript, React, Zustand), new directories (`src/store/`, `src/types/`, `src/app/`)
 - [ ] Full end-to-end test: video editor, thumbnail editor, playback, record, `bun run deploy`
 
@@ -173,5 +186,5 @@ Conversion rules:
 - [x] **M1** — Infrastructure: deps installed, `tsconfig.json` ready, build safe (Phase 0)
 - [x] **M2** — Zustand slices complete + video ⇄ thumbnail mode swap working (Phase 1)
 - [x] **M3** — `main.tsx` + React shell alive in the browser (Phase 2)
-- [ ] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
-- [ ] **M5** — `lib/` + `utils/` 100% `.ts`, `strict` enabled, docs updated (Phases 4–5)
+- [x] **M4** — 17 components 100% `.tsx`, `mithril` removed (Phase 3)
+- [ ] **M5** — `lib/` + `utils/` 100% `.ts` ✅, `strict` for all files + docs updated ⏳ (Phases 4–5; only the `State` bridge teardown, `allowJs` off, and doc updates remain)
