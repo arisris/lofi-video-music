@@ -1,21 +1,21 @@
 import { useEffect } from "react";
-import type { EditorRoute } from "../store/slices/mode";
-import { useEditorStore, editorStore } from "../store/editor-store";
-import { runtime } from "../lib/runtime";
-import { renderLoop } from "../lib/render";
-import { handleDragMove, handleDragEnd } from "../lib/drag";
-import { initAudioEngine, applyAudioSettings } from "../lib/audio";
+import type { EditorRoute } from "./store/slices/mode";
+import { useEditorStore, editorStore } from "./store/editor-store";
+import { runtime } from "./lib/runtime";
+import { renderLoop } from "./lib/render";
+import { handleDragMove, handleDragEnd } from "./lib/drag";
+import { initAudioEngine, applyAudioSettings } from "./lib/audio";
 
-import { VideoPreview } from "../components/video-preview";
-import { PlaybackControls } from "../components/transport-bar";
-import { Timeline } from "../components/timeline";
-import { Resizer } from "../components/resizer";
-import { MediaPool } from "../components/media-pool";
-import { InspectorPanel } from "../components/inspector-panel";
-import { RecordSettingsModal } from "../components/record-settings-modal";
+import { VideoPreview } from "./components/video-preview";
+import { PlaybackControls } from "./components/transport-bar";
+import { Timeline } from "./components/timeline";
+import { Resizer } from "./components/resizer";
+import { MediaPool } from "./components/media-pool";
+import { InspectorPanel } from "./components/inspector-panel";
+import { RecordSettingsModal } from "./components/record-settings-modal";
 
-import { getClipsToSearch } from "../utils/helpers";
-import { bumpClips } from "../store/actions/timeline-actions";
+import { getClipsToSearch } from "./utils/helpers";
+import { bumpClips } from "./store/actions/timeline-actions";
 
 /** Set once per page session so HMR re-mounts never double-schedule the rAF loop. */
 let renderLoopStarted = false;

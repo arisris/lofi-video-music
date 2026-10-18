@@ -4,7 +4,7 @@
 
 - **Runtime**: Bun
 - **Bundler**: Vite 8 + Cloudflare Vite plugin (`@cloudflare/vite-plugin`)
-- **UI**: React 19 (`src/components/`, `src/app/`) + Tailwind CSS v4
+- **UI**: React 19 (`src/components/`, `src/app.tsx`) + Tailwind CSS v4
 - **State**: Zustand store (`src/store/editor-store.ts` + slices in `src/store/slices/`)
 - **Backend**: Cloudflare Worker (`worker/index.ts`) — proxies Pexels/Pixabay API calls
 - **Deploy**: Cloudflare Workers via `wrangler deploy`
@@ -26,14 +26,15 @@
 
 ## Architecture
 
-**Two routes** defined in `src/app/App.tsx` via hashchange + regex parser:
+**Two routes** defined in `src/app.tsx` via hashchange + regex parser:
 - `/` — video editor mode
 - `/image` — thumbnail editor mode
 
 State is swapped between routes via the `mode` slice action (`swapRoute`). The Zustand store is the single source of truth.
 
+**Entry point**: `src/app.tsx` — React shell, hash router, runtime binding
+
 **Key directories**:
-- `src/app/` — React shell, hash router, runtime binding
 - `src/store/` — Zustand store, slices, and actions (`src/store/actions/`)
 - `src/types/` — shared TypeScript types (clips, media, panels)
 - `src/components/` — React components (UI panels, timeline, inspector, clip settings views)

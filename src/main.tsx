@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { App } from "./app/App";
+import { App } from "./app";
 import "./tailwind.css";
 
 // React entry point (replaces the legacy Mithril entry `main.js`).
