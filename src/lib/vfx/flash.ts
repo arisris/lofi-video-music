@@ -6,13 +6,20 @@ export const FlashVFX = {
   id: "flash",
   name: "Lightning Flash",
   icon: "icon-[ri--flashlight-line]",
-  
+
   settings: {
     frequency: 0.5,
-    audioReactive: false
+    audioReactive: false,
   },
 
-  drawItem(ctx, w, h, settings, localTime, clip) {
+  drawItem(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+    _localTime: number,
+    clip: Record<string, any>,
+  ) {
     if (clip.flashOpacity === undefined) {
       clip.flashOpacity = 0;
     }
@@ -27,7 +34,7 @@ export const FlashVFX = {
     if (settings.audioReactive) {
       const bassLevel = getAudioReactivity(State, "bass");
       const threshold = 0.85 - (settings.frequency || 0.5) * 0.35;
-      
+
       if (bassLevel > threshold && clip.flashOpacity <= 0 && clip.flashCooldown === 0) {
         clip.flashOpacity = 0.2 + Math.random() * 0.3; // opacity of flash
         clip.flashCooldown = 30; // ~0.5s cooldown at 60fps

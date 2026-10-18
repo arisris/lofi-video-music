@@ -15,9 +15,9 @@ export const VFXRegistry = [
   SnowVFX,
   FirefliesVFX,
   FilmGrainVFX,
-  VignetteVFX
+  VignetteVFX,
 ];
 
-export const getVFX = (id) => {
-  return VFXRegistry.find(v => v.id === id) || RainVFX;
+export const getVFX = (id: string) => {
+  return VFXRegistry.find((v) => v.id === id) || RainVFX;
 };

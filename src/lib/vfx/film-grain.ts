@@ -11,25 +11,32 @@ export const FilmGrainVFX = {
     grainIntensity: 0.15,
     scanlinesOpacity: 0.08,
     glitchFrequency: 0.3,
-    audioReactive: false
+    audioReactive: false,
   },
 
-  drawItem(ctx, w, h, settings, localTime, clip) {
+  drawItem(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+    _localTime: number,
+    clip: Record<string, any>,
+  ) {
     // 1. Initialize Offscreen Noise Canvas (once)
     if (!clip.noiseCanvas) {
       const nSize = 128;
       clip.noiseCanvas = document.createElement("canvas");
       clip.noiseCanvas.width = nSize;
       clip.noiseCanvas.height = nSize;
-      const nCtx = clip.noiseCanvas.getContext("2d");
+      const nCtx = clip.noiseCanvas.getContext("2d") as CanvasRenderingContext2D;
       const imgData = nCtx.createImageData(nSize, nSize);
       const data = imgData.data;
       for (let i = 0; i < data.length; i += 4) {
         const val = Math.floor(Math.random() * 255);
-        data[i] = val;     // R
+        data[i] = val; // R
         data[i + 1] = val; // G
         data[i + 2] = val; // B
-        data[i + 3] = 40;  // Alpha (intensity of noise)
+        data[i + 3] = 40; // Alpha (intensity of noise)
       }
       nCtx.putImageData(imgData, 0, 0);
     }

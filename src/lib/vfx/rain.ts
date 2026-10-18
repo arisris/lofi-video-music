@@ -4,10 +4,9 @@ import { getAudioReactivity } from "../../utils/helpers";
 import { BaseParticle } from "./base-particle";
 
 export class Drop extends BaseParticle {
-  constructor(canvasWidth, canvasHeight) {
-    super(canvasWidth, canvasHeight);
-    this.y = Math.random() * canvasHeight;
-  }
+  length: number = 10;
+  speed: number = 10;
+  opacity: number = 0.2;
 
   reset() {
     this.x = Math.random() * this.canvasWidth;
@@ -17,7 +16,7 @@ export class Drop extends BaseParticle {
     this.opacity = 0.1 + Math.random() * 0.4;
   }
 
-  update(w, h, settings) {
+  update(w: number, h: number, settings: Record<string, any>) {
     this.canvasWidth = w;
     this.canvasHeight = h;
     const speedMultiplier = settings.speed !== undefined ? settings.speed : 1.0;
@@ -27,7 +26,7 @@ export class Drop extends BaseParticle {
     }
   }
 
-  draw(ctx, settings) {
+  draw(ctx: CanvasRenderingContext2D, settings: Record<string, any>) {
     const sizeMultiplier = settings.size !== undefined ? settings.size : 1.0;
     const opacityMultiplier = settings.opacity !== undefined ? settings.opacity : 1.0;
 
@@ -46,18 +45,25 @@ export const RainVFX = {
   id: "rain",
   name: "Rain (CPU)",
   icon: "icon-[ri--rainy-line]",
-  
+
   settings: {
     intensity: 200,
     speed: 1.0,
     size: 1.0,
     opacity: 1.0,
-    audioReactive: false
+    audioReactive: false,
   },
 
-  drawItem(ctx, w, h, settings, localTime, clip) {
+  drawItem(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+    _localTime: number,
+    clip: Record<string, any>,
+  ) {
     const intensity = settings.intensity || 200;
-    
+
     // Initialize or resize drops array if count doesn't match
     if (!clip.drops || clip.drops.length !== intensity || clip.canvasWidth !== w || clip.canvasHeight !== h) {
       clip.drops = [];
@@ -71,16 +77,18 @@ export const RainVFX = {
     const audioLevel = settings.audioReactive ? getAudioReactivity(State, "volume") : 0;
 
     // Determine how many drops to draw
-    const visibleCount = settings.audioReactive 
+    const visibleCount = settings.audioReactive
       ? Math.floor(clip.drops.length * (0.25 + audioLevel * 0.75))
       : clip.drops.length;
 
     // Create a modified settings object for updates/draws if audio reactive
-    const activeSettings = settings.audioReactive ? {
-      ...settings,
-      speed: (settings.speed !== undefined ? settings.speed : 1.0) * (0.4 + audioLevel * 1.6),
-      opacity: (settings.opacity !== undefined ? settings.opacity : 1.0) * (0.3 + audioLevel * 0.7)
-    } : settings;
+    const activeSettings = settings.audioReactive
+      ? {
+          ...settings,
+          speed: (settings.speed !== undefined ? settings.speed : 1.0) * (0.4 + audioLevel * 1.6),
+          opacity: (settings.opacity !== undefined ? settings.opacity : 1.0) * (0.3 + audioLevel * 0.7),
+        }
+      : settings;
 
     for (let i = 0; i < visibleCount; i++) {
       const drop = clip.drops[i];

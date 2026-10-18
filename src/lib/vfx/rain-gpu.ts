@@ -1,9 +1,9 @@
 import { State } from "../state";
 import { RainGpuSettingsView } from "../../components/clip-settings/vfx/rain-gpu";
 import { getAudioReactivity } from "../../utils/helpers";
-import { WebGLRenderer } from "../webgl-renderer";
+import { WebGLRenderer, UniformValue } from "../webgl-renderer";
 
-let rainProgram = null;
+let rainProgram: WebGLProgram | null = null;
 
 const RAIN_FRAGMENT_SHADER_SRC = `
   precision mediump float;
@@ -69,19 +69,24 @@ if (typeof window !== "undefined" && WebGLRenderer.isSupported()) {
   try {
     rainProgram = WebGLRenderer.compileProgram(
       WebGLRenderer.DEFAULT_VERTEX_SHADER,
-      RAIN_FRAGMENT_SHADER_SRC
+      RAIN_FRAGMENT_SHADER_SRC,
     );
     // Force GPU pipeline warmup to compile shaders to machine code & initialize WebGL state
     // before requestAnimationFrame loop runs
     if (rainProgram) {
-      WebGLRenderer.drawQuad(rainProgram, {
-        u_resolution: [1.0, 1.0],
-        u_time: 0.0,
-        u_intensity: 200.0,
-        u_speed: 1.0,
-        u_size: 1.0,
-        u_opacity: 1.0
-      }, 1, 1);
+      WebGLRenderer.drawQuad(
+        rainProgram,
+        {
+          u_resolution: [1.0, 1.0],
+          u_time: 0.0,
+          u_intensity: 200.0,
+          u_speed: 1.0,
+          u_size: 1.0,
+          u_opacity: 1.0,
+        },
+        1,
+        1,
+      );
     }
   } catch (e) {
     console.error("Failed to pre-compile and warm up Rain GPU shader:", e);
@@ -98,10 +103,17 @@ export const RainGPUVFX = {
     speed: 1.0,
     size: 1.0,
     opacity: 1.0,
-    audioReactive: false
+    audioReactive: false,
   },
 
-  drawItem(ctx, w, h, settings, localTime, clip) {
+  drawItem(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+    _localTime: number,
+    clip: Record<string, any>,
+  ) {
     const isSupported = WebGLRenderer.isSupported();
     if (!isSupported) {
       ctx.save();
@@ -116,7 +128,7 @@ export const RainGPUVFX = {
     if (!rainProgram) {
       rainProgram = WebGLRenderer.compileProgram(
         WebGLRenderer.DEFAULT_VERTEX_SHADER,
-        RAIN_FRAGMENT_SHADER_SRC
+        RAIN_FRAGMENT_SHADER_SRC,
       );
       if (!rainProgram) {
         console.error("[RainGPU] Failed to compile Rain GPU shader program.");
@@ -124,7 +136,7 @@ export const RainGPUVFX = {
       }
     }
 
-    // Keep track of a running animation clock so the rain falls continuously 
+    // Keep track of a running animation clock so the rain falls continuously
     // even when the timeline playback is paused (matching CPU behavior)
     const now = performance.now();
     if (clip.animTime === undefined) {
@@ -141,14 +153,13 @@ export const RainGPUVFX = {
     const size = settings.size !== undefined ? settings.size : 1.0;
     const opacity = settings.opacity !== undefined ? settings.opacity : 1.0;
 
-
-    const uniforms = {
+    const uniforms: Record<string, UniformValue> = {
       u_resolution: [w, h],
       u_time: clip.animTime,
       u_intensity: intensity,
       u_speed: speed,
       u_size: size,
-      u_opacity: opacity
+      u_opacity: opacity,
     };
 
     if (settings.audioReactive) {
