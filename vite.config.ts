@@ -7,7 +7,12 @@ export default defineConfig({
   plugins: [react(), cloudflare(), tailwindcss()],
   server: {
     watch: {
-      ignored: ["**/.wrangler/**"]
-    }
-  }
+      ignored: [
+        "**/.wrangler/**",
+        "**/.playwright-mcp/**",
+        "**/.wu/**",
+        "**/dist/**",
+      ],
+    },
+  },
 });
