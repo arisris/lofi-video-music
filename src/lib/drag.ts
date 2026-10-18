@@ -66,7 +66,10 @@ export const findClipAtPos = (pos: { x: number; y: number }) => {
   // 2. Check Global Clips (Visualizer, etc.)
   const globalClips = [...ClipRegistry.getAll()].reverse();
   for (const clip of globalClips) {
-    if (clip.id === 'text' || clip.id === 'background' || clip.id === 'visualizer') continue; // Skip timeline clips
+    // Timeline clips are hit-tested above; only true global clips (no drawItem)
+    // take part here. The previous id list missed most timeline clips, which fell
+    // back to a full-canvas bbox and hijacked clicks on empty space.
+    if (typeof clip.drawItem === "function") continue;
 
     const settings = editorStore.getState().clipSettings[clip.id];
     if (!settings) continue;

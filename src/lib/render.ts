@@ -271,7 +271,8 @@ export const renderLoop = () => {
 
   // Draw All Registered Clips (Global ones like Visualizer)
   ClipRegistry.getAll().forEach(clip => {
-    if (clip.id === 'text' || clip.id === 'background' || clip.id === 'visualizer') return; // Skip timeline clips
+    // Timeline clips draw in the pass below; only true global clips render here.
+    if (typeof clip.drawItem === "function") return;
 
     try {
       if (!clip || typeof clip.draw !== "function") return;
