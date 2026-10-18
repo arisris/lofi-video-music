@@ -1,4 +1,3 @@
-import m from "mithril";
 import { useEffect } from "react";
 import { editorStore, useEditorStore } from "../store/editor-store";
 import { MediaLibraryPanel } from "./media-library-panel";
@@ -6,7 +5,6 @@ import { TextPanel } from "./text-panel";
 import { VFXPanel } from "./vfx-panel";
 import { SettingsPanel } from "./settings-panel";
 import { ShapePanel } from "./shape-panel";
-import { MithrilBridge } from "../compat/mithril-bridge";
 
 interface LeftTab {
   id: string;
@@ -54,7 +52,7 @@ export const MediaPool = () => {
 
   const handleTabClick = (tab: LeftTab) => {
     if (tab.route) {
-      m.route.set(tab.route);
+      window.location.hash = `#!${tab.route}`;
       return;
     }
     const state = editorStore.getState();
@@ -62,15 +60,6 @@ export const MediaPool = () => {
       editorStore.setState({ leftPanelCollapsed: true });
     } else {
       editorStore.setState({ activeLeftTab: tab.id, leftPanelCollapsed: false });
-    }
-  };
-
-  const legacyPanel = () => {
-    switch (activeLeftTab) {
-      case "library":
-        return m(MediaLibraryPanel); // legacy (Phase 3 #17)
-      default:
-        return null; // "shapes", "text", "settings", and "vfx" are React components now
     }
   };
 
@@ -85,7 +74,7 @@ export const MediaPool = () => {
       case "shapes":
         return <ShapePanel />;
       default:
-        return <MithrilBridge render={legacyPanel} />;
+        return <MediaLibraryPanel />;
     }
   })();
 
