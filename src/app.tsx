@@ -5,7 +5,7 @@ import type { EditorRoute } from "./store/slices/mode";
 import { useEditorStore, editorStore } from "./store/editor-store";
 import { runtime } from "./lib/runtime";
 import { renderLoop } from "./lib/render";
-import { handleDragMove, handleDragEnd } from "./lib/drag";
+import { handleDragMove, handleDragEnd, DragPointerEvent } from "./lib/drag";
 import { initAudioEngine, applyAudioSettings } from "./lib/audio";
 
 import { VideoPreview } from "./components/video-preview";
@@ -82,17 +82,19 @@ const AppContent = () => {
     bindRuntime();
 
     // Global drag listeners, bound once for the whole app.
-    window.addEventListener("mousemove", handleDragMove as unknown as (ev: MouseEvent) => void);
-    window.addEventListener("mouseup", handleDragEnd as unknown as EventListener);
-    window.addEventListener("touchmove", handleDragMove as unknown as (ev: TouchEvent) => void, { passive: false } as AddEventListenerOptions);
-    window.addEventListener("touchend", handleDragEnd as unknown as EventListener);
+    const touchMoveOptions: AddEventListenerOptions = { passive: false };
+    const onDragMove = (e: MouseEvent | TouchEvent) => handleDragMove(e as DragPointerEvent);
+    window.addEventListener("mousemove", onDragMove);
+    window.addEventListener("mouseup", handleDragEnd);
+    window.addEventListener("touchmove", onDragMove, touchMoveOptions);
+    window.addEventListener("touchend", handleDragEnd);
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("mousemove", handleDragMove as unknown as (ev: MouseEvent) => void);
-      window.removeEventListener("mouseup", handleDragEnd as unknown as EventListener);
-      window.removeEventListener("touchmove", handleDragMove as unknown as (ev: TouchEvent) => void);
-      window.removeEventListener("touchend", handleDragEnd as unknown as EventListener);
+      window.removeEventListener("mousemove", onDragMove);
+      window.removeEventListener("mouseup", handleDragEnd);
+      window.removeEventListener("touchmove", onDragMove, touchMoveOptions);
+      window.removeEventListener("touchend", handleDragEnd);
     };
   }, []);
 
