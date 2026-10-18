@@ -10,16 +10,22 @@
 // immutable updates land component-by-component from Phase 3 onwards.
 import { editorStore } from "../store/editor-store";
 
-export const State = new Proxy(Object.create(null), {
+// Legacy view over the store: same shape as before the migration (untyped
+// property bag) so the many `State.<field>` call sites keep compiling.
+type LegacyStateView = {
+  isThumbnailMode: boolean;
+} & Record<string | symbol, any>;
+
+export const State = new Proxy({} as LegacyStateView, {
   get(_target, prop) {
     if (prop === "isThumbnailMode") {
       return editorStore.getState().currentRoute === "/image";
     }
-    return editorStore.getState()[prop];
+    return (editorStore.getState() as Record<string | symbol, any>)[prop];
   },
 
   set(_target, prop, value) {
-    editorStore.setState({ [prop]: value });
+    editorStore.setState({ [prop]: value } as any);
     return true;
   },
 
@@ -28,7 +34,7 @@ export const State = new Proxy(Object.create(null), {
     return prop in editorStore.getState();
   },
 
-  ownKeys(_target) {
+  ownKeys() {
     return Reflect.ownKeys(editorStore.getState());
   },
 
