@@ -73,9 +73,11 @@ const uploadAudio = (gl: WebGLRenderingContext, source: AudioSource, bins: numbe
   const available = analyser ? analyser.frequencyBinCount : bins;
   if (audioBuffer.length !== available) audioBuffer = new Uint8Array(new ArrayBuffer(available));
 
-  if (!analyser) return 0;
-
-  if (isPlaying) {
+  if (!analyser) {
+    // Still upload, so u_audio is a valid texture rather than a null binding.
+    // The audio engine starts lazily, and a clip can render before it does.
+    audioBuffer.fill(0);
+  } else if (isPlaying) {
     if (source === "wave") analyser.getByteTimeDomainData(audioBuffer);
     else analyser.getByteFrequencyData(audioBuffer);
   } else {
@@ -141,6 +143,11 @@ const getImageTexture = (gl: WebGLRenderingContext, url: string): WebGLTexture |
  * Declared fields become uniforms under `u_<key>`: sliders as floats, toggles
  * as 0/1, colours as normalised vec3, and selects whose option values are
  * numeric so a shader can switch behaviour on one.
+ *
+ * A setting the clip does not carry falls back to the definition's own default.
+ * Without that, a clip saved before a field existed pushes no uniform at all
+ * and the shader renders nothing, because GLSL uniforms start at zero - and
+ * `u_bars = 0` is not a sparse visual, it is an empty screen.
  */
 const buildUniforms = (
   def: VisualizerDef,
@@ -158,7 +165,7 @@ const buildUniforms = (
   };
 
   for (const field of def.fields) {
-    const value = settings[field.key];
+    const value = settings[field.key] ?? def.settings[field.key];
     switch (field.kind) {
       case "slider":
         if (typeof value === "number" && Number.isFinite(value)) uniforms[`u_${field.key}`] = value;
@@ -183,8 +190,8 @@ const buildUniforms = (
 };
 
 /** Bounding box a clip should occupy, falling back to the legacy layout. */
-export const resolveBBox = (def: VisualizerDef, w: number, h: number): BBox =>
-  def.bbox ? def.bbox(w, h) : { x: 0, y: h / 2, width: w, height: h / 2 };
+export const resolveBBox = (def: VisualizerDef, w: number, h: number, settings: Record<string, unknown>): BBox =>
+  def.bbox ? def.bbox(w, h, settings) : { x: 0, y: h / 2, width: w, height: h / 2 };
 
 /**
  * Draws one frame of a visualizer into the 2D context at `bbox`.

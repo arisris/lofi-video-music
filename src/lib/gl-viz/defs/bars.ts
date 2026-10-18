@@ -14,6 +14,7 @@ uniform sampler2D u_audio;
 
 uniform vec2  u_resolution;
 uniform float u_audioLevel;
+uniform float u_audioBins;
 uniform float u_bars;
 uniform float u_intensity;
 uniform float u_glow;
@@ -44,10 +45,22 @@ void main() {
   float dx = min(fx - halfGap, (1.0 - halfGap) - fx);
   float maskX = smoothstep(-aaX, aaX, dx);
 
-  // Bass carries most of the energy, so bias the bin lookup instead of walking
-  // the spectrum linearly and leaving the right-hand bars permanently dead.
-  float t = (idx + 0.5) / bars;
-  float level = texture2D(u_audio, vec2(pow(t, 1.6), 0.5)).r;
+  // Logarithmic bands. A 256-bin FFT puts nearly all of its energy in the
+  // lowest few bins - measured on a two-tone test signal, 26 of 256 carried
+  // anything - so walking the spectrum linearly strands the whole signal in
+  // bar one. Spacing bands geometrically matches how pitch is heard, and
+  // peak-holding across each band keeps narrow content from slipping between
+  // taps.
+  float nb = max(1.0, u_audioBins);
+  float hi = min(160.0, nb);
+  float b0 = pow(hi, idx / bars);
+  float b1 = pow(hi, (idx + 1.0) / bars);
+
+  float level = 0.0;
+  for (int k = 0; k < 3; k++) {
+    float f = mix(b0, b1, (float(k) + 0.5) / 3.0);
+    level = max(level, texture2D(u_audio, vec2(f / nb, 0.5)).r);
+  }
 
   float h = clamp(level * u_intensity, 0.0, 1.0);
   float top = baseline + h * REFLECTION;
@@ -61,7 +74,9 @@ void main() {
 
   if (alpha < 0.004) discard;
 
-  float tip = smoothstep(0.0, 0.08, h * REFLECTION - (y - baseline));
+  // Brighten towards the leading edge, not the foot of the bar: y grows
+  // upwards here, so the tip is the largest y inside the bar.
+  float tip = smoothstep(0.0, 0.06, y - (top - 0.06));
   vec3 col = mix(u_color, vec3(1.0), tip * 0.5) + u_color * tip * u_glow;
 
   if (mirrored) {

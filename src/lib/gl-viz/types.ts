@@ -64,7 +64,7 @@ export interface VisualizerDef {
    * Clip bounding box in canvas pixels. Defaults to the full width over the
    * lower half, matching the legacy visualizer clip.
    */
-  bbox?: (w: number, h: number) => BBox;
+  bbox?: (w: number, h: number, settings: Record<string, unknown>) => BBox;
 }
 
 /** Shader sampler names every fragment shader may declare. */
