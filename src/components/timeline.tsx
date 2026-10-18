@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef } from "react";
+import { memo, useEffect, useReducer, useRef } from "react";
 import {
   formatTime,
   getTotalDuration,
@@ -156,7 +156,10 @@ const handleWindowMouseMove = (e: MouseEvent) => {
 
     if (clip) {
       // Work on a copy; the store is updated immutably once at the end of the drag step.
-      const nextClip: any = { ...clip, settings: { ...clip.settings } };
+      // settings is shared until something actually writes to it - a plain move or a
+      // right-edge resize changes no setting, and handing back a fresh object every
+      // frame would churn the inspector for nothing.
+      const nextClip: any = { ...clip };
       const nextSnapLines: any[] = [];
       const currentTrack = state.timelineTracks.find((t: any) => t.id === clip.trackId);
 
@@ -207,7 +210,7 @@ const handleWindowMouseMove = (e: MouseEvent) => {
             newStart = isDraggingClip.initialStart + (maxOffset - (clip.settings.startOffset || 0));
           }
 
-          nextClip.settings.startOffset = newOffset;
+          nextClip.settings = { ...clip.settings, startOffset: newOffset };
           newDur = Math.max(0.1, isDraggingClip.initialDuration - (newStart - isDraggingClip.initialStart));
         } else {
           newStart = Math.max(0, isDraggingClip.initialStart + dx);
@@ -386,6 +389,323 @@ const handleWheelNative = (e: WheelEvent) => {
   }
 };
 
+/**
+ * Kicks off a clip drag and attaches the window listeners that carry it.
+ *
+ * Selecting the clip is part of grabbing its body, but not of grabbing a resize
+ * handle - a handle stops the event before it reaches the clip, and that
+ * behaviour is preserved here rather than duplicated at each call site.
+ */
+const beginClipDrag = (
+  e: React.MouseEvent,
+  clip: any,
+  type: DragState["type"]
+) => {
+  e.stopPropagation();
+  if (type === "move") {
+    editorStore.setState({
+      selectedClipId: clip.id,
+      activeClipTab: clip.type,
+      activeInspectorTab: "properties",
+    });
+  }
+  isDraggingClip = {
+    clipId: clip.id,
+    type,
+    startX: e.clientX,
+    initialStart: clip.start,
+    initialDuration: clip.duration,
+  };
+  window.addEventListener("mousemove", handleWindowMouseMove);
+  window.addEventListener("mouseup", handleWindowMouseUp);
+};
+
+/**
+ * Ruler ticks, grid lines, snap lines and the playhead depend on duration, zoom
+ * and scroll - never on where a clip sits.
+ *
+ * Inline, all four were rebuilt on every frame of a drag. At a long timeline the
+ * ruler is one element per 2s and the grid one per 10s, so a 2-hour project
+ * rebuilt ~8000 elements per pointer event to redraw them identically. That was
+ * the bulk of the drag cost; memoising on exactly the inputs each reads removes
+ * it, and only the dragged clip is left to render.
+ */
+const RulerTicks = memo(function RulerTicks({
+  totalDuration,
+  zoom,
+  scrollLeft,
+}: {
+  totalDuration: number;
+  zoom: number;
+  scrollLeft: number;
+}) {
+  const span = { left: `${-scrollLeft}px`, width: `${totalDuration * zoom}px` };
+  const valid = !isNaN(totalDuration) && isFinite(totalDuration) && totalDuration > 0;
+
+  return (
+    <>
+      <div className="absolute top-0 h-full flex items-end" style={span}>
+        {Array.from({ length: valid ? Math.ceil(totalDuration / 10) + 1 : 7 }).map((_, i) => (
+          <div
+            key={`ruler-${i * 10}`}
+            className="absolute h-3 border-l border-slate-700 flex flex-col justify-end pb-1 px-1"
+            style={{ left: `${i * 10 * zoom}px` }}
+          >
+            <span className="text-[8px] text-slate-500 font-mono">{formatTime(i * 10)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="absolute top-0 h-full flex items-end" style={span}>
+        {Array.from({ length: valid ? Math.ceil(totalDuration / 2) + 1 : 31 }).map((_, i) => {
+          const time = i * 2;
+          if (time % 10 === 0) return null;
+          return (
+            <div
+              key={`sub-${time}`}
+              className="absolute h-1.5 border-l border-slate-800"
+              style={{ left: `${time * zoom}px` }}
+            />
+          );
+        })}
+      </div>
+    </>
+  );
+});
+
+const GridLines = memo(function GridLines({
+  totalDuration,
+  zoom,
+  scrollLeft,
+}: {
+  totalDuration: number;
+  zoom: number;
+  scrollLeft: number;
+}) {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{ left: `${-scrollLeft}px`, width: `${totalDuration * zoom}px` }}
+    >
+      {Array.from({ length: Math.ceil(totalDuration / 10) + 1 }).map((_, i) => (
+        <div
+          key={`grid-${i}`}
+          className="absolute h-full border-l border-slate-800/30"
+          style={{ left: `${i * 10 * zoom}px` }}
+        />
+      ))}
+    </div>
+  );
+});
+
+const SnapLines = memo(function SnapLines({
+  snapLines,
+  zoom,
+  scrollLeft,
+  scrollTop,
+}: {
+  snapLines: any[];
+  zoom: number;
+  scrollLeft: number;
+  scrollTop: number;
+}) {
+  return (
+    <>
+      {snapLines.map((line: any, idx: number) => {
+        const snapClass = line.isVideoSnap
+          ? "absolute w-px bg-cyan-400/90 z-30 pointer-events-none shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+          : "absolute top-0 bottom-0 w-px bg-yellow-400/80 z-30 pointer-events-none shadow-[0_0_8px_rgba(250,204,21,0.5)]";
+
+        const style = line.isVideoSnap
+          ? {
+              left: `${line.time * zoom - scrollLeft}px`,
+              top: `${line.trackIdx * 48 - scrollTop}px`,
+              height: "48px",
+            }
+          : { left: `${line.time * zoom - scrollLeft}px` };
+
+        return <div key={`snap-${idx}`} className={snapClass} style={style} />;
+      })}
+    </>
+  );
+});
+
+const Playhead = memo(function Playhead({
+  time,
+  zoom,
+  scrollLeft,
+}: {
+  time: number;
+  zoom: number;
+  scrollLeft: number;
+}) {
+  return (
+    <div
+      className="absolute top-0 bottom-0 w-0.5 bg-blue-500 z-20 pointer-events-none shadow-[0_0_8px_rgba(59,130,246,0.8)]"
+      style={{ left: `${time * zoom - scrollLeft}px` }}
+    >
+      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-blue-500 rotate-45" />
+    </div>
+  );
+});
+
+/** One clip. Re-renders only when this clip itself moved or changed selection. */
+const ClipView = memo(function ClipView({
+  clip,
+  zoom,
+  selected,
+}: {
+  clip: any;
+  zoom: number;
+  selected: boolean;
+}) {
+  const isDurationLocked =
+    clip.type === "overlay" && clip.settings.mediaType === "video" && clip.settings.loop === false;
+
+  const clipClass = selected
+    ? clip.type === "music"
+      ? "bg-emerald-600/40 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+      : "bg-blue-600/40 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+    : clip.type === "music"
+      ? "bg-emerald-800/40 border-emerald-700/50 hover:bg-emerald-800/60 hover:border-emerald-600"
+      : "bg-slate-700/60 border-slate-600 hover:bg-slate-700 hover:border-slate-500";
+
+  const isVideo =
+    (clip.type === "background" && clip.settings.bgType === "video") ||
+    (clip.type === "overlay" && clip.settings.mediaType === "video");
+  const videoDuration = clip.settings.videoDuration || 0;
+  const speed = clip.settings.speed || 1.0;
+  const visualVideoDuration = videoDuration / speed;
+
+  const markers: number[] = [];
+  if (
+    isVideo &&
+    typeof videoDuration === "number" &&
+    videoDuration > 0 &&
+    typeof visualVideoDuration === "number" &&
+    visualVideoDuration > 0.05
+  ) {
+    const shouldLoop = clip.settings.loop !== false;
+    if (shouldLoop) {
+      const maxMarkers = 500;
+      let count = 0;
+      for (
+        let time = visualVideoDuration;
+        time < clip.duration - 0.05 && count < maxMarkers;
+        time += visualVideoDuration
+      ) {
+        markers.push(time);
+        count++;
+      }
+    } else if (visualVideoDuration < clip.duration - 0.05) {
+      markers.push(visualVideoDuration);
+    }
+  }
+
+  return (
+    <div
+      // transition-colors, not transition-all: the latter also
+      // animates left/width, so every drag step eased toward its
+      // new position and the clip trailed the cursor by ~40%.
+      className={`absolute top-2 bottom-2 rounded border transition-colors ${clipClass}`}
+      style={{ left: `${clip.start * zoom}px`, width: `${clip.duration * zoom}px` }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showContextMenu(e, clip.id);
+      }}
+      onMouseDown={(e) => beginClipDrag(e, clip, "move")}
+    >
+      {/* Original video duration/loop boundaries */}
+      {markers.map((time) => (
+        <div
+          key={`marker-${time}`}
+          className="absolute top-0 bottom-0 w-px border-l border-dashed border-cyan-400/60 pointer-events-none z-10"
+          style={{ left: `${time * zoom}px` }}
+        />
+      ))}
+      {/* Resize Handles */}
+      {!isDurationLocked && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-blue-400/50 rounded-l transition-colors"
+          onMouseDown={(e) => beginClipDrag(e, clip, "resize-start")}
+        />
+      )}
+      {!isDurationLocked && (
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-blue-400/50 rounded-r transition-colors"
+          onMouseDown={(e) => beginClipDrag(e, clip, "resize-end")}
+        />
+      )}
+      {/* Content Preview */}
+      <div className="flex items-center h-full px-2 gap-2 overflow-hidden pointer-events-none w-full">
+        {clip.type === "music" ? (
+          <i className="icon-[ri--music-2-line] w-3 h-3 text-emerald-400 shrink-0" />
+        ) : (clip.type === "background" || clip.type === "overlay") && clip.settings?.thumbnail ? (
+          <img
+            src={clip.settings.thumbnail}
+            className="w-4 h-4 rounded object-cover border border-slate-600 shrink-0"
+          />
+        ) : (
+          <i
+            className={`${
+              clip.type === "text"
+                ? "icon-[ri--text-spacing]"
+                : clip.type === "visualizer"
+                  ? "icon-[ri--pulse-line]"
+                  : clip.type === "glviz"
+                    ? "icon-[ri--shapes-line]"
+                    : "icon-[ri--image-line]"
+            } w-3 h-3 text-slate-300 shrink-0`}
+          />
+        )}
+        <span className="text-[9px] text-white font-medium truncate">
+          {clip.type === "music"
+            ? clip.settings?.name || "Music"
+            : clip.type === "background" || clip.type === "overlay"
+              ? clip.settings?.fileName || (clip.type === "background" ? "Background" : "Overlay")
+              : clip.type === "visualizer"
+                ? `Visualizer (${clip.settings?.style || "bars"})`
+                : clip.type === "glviz"
+                  ? `Shader (${clip.settings?.style || "bars"})`
+                  : clip.settings?.content || clip.type}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+/**
+ * A row re-renders when one of its clips changes identity. Compared element by
+ * element because the drag replaces `timelineClips` with a fresh array on every
+ * move, so reference equality on the array itself would defeat the memo and
+ * redraw every clip in the project for one dragged clip.
+ */
+const sameClips = (a: any[], b: any[]) => a.length === b.length && a.every((clip, i) => clip === b[i]);
+
+const TrackRow = memo(
+  function TrackRow({
+    clips,
+    zoom,
+    selectedClipId,
+  }: {
+    clips: any[];
+    zoom: number;
+    selectedClipId: string | null;
+  }) {
+    return (
+      <div className="h-12 border-b border-slate-800/30 relative">
+        {clips.map((clip) => (
+          <ClipView key={clip.id} clip={clip} zoom={zoom} selected={selectedClipId === clip.id} />
+        ))}
+      </div>
+    );
+  },
+  (prev, next) =>
+    prev.zoom === next.zoom &&
+    prev.selectedClipId === next.selectedClipId &&
+    sameClips(prev.clips, next.clips)
+);
+
 /** Multi-track timeline: ruler, tracks, clips, playhead, scrollbars. */
 export const Timeline = () => {
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
@@ -482,52 +802,7 @@ export const Timeline = () => {
           }}
         >
           {/* Ruler Markers */}
-          <div
-            className="absolute top-0 h-full flex items-end"
-            style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}
-          >
-            {(() => {
-              const rulerLength =
-                isNaN(totalDuration) || !isFinite(totalDuration) || totalDuration <= 0
-                  ? 7
-                  : Math.ceil(totalDuration / 10) + 1;
-              return Array.from({ length: rulerLength }).map((_, i) => {
-                const time = i * 10;
-                return (
-                  <div
-                    key={`ruler-${time}`}
-                    className="absolute h-3 border-l border-slate-700 flex flex-col justify-end pb-1 px-1"
-                    style={{ left: `${time * zoom}px` }}
-                  >
-                    <span className="text-[8px] text-slate-500 font-mono">{formatTime(time)}</span>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-          {/* Sub-markers (every 2 seconds) */}
-          <div
-            className="absolute top-0 h-full flex items-end"
-            style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}
-          >
-            {(() => {
-              const subRulerLength =
-                isNaN(totalDuration) || !isFinite(totalDuration) || totalDuration <= 0
-                  ? 31
-                  : Math.ceil(totalDuration / 2) + 1;
-              return Array.from({ length: subRulerLength }).map((_, i) => {
-                const time = i * 2;
-                if (time % 10 === 0) return null;
-                return (
-                  <div
-                    key={`sub-${time}`}
-                    className="absolute h-1.5 border-l border-slate-800"
-                    style={{ left: `${time * zoom}px` }}
-                  />
-                );
-              });
-            })()}
-          </div>
+          <RulerTicks totalDuration={totalDuration} zoom={zoom} scrollLeft={scrollLeft} />
         </div>
       </div>
 
@@ -617,35 +892,15 @@ export const Timeline = () => {
         {/* Track Content Area */}
         <div id="timeline-content-area" className="flex-1 relative overflow-hidden bg-slate-950/40">
           {/* SNAP LINES */}
-          {state.snapLines.map((line: any, idx: number) => {
-            const snapClass = line.isVideoSnap
-              ? "absolute w-px bg-cyan-400/90 z-30 pointer-events-none shadow-[0_0_8px_rgba(34,211,238,0.6)]"
-              : "absolute top-0 bottom-0 w-px bg-yellow-400/80 z-30 pointer-events-none shadow-[0_0_8px_rgba(250,204,21,0.5)]";
-
-            const style = line.isVideoSnap
-              ? {
-                  left: `${line.time * zoom - scrollLeft}px`,
-                  top: `${line.trackIdx * 48 - (state.timelineScrollTop || 0)}px`,
-                  height: "48px",
-                }
-              : { left: `${line.time * zoom - scrollLeft}px` };
-
-            return <div key={`snap-${idx}`} className={snapClass} style={style} />;
-          })}
+          <SnapLines
+            snapLines={state.snapLines}
+            zoom={zoom}
+            scrollLeft={scrollLeft}
+            scrollTop={state.timelineScrollTop || 0}
+          />
 
           {/* Grid Lines (Vertical) */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}
-          >
-            {Array.from({ length: Math.ceil(totalDuration / 10) + 1 }).map((_, i) => (
-              <div
-                key={`grid-${i}`}
-                className="absolute h-full border-l border-slate-800/30"
-                style={{ left: `${i * 10 * zoom}px` }}
-              />
-            ))}
-          </div>
+          <GridLines totalDuration={totalDuration} zoom={zoom} scrollLeft={scrollLeft} />
 
           {/* Track Rows */}
           <div
@@ -653,176 +908,17 @@ export const Timeline = () => {
             style={{ left: `${-scrollLeft}px`, top: `${-scrollTop}px`, width: `${timelineWidth}px` }}
           >
             {state.timelineTracks.map((track: any) => (
-              <div key={track.id} className="h-12 border-b border-slate-800/30 relative">
-                {/* Clips */}
-                {state.timelineClips
-                  .filter((c: any) => c.trackId === track.id)
-                  .map((clip: any) => {
-                    const isDurationLocked =
-                      clip.type === "overlay" &&
-                      clip.settings.mediaType === "video" &&
-                      clip.settings.loop === false;
-                    const isSelected = state.selectedClipId === clip.id;
-                    const clipClass = isSelected
-                      ? clip.type === "music"
-                        ? "bg-emerald-600/40 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                        : "bg-blue-600/40 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
-                      : clip.type === "music"
-                        ? "bg-emerald-800/40 border-emerald-700/50 hover:bg-emerald-800/60 hover:border-emerald-600"
-                        : "bg-slate-700/60 border-slate-600 hover:bg-slate-700 hover:border-slate-500";
-
-                    const isVideo =
-                      (clip.type === "background" && clip.settings.bgType === "video") ||
-                      (clip.type === "overlay" && clip.settings.mediaType === "video");
-                    const videoDuration = clip.settings.videoDuration || 0;
-                    const speed = clip.settings.speed || 1.0;
-                    const visualVideoDuration = videoDuration / speed;
-
-                    const markers: number[] = [];
-                    if (
-                      isVideo &&
-                      typeof videoDuration === "number" &&
-                      videoDuration > 0 &&
-                      typeof visualVideoDuration === "number" &&
-                      visualVideoDuration > 0.05
-                    ) {
-                      const shouldLoop = clip.settings.loop !== false;
-                      if (shouldLoop) {
-                        const maxMarkers = 500;
-                        let count = 0;
-                        for (
-                          let time = visualVideoDuration;
-                          time < clip.duration - 0.05 && count < maxMarkers;
-                          time += visualVideoDuration
-                        ) {
-                          markers.push(time);
-                          count++;
-                        }
-                      } else if (visualVideoDuration < clip.duration - 0.05) {
-                        markers.push(visualVideoDuration);
-                      }
-                    }
-
-                    return (
-                      <div
-                        key={clip.id}
-                        className={`absolute top-2 bottom-2 rounded border transition-all ${clipClass}`}
-                        style={{ left: `${clip.start * zoom}px`, width: `${clip.duration * zoom}px` }}
-                        onContextMenu={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          showContextMenu(e, clip.id);
-                        }}
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          editorStore.setState({
-                            selectedClipId: clip.id,
-                            activeClipTab: clip.type,
-                            activeInspectorTab: "properties",
-                          });
-                          isDraggingClip = {
-                            clipId: clip.id,
-                            type: "move",
-                            startX: e.clientX,
-                            initialStart: clip.start,
-                            initialDuration: clip.duration,
-                          };
-                          window.addEventListener("mousemove", handleWindowMouseMove);
-                          window.addEventListener("mouseup", handleWindowMouseUp);
-                        }}
-                      >
-                        {/* Original video duration/loop boundaries */}
-                        {markers.map((time) => (
-                          <div
-                            key={`marker-${time}`}
-                            className="absolute top-0 bottom-0 w-px border-l border-dashed border-cyan-400/60 pointer-events-none z-10"
-                            style={{ left: `${time * zoom}px` }}
-                          />
-                        ))}
-                        {/* Resize Handles */}
-                        {!isDurationLocked && (
-                          <div
-                            className="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-blue-400/50 rounded-l transition-colors"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              isDraggingClip = {
-                                clipId: clip.id,
-                                type: "resize-start",
-                                startX: e.clientX,
-                                initialStart: clip.start,
-                                initialDuration: clip.duration,
-                              };
-                              window.addEventListener("mousemove", handleWindowMouseMove);
-                              window.addEventListener("mouseup", handleWindowMouseUp);
-                            }}
-                          />
-                        )}
-                        {!isDurationLocked && (
-                          <div
-                            className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-blue-400/50 rounded-r transition-colors"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              isDraggingClip = {
-                                clipId: clip.id,
-                                type: "resize-end",
-                                startX: e.clientX,
-                                initialStart: clip.start,
-                                initialDuration: clip.duration,
-                              };
-                              window.addEventListener("mousemove", handleWindowMouseMove);
-                              window.addEventListener("mouseup", handleWindowMouseUp);
-                            }}
-                          />
-                        )}
-                        {/* Content Preview */}
-                        <div className="flex items-center h-full px-2 gap-2 overflow-hidden pointer-events-none w-full">
-                          {clip.type === "music" ? (
-                            <i className="icon-[ri--music-2-line] w-3 h-3 text-emerald-400 shrink-0" />
-                          ) : (clip.type === "background" || clip.type === "overlay") && clip.settings?.thumbnail ? (
-                            <img
-                              src={clip.settings.thumbnail}
-                              className="w-4 h-4 rounded object-cover border border-slate-600 shrink-0"
-                            />
-                          ) : (
-                            <i
-                              className={`${
-                                clip.type === "text"
-                                  ? "icon-[ri--text-spacing]"
-                                  : clip.type === "visualizer"
-                                    ? "icon-[ri--pulse-line]"
-                                    : clip.type === "glviz"
-                                      ? "icon-[ri--shapes-line]"
-                                      : "icon-[ri--image-line]"
-                              } w-3 h-3 text-slate-300 shrink-0`}
-                            />
-                          )}
-                          <span className="text-[9px] text-white font-medium truncate">
-                            {clip.type === "music"
-                              ? clip.settings?.name || "Music"
-                              : clip.type === "background" || clip.type === "overlay"
-                                ? clip.settings?.fileName || (clip.type === "background" ? "Background" : "Overlay")
-                                : clip.type === "visualizer"
-                                  ? `Visualizer (${clip.settings?.style || "bars"})`
-                                  : clip.type === "glviz"
-                                    ? `Shader (${clip.settings?.style || "bars"})`
-                                    : clip.settings?.content || clip.type}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
+              <TrackRow
+                key={track.id}
+                clips={state.timelineClips.filter((c: any) => c.trackId === track.id)}
+                zoom={zoom}
+                selectedClipId={state.selectedClipId}
+              />
             ))}
           </div>
 
           {/* PLAYHEAD */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-blue-500 z-20 pointer-events-none shadow-[0_0_8px_rgba(59,130,246,0.8)]"
-            style={{ left: `${globalTime * zoom - scrollLeft}px` }}
-          >
-            {/* Playhead Handle */}
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-blue-500 rotate-45" />
-          </div>
+          <Playhead time={globalTime} zoom={zoom} scrollLeft={scrollLeft} />
 
           {/* VERTICAL SCROLLBAR */}
           {showScrollbar && (
