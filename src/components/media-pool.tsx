@@ -31,7 +31,7 @@ export const MediaPool = () => {
   const currentRoute = useEditorStore((s) => s.currentRoute);
   const isThumbnailMode = currentRoute === "/image";
 
-  // Legacy default: undefined/"playlist" tab falls back to "library".
+  // Default: an undefined or "playlist" tab falls back to "library".
   useEffect(() => {
     const state = editorStore.getState();
     if (!state.activeLeftTab || state.activeLeftTab === "playlist") {

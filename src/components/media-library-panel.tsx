@@ -514,7 +514,7 @@ export const MediaLibraryPanel = () => {
     };
   }, []);
 
-  // Legacy redraw is replaced by forceUpdate; the media-pool assets list only
+  // forceUpdate replaces a store poke here; the media-pool assets list only
   // refreshes when a new clip/asset is selected, which triggers a re-render.
   const st = stRef.current;
   // Re-render when clips/selections change through addClipToTimeline's

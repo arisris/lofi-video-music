@@ -1,7 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { EditorStore } from "../store-types";
 
-/** Legacy recording modes: full timeline or a single music clip. */
+/** Recording modes: the full timeline, or a single music clip. */
 export type RecordMode = "timeline" | "clip";
 export type PendingRecordMode = RecordMode;
 export type RecordResolution = "720p" | "1080p" | "1440p";
