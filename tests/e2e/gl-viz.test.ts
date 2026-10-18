@@ -263,3 +263,135 @@ describe("inspector fields", () => {
     });
   });
 });
+describe("gl-viz Aura", () => {
+  // Aura shows its picture instead of folding it. These pin the two properties
+  // that make it a different thing from the kaleidoscope: the silhouette is a
+  // bounded shape rather than a full-frame pattern, and the picture reaches the
+  // screen at its own proportions.
+
+  e2e("draws a bounded silhouette, not a full-frame wash", async () => {
+    await withApp(async (t) => {
+      const r = await t.eval<{ centre: number; corner: number; edge: number }>(`(async () => {
+        const e = window.__e2e;
+        const N = 200;
+        // Opaque fill and no glow, so the alpha channel alone says where the
+        // shape is and nothing else can colour it in.
+        const img = await e.renderDef("aura",
+          { glow: 0, fill: "#ffffff", background: "#00000000" }, N, N);
+        const a = (x, y) => img.pixels[(y * N + x) * 4 + 3];
+        return { centre: a(100, 100), corner: a(2, 2), edge: a(100, 6) };
+      })()`);
+
+      expect(r.centre).toBe(255);
+      expect(r.edge).toBe(0);
+      expect(r.corner).toBe(0);
+    });
+  });
+
+  e2e("shows the picture at its own proportions", async () => {
+    await withApp(async (t) => {
+      const r = await t.eval<{ w: number; h: number; ratio: number; lit: number }>(`(async () => {
+        const e = window.__e2e;
+        const N = 200;
+
+        // A 2:1 picture, generated in-page so the test carries no binary.
+        const c = document.createElement("canvas");
+        c.width = 200; c.height = 100;
+        const g = c.getContext("2d");
+        g.fillStyle = "#00ff00";
+        g.fillRect(0, 0, 200, 100);
+        const url = c.toDataURL("image/png");
+
+        const settings = {
+          image: url, markSize: 0.5, glow: 0, fill: "#ffffff", background: "#00000000",
+        };
+        // The texture loads asynchronously; without a wait the 1x1 fallback is
+        // still bound and the measurement is of nothing.
+        await e.renderDef("aura", settings, N, N);
+        await e.wait(700);
+        const img = await e.renderDef("aura", settings, N, N);
+
+        let minX = N, maxX = -1, minY = N, maxY = -1, lit = 0;
+        for (let y = 0; y < N; y++) {
+          for (let x = 0; x < N; x++) {
+            const i = (y * N + x) * 4;
+            if (img.pixels[i + 1] > 200 && img.pixels[i] < 60) {
+              lit++;
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+        const w = maxX - minX + 1, h = maxY - minY + 1;
+        return { w, h, ratio: w / h, lit };
+      })()`);
+
+      expect(r.lit).toBeGreaterThan(1000);
+      expect(r.w).toBeGreaterThan(50);
+      // Stretched to the square quad this would read 1.0.
+      expect(r.ratio).toBeGreaterThan(1.8);
+      expect(r.ratio).toBeLessThan(2.2);
+    });
+  });
+
+  e2e("the halo tracks the bass", async () => {
+    await withApp(async (t) => {
+      const r = await t.eval<{ still: number; reactive: number; db: number }>(`(async () => {
+        const e = window.__e2e;
+        const N = 200;
+        const energy = (img) => {
+          let sum = 0;
+          for (let y = 0; y < N; y += 2)
+            for (let x = 0; x < N; x += 2) {
+              const i = (y * N + x) * 4;
+              sum += img.pixels[i] + img.pixels[i + 1] + img.pixels[i + 2];
+            }
+          return sum;
+        };
+
+        await e.addMusic(5);
+        (await e.audio()).playAudio();
+
+        // Audio has to be genuinely running before anything is measured. The
+        // analyser is filled asynchronously, and measured too early it reports
+        // silence - at which point Bass response has nothing to react to and
+        // both frames come out identical for reasons that have nothing to do
+        // with the shader.
+        const { runtime } = await import("/src/lib/runtime.ts");
+        let db = -Infinity;
+        for (let i = 0; i < 60 && db < -70; i++) {
+          const buf = new Float32Array(runtime.analyser.frequencyBinCount);
+          runtime.analyser.getFloatFrequencyData(buf);
+          db = buf[1];
+          if (db < -70) await e.wait(100);
+        }
+
+        // Sampled over a few frames rather than one: the analyser holds
+        // whatever the track is doing at that instant, and a single frame can
+        // land on a quiet beat and see no difference at all.
+        const take = async (settings) => {
+          let sum = 0;
+          for (let i = 0; i < 3; i++) {
+            sum += energy(await e.renderDef("aura", settings, N, N, true));
+            await e.wait(40);
+          }
+          return sum;
+        };
+
+        const base = { glow: 1, spread: 1.2, background: "#00000000" };
+        const still = await take({ ...base, breath: 0 });
+        const reactive = await take({ ...base, breath: 0.8 });
+
+        return { still, reactive, db };
+      })()`);
+
+      expect(r.db).toBeGreaterThan(-70);
+      expect(r.still).toBeGreaterThan(0);
+      // Raising Bass response swells the silhouette and brightens the halo, so
+      // the frame is substantially brighter than the same settings at zero.
+      expect(r.reactive).toBeGreaterThan(r.still * 1.3);
+    });
+  });
+});

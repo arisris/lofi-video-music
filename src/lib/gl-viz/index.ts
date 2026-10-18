@@ -5,9 +5,11 @@
 // it exists.
 
 import { registerVisualizer } from "./registry";
+import { AuraVisualizer } from "./defs/aura";
 import { BarsVisualizer } from "./defs/bars";
 import { KaleidoscopeVisualizer } from "./defs/kaleidoscope";
 
+registerVisualizer(AuraVisualizer);
 registerVisualizer(BarsVisualizer);
 registerVisualizer(KaleidoscopeVisualizer);
 

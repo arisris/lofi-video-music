@@ -72,6 +72,10 @@ let audioTexture: WebGLTexture | null = null;
 let fallbackTexture: WebGLTexture | null = null;
 // undefined = not requested yet, null = loading or failed
 const imageTextures = new Map<string, WebGLTexture | null>();
+// Intrinsic size of each uploaded picture, as width / height. A shader that
+// draws a picture undistorted needs it: without the ratio there is no way to
+// fit one inside a square without stretching it. 0 means "no usable image".
+const imageAspects = new Map<string, number>();
 
 const hashSource = (src: string): string => {
   let h = 5381;
@@ -200,10 +204,14 @@ const getImageTexture = (gl: WebGLRenderingContext, url: string): WebGLTexture |
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     setTextureParams(gl, tex);
     imageTextures.set(url, tex);
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      imageAspects.set(url, img.naturalWidth / img.naturalHeight);
+    }
   };
   img.onerror = () => {
     console.warn(`[glviz] could not load texture "${url}"`);
     imageTextures.delete(url);
+    imageAspects.delete(url);
   };
   img.src = url;
   return null;
@@ -226,12 +234,16 @@ const buildUniforms = (
   time: number,
   level: number,
   bins: number,
+  imageAspect: number,
 ): Record<string, UniformValue> => {
   const uniforms: Record<string, UniformValue> = {
     u_resolution: [bbox.width, bbox.height],
     u_time: time,
     u_audioLevel: level,
     u_audioBins: bins,
+    // 0 when there is no picture, which is the signal for a shader to skip
+    // drawing one rather than painting the 1x1 white fallback as a block.
+    u_imageAspect: imageAspect,
   };
 
   for (const field of def.fields) {
@@ -305,6 +317,7 @@ export const drawVisualizer = (
   const rawImage = imageField ? settings[imageField.key] : undefined;
   const imageUrl = typeof rawImage === "string" ? rawImage : "";
   const image = imageUrl ? getImageTexture(gl, imageUrl) : null;
+  const imageAspect = image ? imageAspects.get(imageUrl) ?? 0 : 0;
 
   gl.activeTexture(gl.TEXTURE0 + AUDIO_UNIT);
   gl.bindTexture(gl.TEXTURE_2D, audioTexture);
@@ -315,7 +328,7 @@ export const drawVisualizer = (
   const glY = target.height - y - h;
   const glCanvas = WebGLRenderer.drawQuadAt(
     program,
-    buildUniforms(def, settings, bbox, time, level, bins),
+    buildUniforms(def, settings, bbox, time, level, bins, imageAspect),
     x, glY, w, h,
     { [AUDIO_SAMPLER]: AUDIO_UNIT, [IMAGE_SAMPLER]: IMAGE_UNIT },
   );
