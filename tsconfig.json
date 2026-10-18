@@ -9,6 +9,7 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsc/tsconfig.tsbuildinfo",
     "jsx": "react-jsx",
 
     // Type safety across the whole src tree. The browser app is checked here;
@@ -24,5 +25,6 @@
     "types": ["vite/client"]
   },
   "include": ["src"],
-  "exclude": ["src/worker.ts"]
+  "exclude": ["src/worker.ts"],
+  "references": [{ "path": "./tsconfig.worker.json" }]
 }

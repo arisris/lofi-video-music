@@ -31,7 +31,7 @@ Other scripts:
 bun run build     # production build
 bun run preview   # build then serve the production bundle
 bun run deploy    # build then wrangler deploy
-bunx tsc -noEmit  # typecheck
+bunx tsc -b       # typecheck app + worker (two tsconfig projects)
 ```
 
 Setup notes are kept in `AGENTS.md`; the ongoing Mithril → React migration is tracked in `REACT_MIGRATION.md`.

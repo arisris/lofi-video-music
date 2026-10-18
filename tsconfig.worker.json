@@ -5,7 +5,15 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
-    "noEmit": true,
+    // Referenced from tsconfig.json so editors attach this file to the right
+    // program instead of inferring a DOM-based one that cannot type the
+    // Workers runtime. A referenced project may not set noEmit (TS6310), so it
+    // emits declarations into node_modules/.tmp instead.
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./node_modules/.tmp/tsc/worker",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsc/worker/tsconfig.worker.tsbuildinfo",
 
     // The Worker runs on workerd, not in a browser: no DOM, and the runtime
     // globals (fetch/Response/caches.default/ExecutionContext) come from

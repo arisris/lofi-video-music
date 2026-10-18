@@ -18,7 +18,7 @@
 - `bun run preview` — build then `vite preview`
 - `bun run deploy` — build then `wrangler deploy`
 - `bun run clean` — remove node_modules and reinstall
-- `bunx tsc -noEmit` — typecheck (no npm, no lint/tests configured — do not invent them)
+- `bunx tsc -b` — typecheck. Two projects: `tsconfig.json` (browser app) and `tsconfig.worker.json` (Cloudflare Worker), linked by `references`. Use `-b`; plain `tsc -noEmit` only checks the app and silently skips the worker. (no npm, no lint/tests configured — do not invent them)
 
 ## Architecture
 
