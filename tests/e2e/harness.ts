@@ -217,56 +217,107 @@ window.__e2e = (() => {
   const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
   /**
-   * Builds a playable WAV in memory. Every audio-dependent check needs real
-   * signal: the analyser reports silence otherwise, and a visualizer showing
-   * silence looks exactly like one that is broken.
+   * Real audio, from the sample WAV in public/.
+   *
+   * A synthesised tone proves the plumbing works and nothing else: it has a
+   * spectrum shaped by whoever wrote the oscillator, and any assertion about
+   * the spectrum is really an assertion about the oscillator. This plays the
+   * actual track instead, so "the analyser reports music" means music.
+   *
+   * The file is 73 seconds and 14 MB, and no test listens past a few seconds,
+   * so it is fetched once and a slice long enough for the caller is re-wrapped
+   * as a plain 44-byte WAV. Nothing waits on fourteen megabytes to hear a bass
+   * note. Only the data chunk is copied, so the 120-byte LIST chunk the file
+   * carries is dropped rather than needing it to be understood.
    */
-  const makeTone = (secs, preset) => {
-    const sr = 44100, n = sr * secs;
-    const buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
-    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-    str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVEfmt ");
-    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true);
-    v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-    str(36, "data"); v.setUint32(40, n * 2, true);
+  const TRACK = "/audio/example-audio.wav";
 
-    // Deterministic pseudo-random, so a failure is reproducible.
-    let seed = 12345;
-    const rand = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff) * 2 - 1;
+  const source = (() => {
+    let pending = null;
+    return () => (pending ??= fetch(TRACK).then((r) => {
+      if (!r.ok) throw new Error("could not read " + TRACK + ": " + r.status);
+      return r.arrayBuffer();
+    }));
+  })();
 
-    for (let i = 0; i < n; i++) {
-      const t = i / sr;
-      let s = 0;
-      if (preset === "chord") {
-        const beat = Math.pow(Math.abs(Math.sin(t * 2.2)), 3);
-        s = Math.sin(2 * Math.PI * 110 * t) * 0.34
-          + Math.sin(2 * Math.PI * 277 * t) * 0.22
-          + Math.sin(2 * Math.PI * 440 * t) * 0.15 * beat
-          + Math.sin(2 * Math.PI * 1760 * t) * 0.07 * beat
-          + Math.sin(2 * Math.PI * (1500 + 3000 * Math.abs(Math.sin(t * 0.7))) * t) * 0.05;
-        s *= 0.45 + beat * 0.65;
-      } else if (preset === "drums") {
-        const ph = t % 0.5, bar = t % 1;
-        const env = Math.exp(-ph * 7), env2 = Math.exp(-bar * 4);
-        s = (Math.sin(2 * Math.PI * 70 * t) * 0.5 + (ph < 0.02 ? rand() * 0.7 : 0)) * env * 1.2
-          + Math.sin(2 * Math.PI * 2600 * t) * 0.22 * env
-          + (Math.sin(2 * Math.PI * 180 * t) * 0.3 + Math.sin(2 * Math.PI * 2400 * t) * 0.18) * env2;
-      } else if (preset === "sweep") {
-        s = Math.sin(2 * Math.PI * (120 + 80 * Math.sin(t * 1.7)) * t) * 0.7;
-      } else {
-        s = Math.sin(2 * Math.PI * 220 * t) * 0.6 + Math.sin(2 * Math.PI * 700 * t) * 0.3;
-      }
-      v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, s)) * 30000, true);
+  const parseWav = (buf) => {
+    const view = new DataView(buf);
+    const tag = (at) => String.fromCharCode(
+      view.getUint8(at), view.getUint8(at + 1), view.getUint8(at + 2), view.getUint8(at + 3));
+    if (tag(0) !== "RIFF" || tag(8) !== "WAVE") {
+      throw new Error(TRACK + " is not a RIFF/WAVE file");
     }
-    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+
+    let at = 12, fmt = null, data = null;
+    while (at + 8 <= buf.byteLength) {
+      const id = tag(at), size = view.getUint32(at + 4, true);
+      if (id === "fmt ") {
+        fmt = {
+          format: view.getUint16(at + 8, true),
+          channels: view.getUint16(at + 10, true),
+          rate: view.getUint32(at + 12, true),
+          bits: view.getUint16(at + 22, true),
+        };
+      } else if (id === "data") {
+        // Sizes can lie about the final chunk, so never read past the buffer.
+        data = { at: at + 8, len: Math.min(size, buf.byteLength - (at + 8)) };
+        break;
+      }
+      at += 8 + size + (size & 1);
+    }
+    if (!fmt || !data) throw new Error(TRACK + " has no fmt or data chunk");
+    if (fmt.format !== 1) throw new Error(TRACK + " is not uncompressed PCM");
+    return { ...fmt, ...data, blockAlign: fmt.channels * fmt.bits / 8 };
   };
 
-  const addMusic = async (preset = "chord", secs = 60) => {
-    const url = makeTone(secs, preset);
+  /** Re-wraps raw PCM in the smallest header a decoder will accept. */
+  const wrapWav = (fmt, pcm) => {
+    const out = new ArrayBuffer(44 + pcm.byteLength);
+    const v = new DataView(out);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, "RIFF"); v.setUint32(4, 36 + pcm.byteLength, true); str(8, "WAVEfmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, fmt.channels, true);
+    v.setUint32(24, fmt.rate, true); v.setUint32(28, fmt.rate * fmt.blockAlign, true);
+    v.setUint16(32, fmt.blockAlign, true); v.setUint16(34, fmt.bits, true);
+    str(36, "data"); v.setUint32(40, pcm.byteLength, true);
+    new Uint8Array(out, 44).set(new Uint8Array(pcm));
+    return new Blob([out], { type: "audio/wav" });
+  };
+
+  const slices = new Map();
+  const slice = async (secs) => {
+    const key = Math.round(secs * 10);
+    const cached = slices.get(key);
+    if (cached) return cached;
+
+    const buf = await source();
+    const fmt = parseWav(buf);
+    // Whole frames only: a partial one would shift every channel after it.
+    const frames = Math.max(1, Math.min(
+      Math.floor(fmt.len / fmt.blockAlign), Math.round(secs * fmt.rate)));
+    const pcm = buf.slice(fmt.at, fmt.at + frames * fmt.blockAlign);
+
+    const clip = {
+      url: URL.createObjectURL(wrapWav(fmt, pcm)),
+      seconds: frames / fmt.rate,
+      sourceSeconds: fmt.len / fmt.blockAlign / fmt.rate,
+    };
+    slices.set(key, clip);
+    return clip;
+  };
+
+  /**
+   * Puts the track on the timeline, trimmed to \`secs\`.
+   *
+   * Defaults to a little over what the longest test waits for, so playback
+   * cannot run out mid-measurement and leave the analyser decaying.
+   */
+  const addMusic = async (secs = 6) => {
+    const clip = await slice(secs);
     (await factory()).addClipToTimeline("music", {
-      audioUrl: url, audioDuration: secs, name: "tone", pan: 0, volume: 1,
+      audioUrl: clip.url, audioDuration: clip.seconds, name: "track", pan: 0, volume: 1,
     });
+    return clip;
   };
 
   const addClip = async (type, settings = {}) => {
@@ -359,7 +410,7 @@ window.__e2e = (() => {
 
   return {
     wait, canvas, ctx2d, store, factory, clips, audio, glviz, webgl,
-    makeTone, addMusic, addClip, clipsOfType, idOfLast, select, setState,
+    slice, addMusic, addClip, clipsOfType, idOfLast, select, setState,
     litIn, bboxOf, drawDef, renderDef, pixelAt, reset,
   };
 })();

@@ -1,4 +1,4 @@
-// Shader visualizers: the gl-viz system, its engine and the two definitions.
+// Shader visualizers: the gl-viz system, its engine and the three definitions.
 
 import { describe, test, expect, afterAll } from "bun:test";
 import { withApp, shutdown, TIMEOUT, type TestPage } from "./harness";
@@ -25,7 +25,7 @@ describe("gl-viz shared WebGL canvas", () => {
         const boxA = { x: 0, y: 360, width: 1280, height: 360 };
         const boxB = { x: 345, y: 65, width: 590, height: 590 };
 
-        await e.addMusic("chord");
+        await e.addMusic(5);
         (await e.audio()).playAudio();
         await e.wait(800);
 
@@ -128,7 +128,7 @@ describe("bars", () => {
     await withApp(async (t) => {
       await t.eval(`(async () => {
         const e = window.__e2e;
-        await e.addMusic("chord");
+        await e.addMusic(5);
         (await e.audio()).playAudio();
         await e.addClip("glviz", { style: "bars" });
         await e.select(null);
@@ -177,7 +177,7 @@ describe("bars", () => {
     await withApp(async (t) => {
       await t.eval(`(async () => {
         const e = window.__e2e;
-        await e.addMusic("chord");
+        await e.addMusic(5);
         (await e.audio()).playAudio();
         await e.addClip("glviz", { style: "bars" });
         await e.wait(1600);
