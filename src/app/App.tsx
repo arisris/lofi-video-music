@@ -158,7 +158,7 @@ export const App = () => {
       />
 
       {/* Recording Settings Modal */}
-      {showRecordSettingsModal && <MithrilBridge render={() => m(RecordSettingsModal)} />}
+      {showRecordSettingsModal && <RecordSettingsModal />}
     </div>
   );
 };
