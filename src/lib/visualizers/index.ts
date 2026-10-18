@@ -9,9 +9,9 @@ export const VisualizerRegistry = [
   CircleVisualizer,
   WaveformVisualizer,
   BlocksVisualizer,
-  LiquidWavesVisualizer
+  LiquidWavesVisualizer,
 ];
 
-export const getVisualizer = (id) => {
-  return VisualizerRegistry.find(v => v.id === id) || BarsVisualizer;
+export const getVisualizer = (id: string) => {
+  return VisualizerRegistry.find((v) => v.id === id) || BarsVisualizer;
 };

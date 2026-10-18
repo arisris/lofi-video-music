@@ -1,21 +1,20 @@
-import { State } from "../state";
 import { runtime } from "../runtime";
 import { hexToHSL } from "../../utils/helpers";
 
 export const WaveformVisualizer = {
   id: "waveform",
   name: "Waveform",
-  draw(ctx, w, h, settings) {
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
     const { color, intensity, density, rainbow } = settings;
     const centerY = h / 2;
     runtime.analyser.getByteTimeDomainData(runtime.dataArray);
-    
+
     const step = Math.max(1, Math.floor(density));
     const sliceWidth = (w * step) / runtime.analyser.frequencyBinCount;
     let x = 0;
-    
+
     ctx.shadowBlur = 10;
-    
+
     if (rainbow) {
       const baseHsl = hexToHSL(color || "#3b82f6");
       const grad = ctx.createLinearGradient(0, 0, w, 0);
@@ -47,5 +46,5 @@ export const WaveformVisualizer = {
     ctx.stroke();
     ctx.shadowBlur = 0;
     runtime.analyser.getByteFrequencyData(runtime.dataArray);
-  }
+  },
 };

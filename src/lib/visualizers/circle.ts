@@ -1,21 +1,20 @@
-import { State } from "../state";
 import { runtime } from "../runtime";
 import { hexToHSL } from "../../utils/helpers";
 
 export const CircleVisualizer = {
   id: "circle",
   name: "Circle",
-  draw(ctx, w, h, settings) {
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, settings: Record<string, any>) {
     const { color, intensity, density, rainbow } = settings;
     const centerX = w / 2;
     const centerY = h / 2;
     const radius = Math.min(w, h) * 0.25;
     const baseHsl = hexToHSL(color || "#3b82f6");
-    
+
     const freqCount = Math.floor(runtime.analyser.frequencyBinCount * 0.8);
     const bars = Math.max(8, Math.floor(freqCount / density));
     const angleStep = (Math.PI * 2) / bars;
-    
+
     for (let i = 0; i < bars; i++) {
       const idx = Math.floor(i * (freqCount / bars));
       const val = runtime.dataArray[idx] * intensity * 0.7;
@@ -44,7 +43,7 @@ export const CircleVisualizer = {
       ctx.stroke();
       ctx.shadowBlur = 0;
     }
-    
+
     if (runtime.dataArray[10]) {
       const pulse = (runtime.dataArray[10] / 255) * 20;
       ctx.beginPath();
@@ -57,5 +56,5 @@ export const CircleVisualizer = {
       ctx.strokeStyle = color;
       ctx.stroke();
     }
-  }
+  },
 };
