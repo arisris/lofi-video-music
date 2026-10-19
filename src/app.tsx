@@ -4,7 +4,7 @@ import { useHashLocation } from "wouter/use-hash-location";
 import type { EditorRoute } from "./store/slices/mode";
 import { useEditorStore, editorStore } from "./store/editor-store";
 import { runtime } from "./lib/runtime";
-import { renderLoop } from "./lib/render";
+import { renderLoop, resetRenderTimer } from "./lib/render";
 import { handleDragMove, handleDragEnd, DragPointerEvent } from "./lib/drag";
 import { initAudioEngine, applyAudioSettings } from "./lib/audio";
 
@@ -111,6 +111,88 @@ const AppContent = () => {
       window.removeEventListener("mouseup", handleDragEnd);
       window.removeEventListener("touchmove", onDragMove, touchMoveOptions);
       window.removeEventListener("touchend", handleDragEnd);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncPlayhead = () => {
+      resetRenderTimer();
+      if (runtime.audioCtx && runtime.audioCtx.state === "suspended") {
+        runtime.audioCtx.resume().catch(() => {});
+      }
+      const state = editorStore.getState();
+      if (state.isPlaying && runtime.audioEl) {
+        const audioEl = runtime.audioEl;
+        if (audioEl.paused) {
+          audioEl.play().catch(() => {});
+        }
+        const clipsToSearch = getClipsToSearch(state);
+        const getAbsoluteUrl = (url: string) => {
+          if (!url) return "";
+          try {
+            return new URL(url, window.location.href).href;
+          } catch {
+            return url;
+          }
+        };
+        const currentAudioSrc = getAbsoluteUrl(audioEl.src);
+        const activeClip =
+          clipsToSearch.find(
+            (c: any) =>
+              c.type === "music" &&
+              c.settings?.enabled !== false &&
+              getAbsoluteUrl(c.settings?.audioUrl) === currentAudioSrc,
+          ) ||
+          clipsToSearch.find(
+            (c: any) =>
+              c.type === "music" &&
+              c.settings?.enabled !== false &&
+              state.currentTime >= c.start &&
+              state.currentTime <= c.start + c.duration,
+          );
+        if (activeClip) {
+          const localTime =
+            audioEl.currentTime - ((activeClip.settings as any).startOffset || 0);
+          const nextTime = activeClip.start + localTime;
+          if (Number.isFinite(nextTime)) {
+            editorStore.setState({ currentTime: nextTime });
+          }
+        }
+        bumpClips();
+      }
+    };
+
+    const cancelInteraction = () => {
+      resetRenderTimer();
+      try {
+        handleDragEnd();
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        cancelInteraction();
+      } else {
+        syncPlayhead();
+      }
+    };
+
+    const onBlur = () => cancelInteraction();
+    const onFocus = () => syncPlayhead();
+    const onPageShow = () => syncPlayhead();
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("pageshow", onPageShow);
     };
   }, []);
 

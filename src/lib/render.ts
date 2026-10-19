@@ -16,6 +16,11 @@ import { stopRecording } from "./recorder";
 
 let lastTime = 0;
 
+/** Reset the frame timer, e.g. after the tab regains focus/visibility. */
+export const resetRenderTimer = () => {
+  lastTime = performance.now();
+};
+
 const drawWithTransform = (
   ctx: CanvasRenderingContext2D,
   settings: Record<string, any>,
