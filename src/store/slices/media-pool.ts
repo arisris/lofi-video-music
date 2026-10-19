@@ -66,7 +66,7 @@ export const createMediaPoolSlice: StateCreator<
   MediaPoolSlice
 > = () => ({
   mediaPool: [],
-  activeClipTab: "visualizer",
+  activeClipTab: "glviz",
 
   emojiPanelState: null,
   pexelsPanelState: null,

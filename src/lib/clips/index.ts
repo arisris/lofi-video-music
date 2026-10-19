@@ -1,5 +1,4 @@
 import { ClipRegistry } from "./registry";
-import { VisualizerClip } from "./vis-main";
 import { GlvizClip } from "./glviz-clip";
 import { TextClip } from "./text-clip";
 import { PlaylistClip } from "./playlist-clip";
@@ -11,7 +10,6 @@ import { ShapeClip } from "./shape-clip";
 import { VFXRegistry } from "../vfx";
 
 // Register all clips
-ClipRegistry.register(VisualizerClip);
 ClipRegistry.register(GlvizClip);
 ClipRegistry.register(TextClip);
 ClipRegistry.register(PlaylistClip);

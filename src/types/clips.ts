@@ -22,7 +22,6 @@ export interface ClipRegistryEntry {
 
 export const CLIP_TYPES = [
   "music",
-  "visualizer",
   "glviz",
   "text",
   "background",

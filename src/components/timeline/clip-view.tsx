@@ -102,11 +102,9 @@ export const ClipView = memo(function ClipView({
             className={`${
               clip.type === "text"
                 ? "icon-[ri--text-spacing]"
-                : clip.type === "visualizer"
-                  ? "icon-[ri--pulse-line]"
-                  : clip.type === "glviz"
-                    ? "icon-[ri--shapes-line]"
-                    : "icon-[ri--image-line]"
+                : clip.type === "glviz"
+                  ? "icon-[ri--shapes-line]"
+                  : "icon-[ri--image-line]"
             } h-3 w-3 shrink-0 text-slate-300`}
           />
         )}
@@ -116,11 +114,9 @@ export const ClipView = memo(function ClipView({
             : clip.type === "background" || clip.type === "overlay"
               ? clip.settings?.fileName ||
                 (clip.type === "background" ? "Background" : "Overlay")
-              : clip.type === "visualizer"
-                ? `Visualizer (${clip.settings?.style || "bars"})`
-                : clip.type === "glviz"
-                  ? `Shader (${clip.settings?.style || "bars"})`
-                  : clip.settings?.content || clip.type}
+              : clip.type === "glviz"
+                ? `Shader (${clip.settings?.style || "bars"})`
+                : clip.settings?.content || clip.type}
         </span>
       </div>
     </div>

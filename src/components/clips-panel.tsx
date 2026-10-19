@@ -107,9 +107,7 @@ export const ClipsPanel = () => {
           ? `Background: ${settings.fileName || "Image/Video"}`
           : timelineClip.type === "overlay"
             ? `Overlay: ${settings.fileName || "Image/Video"}`
-            : timelineClip.type === "visualizer"
-              ? `Visualizer (${settings.style || "bars"})`
-              : activeClip?.name || "Timeline Clip";
+            : activeClip?.name || "Timeline Clip";
     const clipIcon = activeClip?.icon || "icon-[ri--movie-2-line]";
     const SettingsView = activeClip.onSettings as React.FC<{
       clip?: Record<string, any>;

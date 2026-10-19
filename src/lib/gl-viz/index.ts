@@ -8,10 +8,16 @@ import { registerVisualizer } from "./registry";
 import { AuraVisualizer } from "./defs/aura";
 import { BarsVisualizer } from "./defs/bars";
 import { KaleidoscopeVisualizer } from "./defs/kaleidoscope";
+import { CircleVisualizer } from "./defs/circle";
+import { WaveformVisualizer } from "./defs/waveform";
+import { LiquidWavesVisualizer } from "./defs/liquid-waves";
 
 registerVisualizer(AuraVisualizer);
 registerVisualizer(BarsVisualizer);
 registerVisualizer(KaleidoscopeVisualizer);
+registerVisualizer(CircleVisualizer);
+registerVisualizer(WaveformVisualizer);
+registerVisualizer(LiquidWavesVisualizer);
 
 export * from "./types";
 export * from "./registry";

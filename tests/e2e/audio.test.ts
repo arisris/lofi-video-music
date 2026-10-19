@@ -51,30 +51,6 @@ describe("analyser", () => {
   });
 });
 
-describe("legacy visualizer", () => {
-  e2e("still renders off the same analyser", async () => {
-    // gl-viz reads getFloatFrequencyData and applies its own decibel window;
-    // the legacy clip reads the byte array. Neither may disturb the other.
-    await withApp(async (t) => {
-      const lit = await t.eval<number>(`(async () => {
-        const e = window.__e2e;
-        await e.addMusic(5);
-        await e.addClip("visualizer", {});
-        (await e.audio()).playAudio();
-        await e.select(null);
-        await e.wait(1400);
-        const c = e.canvas(), g = e.ctx2d();
-        const d = g.getImageData(0, Math.round(c.height * 0.55), c.width,
-                                 Math.round(c.height * 0.35)).data;
-        let n = 0;
-        for (let i = 0; i < d.length; i += 4) if (d[i] + d[i+1] + d[i+2] > 120) n++;
-        return n;
-      })()`);
-      expect(lit).toBeGreaterThan(50);
-    });
-  });
-});
-
 describe("peak hold", () => {
   e2e("draws a cap above bars that have fallen back", async () => {
     // The hold lives in a second texture row because a peak has to survive

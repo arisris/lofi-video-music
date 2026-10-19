@@ -14,15 +14,6 @@ const DEFAULT_TRANSFORMS = {
 };
 
 export const DEFAULT_SETTINGS: Record<string, any> = {
-  visualizer: {
-    style: "bars",
-    color: "#3b82f6",
-    intensity: 0.5,
-    opacity: 1,
-    density: 1.5,
-    rainbow: false,
-    ...DEFAULT_TRANSFORMS,
-  },
   text: {
     content: "New Text",
     fontFamily: "'Inter', sans-serif",
