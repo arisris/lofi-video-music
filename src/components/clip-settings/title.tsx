@@ -14,7 +14,11 @@ export const TitleSettingsView = (_props: { clip?: Record<string, any> }) => {
 
   return (
     <>
-      <SharedTextSettingsView settings={settings} updateSettings={update} />
+      <SharedTextSettingsView
+        settings={settings}
+        updateSettings={update}
+        sections={["typography", "strokeShadow", "background", "textEffects"]}
+      />
       <SharedTransformSettingsView
         settings={settings}
         updateSettings={update}

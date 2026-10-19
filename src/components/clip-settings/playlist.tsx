@@ -49,7 +49,11 @@ export const PlaylistSettingsView = (_props: {
           </button>
         </div>
       </div>
-      <SharedTextSettingsView settings={settings} updateSettings={update} />
+      <SharedTextSettingsView
+        settings={settings}
+        updateSettings={update}
+        sections={["typography", "strokeShadow", "background"]}
+      />
       <SharedTransformSettingsView
         settings={settings}
         updateSettings={update}

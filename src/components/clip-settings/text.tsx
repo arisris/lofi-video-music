@@ -103,7 +103,11 @@ export const TextSettingsView = ({ clip }: ClipViewProps) => {
         </div>
       </div>
 
-      <SharedTextSettingsView settings={settings} updateSettings={update} />
+      <SharedTextSettingsView
+        settings={settings}
+        updateSettings={update}
+        sections={["typography", "strokeShadow", "background", "textEffects"]}
+      />
       <SharedTransformSettingsView
         settings={settings}
         updateSettings={update}
