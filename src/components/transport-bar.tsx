@@ -11,6 +11,7 @@ import {
   skipToPrevTrack,
 } from "../lib/audio";
 import { stopRecording } from "../lib/recorder";
+import { designSize } from "../lib/canvas-space";
 import { runtime } from "../lib/runtime";
 import { editorStore, useEditorStore } from "../store/editor-store";
 
@@ -22,8 +23,9 @@ const RATIO_OPTIONS = [
 const selectAspectRatio = (ratio: string) => {
   editorStore.setState({ aspectRatio: ratio });
   if (runtime.canvas) {
-    runtime.canvas.width = ratio === "16:9" ? 1280 : 720;
-    runtime.canvas.height = ratio === "16:9" ? 720 : 1280;
+    const size = designSize(ratio);
+    runtime.canvas.width = size.w;
+    runtime.canvas.height = size.h;
   }
 };
 

@@ -3,6 +3,8 @@ import { runtime } from "./runtime";
 import { formatTime } from "../utils/helpers";
 import { bumpClips } from "../store/actions/timeline-actions";
 import { initAudioEngine, playAudio, pauseAudio } from "./audio";
+import { getDesignSize, recordSize } from "./canvas-space";
+import type { RecordResolution } from "../store/slices/recording";
 
 export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
   initAudioEngine();
@@ -38,32 +40,18 @@ export const startRecording = (mode: "timeline" | "clip" = "timeline") => {
   editorStore.setState({ recordingMode: mode });
   runtime.recordedChunks = [];
 
-  // Set canvas size based on selected resolution before capture
+  // Grow the backing store to the selected resolution before capture. The
+  // render loop keeps laying clips out in design space and scales the frame up
+  // to fill this size, so the recording matches the preview instead of
+  // shrinking every clip into a bigger canvas.
   const resolution = state.recordResolution || "720p";
+  const target = recordSize(
+    state.aspectRatio || "16:9",
+    resolution as RecordResolution,
+  );
   if (runtime.canvas) {
-    if (state.aspectRatio === "16:9") {
-      if (resolution === "1080p") {
-        runtime.canvas.width = 1920;
-        runtime.canvas.height = 1080;
-      } else if (resolution === "1440p") {
-        runtime.canvas.width = 2560;
-        runtime.canvas.height = 1440;
-      } else {
-        runtime.canvas.width = 1280;
-        runtime.canvas.height = 720;
-      }
-    } else {
-      if (resolution === "1080p") {
-        runtime.canvas.width = 1080;
-        runtime.canvas.height = 1920;
-      } else if (resolution === "1440p") {
-        runtime.canvas.width = 1440;
-        runtime.canvas.height = 2560;
-      } else {
-        runtime.canvas.width = 720;
-        runtime.canvas.height = 1280;
-      }
-    }
+    runtime.canvas.width = target.w;
+    runtime.canvas.height = target.h;
   }
 
   const fps = state.recordFps || 30;
@@ -181,13 +169,9 @@ export const stopRecording = () => {
 
   // Restore canvas dimensions to standard preview resolution
   if (runtime.canvas) {
-    if (editorStore.getState().aspectRatio === "16:9") {
-      runtime.canvas.width = 1280;
-      runtime.canvas.height = 720;
-    } else {
-      runtime.canvas.width = 720;
-      runtime.canvas.height = 1280;
-    }
+    const preview = getDesignSize();
+    runtime.canvas.width = preview.w;
+    runtime.canvas.height = preview.h;
   }
 
   bumpClips();

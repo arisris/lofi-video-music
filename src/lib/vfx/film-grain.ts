@@ -1,6 +1,7 @@
 import { editorStore } from "../../store/editor-store";
 import { FilmGrainSettingsView } from "../../components/clip-settings/vfx/filmgrain";
 import { getAudioReactivity } from "../../utils/helpers";
+import { getOutputScale } from "../canvas-space";
 
 export const FilmGrainVFX = {
   id: "filmgrain",
@@ -118,12 +119,26 @@ export const FilmGrainVFX = {
     // 5. Draw VHS tape glitch (slice shearing and color tint band)
     if (triggerGlitch) {
       ctx.save();
+      // The source rect is read in backing-store pixels while the dest rect is
+      // in design space - during recording the render loop scales the frame up,
+      // so sampling with design coords would copy the wrong strip of the canvas.
+      const out = getOutputScale();
       const sliceCount = 4 + Math.floor(Math.random() * 5);
       for (let i = 0; i < sliceCount; i++) {
         const sy = Math.random() * h;
         const sh = 5 + Math.random() * 50;
         const offset = (Math.random() - 0.5) * 25 * glitchIntensity;
-        ctx.drawImage(ctx.canvas, 0, sy, w, sh, offset, sy, w, sh);
+        ctx.drawImage(
+          ctx.canvas,
+          0,
+          sy * out.sy,
+          w * out.sx,
+          sh * out.sy,
+          offset,
+          sy,
+          w,
+          sh,
+        );
       }
 
       // Add dynamic color distortion bar

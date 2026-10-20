@@ -13,6 +13,7 @@ import {
 import { manageVideoPlayback } from "./video-playback";
 import { applyAudioSettings } from "./audio";
 import { stopRecording } from "./recorder";
+import { getOutputScale } from "./canvas-space";
 
 let lastTime = 0;
 
@@ -162,8 +163,13 @@ export const renderLoop = () => {
 
   const ctx = runtime.ctx;
   if (!ctx) return;
-  const w = runtime.canvas.width;
-  const h = runtime.canvas.height;
+
+  // Clips are laid out in design space (1280x720 / 720x1280). While recording
+  // the backing store grows to the selected resolution, so map the whole frame
+  // onto it: drawing in backing pixels instead would keep every clip at preview
+  // size inside a larger frame and shrink them in the recording.
+  const { w, h, sx, sy } = getOutputScale();
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
 
   // Master timeline time
   const globalTime = getGlobalTime(state);
@@ -483,4 +489,8 @@ export const renderLoop = () => {
       ctx.restore();
     }
   }
+
+  // Leave the context at identity so anything drawing outside this frame (or a
+  // frame that threw before reaching here) never inherits a stale scale.
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 };

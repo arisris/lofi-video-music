@@ -1,5 +1,6 @@
 import { editorStore } from "../store/editor-store";
 import { runtime } from "./runtime";
+import { getDesignSize, toDesignPos } from "./canvas-space";
 import { ClipRegistry } from "./clips/registry";
 import {
   getGlobalTime,
@@ -38,16 +39,15 @@ export const getEventPos = (e: DragPointerEvent) => {
     clientY = e.clientY;
   }
 
-  return {
-    x: (clientX - rect.left) * scaleX,
-    y: (clientY - rect.top) * scaleY,
-  };
+  return toDesignPos(
+    (clientX - rect.left) * scaleX,
+    (clientY - rect.top) * scaleY,
+  );
 };
 
 export const findClipAtPos = (pos: { x: number; y: number }) => {
   const ctx = runtime.ctx!;
-  const w = runtime.canvas!.width;
-  const h = runtime.canvas!.height;
+  const { w, h } = getDesignSize();
 
   // 1. Check Timeline Clips first (they are usually on top)
   const globalTime = getGlobalTime(editorStore.getState());
@@ -173,8 +173,7 @@ export const handleDragStart = (e: DragPointerEvent) => {
     let clickedHandle: string | null = null;
     if (selectedInfo) {
       const { settings, renderer } = selectedInfo;
-      const w = runtime.canvas!.width;
-      const h = runtime.canvas!.height;
+      const { w, h } = getDesignSize();
       const bbox = renderer.getItemBoundingBox
         ? renderer.getItemBoundingBox(runtime.ctx!, w, h, settings)
         : null;
@@ -185,8 +184,7 @@ export const handleDragStart = (e: DragPointerEvent) => {
 
     if (clickedHandle) {
       const { settings, renderer } = selectedInfo!;
-      const w = runtime.canvas!.width;
-      const h = runtime.canvas!.height;
+      const { w, h } = getDesignSize();
       const bbox = renderer.getItemBoundingBox(runtime.ctx!, w, h, settings);
 
       editorStore.setState({ isDragging: true });
@@ -242,8 +240,7 @@ export const handleDragStart = (e: DragPointerEvent) => {
 
           // Pre-calculate and cache static snap targets
           const timelineClip = hit.clip;
-          const w = runtime.canvas?.width;
-          const h = runtime.canvas?.height;
+          const { w, h } = getDesignSize();
           if (w && h) {
             const snapTargetsX = [
               { value: w / 2, label: "Center" },
@@ -430,8 +427,7 @@ export const handleDragMove = (e: DragPointerEvent) => {
       let targetX = state.initialOffsetX + dx;
       let targetY = state.initialOffsetY + dy;
 
-      const w = runtime.canvas?.width;
-      const h = runtime.canvas?.height;
+      const { w, h } = getDesignSize();
       const renderer = ClipRegistry.get(timelineClip.type);
 
       if (

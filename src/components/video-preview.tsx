@@ -5,23 +5,13 @@ import {
   findHandleAtPos,
   DragPointerEvent,
 } from "../lib/drag";
+import { designSize, getDesignSize, recordSize } from "../lib/canvas-space";
+import type { RecordResolution } from "../store/slices/recording";
 import { getSelectedClipInfo } from "../utils/helpers";
 import { runtime } from "../lib/runtime";
 import { editorStore, useEditorStore } from "../store/editor-store";
 
 let isHoveringClip = false;
-
-const resolutionWidth = (aspectRatio: string, res: string): number => {
-  if (aspectRatio === "16:9")
-    return res === "1080p" ? 1920 : res === "1440p" ? 2560 : 1280;
-  return res === "1080p" ? 1080 : res === "1440p" ? 1440 : 720;
-};
-
-const resolutionHeight = (aspectRatio: string, res: string): number => {
-  if (aspectRatio === "16:9")
-    return res === "1080p" ? 1080 : res === "1440p" ? 1440 : 720;
-  return res === "1080p" ? 1080 : res === "1440p" ? 1440 : 1280;
-};
 
 /** Canvas preview area: render target + clip interaction surface. */
 export const VideoPreview = () => {
@@ -43,16 +33,11 @@ export const VideoPreview = () => {
         ? "move"
         : "default");
 
-  const width = isRecording
-    ? resolutionWidth(aspectRatio, recordResolution || "720p")
-    : aspectRatio === "16:9"
-      ? 1280
-      : 720;
-  const height = isRecording
-    ? resolutionHeight(aspectRatio, recordResolution || "720p")
-    : aspectRatio === "16:9"
-      ? 720
-      : 1280;
+  // The backing store only grows while recording; the frame itself is drawn in
+  // design space, so the visible layout never changes with the record size.
+  const { w: width, h: height } = isRecording
+    ? recordSize(aspectRatio, (recordResolution || "720p") as RecordResolution)
+    : designSize(aspectRatio);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const state = editorStore.getState();
@@ -65,8 +50,7 @@ export const VideoPreview = () => {
     let hoverCursor: string | null = null;
     if (selectedInfo) {
       const { settings, renderer } = selectedInfo;
-      const w = runtime.canvas?.width;
-      const h = runtime.canvas?.height;
+      const { w, h } = getDesignSize();
       const bbox = renderer.getItemBoundingBox
         ? renderer.getItemBoundingBox(runtime.ctx, w, h, settings)
         : null;
