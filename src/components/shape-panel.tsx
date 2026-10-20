@@ -4,7 +4,7 @@ import {
   hasIcons,
   populateIcons,
   getAllIconIds,
-  getIconFromDb,
+  getIconData,
 } from "../utils/indexed-db";
 
 interface ShapeEntry {
@@ -240,7 +240,7 @@ const CURATED_ICONS = [
   // Vibes
   "ri:heart-fill",
   "ri:star-fill",
-  "ri:sparkles-fill",
+  "ri:sparkling-fill",
   "ri:emotion-happy-fill",
   "mdi:heart",
   "mdi:star",
@@ -254,7 +254,7 @@ const IconPreview = ({ iconId }: { iconId: string }) => {
 
   if (loadedIdRef.current !== iconId) {
     loadedIdRef.current = iconId;
-    getIconFromDb(iconId).then((data: unknown) => {
+    getIconData(iconId).then((data: unknown) => {
       const d = data as { width: number; height: number; body: string } | null;
       setSvgText(
         d

@@ -125,6 +125,46 @@ export const getIconFromDb = async (id: string): Promise<IconRecord | null> => {
   }
 };
 
+// In-memory fallback so icons render even before the IndexedDB is populated.
+let riIconSet: any = null;
+let mdiIconSet: any = null;
+const loadIconSet = async (prefix: string): Promise<any> => {
+  if (prefix === "ri") {
+    if (!riIconSet) {
+      const mod = await import("@iconify-json/ri/icons.json");
+      riIconSet = (mod as any).default ?? mod;
+    }
+    return riIconSet;
+  }
+  if (prefix === "mdi") {
+    if (!mdiIconSet) {
+      const mod = await import("@iconify-json/mdi/icons.json");
+      mdiIconSet = (mod as any).default ?? mod;
+    }
+    return mdiIconSet;
+  }
+  return null;
+};
+
+export const getIconData = async (id: string): Promise<IconRecord | null> => {
+  const fromDb = await getIconFromDb(id);
+  if (fromDb) return fromDb;
+
+  const [prefix, name] = (id || "").split(":");
+  if (!prefix || !name) return null;
+  const set = await loadIconSet(prefix);
+  if (!set || !set.icons || !set.icons[name]) return null;
+  const icon = set.icons[name];
+  return {
+    id,
+    prefix,
+    name,
+    body: icon.body,
+    width: icon.width || set.width || 24,
+    height: icon.height || set.height || 24,
+  } as IconRecord;
+};
+
 export const getAllIconIds = async (): Promise<string[]> => {
   try {
     const db = await initDb();

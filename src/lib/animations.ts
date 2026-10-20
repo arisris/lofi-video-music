@@ -38,6 +38,8 @@ export const applyClipAnimations = (
 
   if (!settings.animations) return;
 
+  const isPlaying = editorStore.getState().isPlaying;
+
   const anim = settings.animations;
   const inType = anim.inType || "none";
   const outType = anim.outType || "none";
@@ -51,7 +53,9 @@ export const applyClipAnimations = (
   let scale = 1;
 
   // 1. IN TRANSITIONS
-  if (localTime < CLIP_TRANSITION_SECONDS) {
+  // Skip the in-transition while paused so a clip resting at its first frame is
+  // still fully visible in the editor preview instead of fading in from 0.
+  if (isPlaying && localTime < CLIP_TRANSITION_SECONDS) {
     const enter = enterTransition(inType, localTime / CLIP_TRANSITION_SECONDS);
     opacity *= enter.opacity;
     offsetY += enter.offsetY;
@@ -59,7 +63,7 @@ export const applyClipAnimations = (
   }
 
   // 2. OUT TRANSITIONS
-  if (localTime > duration - CLIP_TRANSITION_SECONDS) {
+  if (isPlaying && localTime > duration - CLIP_TRANSITION_SECONDS) {
     const exit = exitTransition(
       outType,
       (duration - localTime) / CLIP_TRANSITION_SECONDS,

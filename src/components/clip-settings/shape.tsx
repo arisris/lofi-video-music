@@ -1,6 +1,6 @@
 import { editorStore } from "../../store/editor-store";
 import { useRef, useState } from "react";
-import { getIconFromDb } from "../../utils/indexed-db";
+import { getIconData } from "../../utils/indexed-db";
 import {
   SharedAnimationSettingsView,
   SharedTransformSettingsView,
@@ -35,7 +35,7 @@ const IconPreviewInline = ({ iconName }: { iconName: string }) => {
 
   if (loadedName.current !== iconName) {
     loadedName.current = iconName;
-    getIconFromDb(iconName).then((data) => {
+    getIconData(iconName).then((data) => {
       setSvgText(
         data
           ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${data.width} ${data.height}" class="w-4.5 h-4.5 text-slate-350" fill="currentColor">${data.body}</svg>`

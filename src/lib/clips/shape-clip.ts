@@ -1,21 +1,31 @@
-import { getIconFromDb } from "../../utils/indexed-db";
+import { getIconData } from "../../utils/indexed-db";
 import { ShapeSettingsView } from "../../components/clip-settings/shape";
 
 const iconDataCache: Record<string, any> = {};
+const iconDataPromises: Record<string, Promise<any>> = {};
 const iconImageCache: Record<
   string,
   { img: HTMLImageElement; loaded: boolean }
 > = {};
 
-// Asynchronously fetch icon data and cache it
+// Asynchronously fetch icon data and cache it. Retries are handled by the
+// underlying getIconData (DB then in-memory fallback), and the promise is
+// cached so a transient null never sticks forever.
 const getIconDataAsync = (iconName: string): any => {
   if (iconDataCache[iconName] !== undefined) {
     return iconDataCache[iconName];
   }
 
-  iconDataCache[iconName] = null;
-  getIconFromDb(iconName).then((data) => {
-    iconDataCache[iconName] = data;
+  if (!iconDataPromises[iconName]) {
+    iconDataPromises[iconName] = getIconData(iconName).then((data) => {
+      iconDataCache[iconName] = data ?? null;
+      return iconDataCache[iconName];
+    });
+  }
+
+  // Kick off resolution; the rAF render loop re-checks the cache each frame.
+  iconDataPromises[iconName].catch(() => {
+    iconDataCache[iconName] = null;
   });
 
   return null;
@@ -30,8 +40,15 @@ const getIconImage = (
   fillType: string,
   strokeColor: string,
   strokeWidth: number,
+  renderWidth: number = iconData.width || 24,
 ) => {
-  const cacheKey = `${iconName}_${color}_${color2}_${fillType}_${strokeColor}_${strokeWidth}`;
+  // Stroke widths are authored in canvas pixels, but the SVG lives in the
+  // icon's own viewBox (e.g. 24x24). Scale the value so 1 px on canvas maps
+  // to the right number of viewBox units.
+  const scale = (iconData.width || 24) / (renderWidth || iconData.width || 24);
+  const svgStrokeWidth = strokeWidth * scale;
+
+  const cacheKey = `${iconName}_${color}_${color2}_${fillType}_${strokeColor}_${strokeWidth}_${renderWidth}`;
   if (iconImageCache[cacheKey]) {
     return iconImageCache[cacheKey];
   }
@@ -50,11 +67,11 @@ const getIconImage = (
   body = body.replace(/currentColor/g, fillVal);
 
   let styleTag = "";
-  if (strokeWidth > 0 && strokeColor && strokeColor !== "transparent") {
+  if (svgStrokeWidth > 0 && strokeColor && strokeColor !== "transparent") {
     styleTag = `<style>
       path, circle, rect, polygon, ellipse, line, polyline {
         stroke: ${strokeColor} !important;
-        stroke-width: ${strokeWidth}px !important;
+        stroke-width: ${svgStrokeWidth} !important;
         stroke-linejoin: round !important;
         stroke-linecap: round !important;
         paint-order: stroke fill !important;
@@ -167,6 +184,7 @@ export const ShapeClip = {
           settings.fillType,
           settings.strokeColor || "#ffffff",
           settings.strokeWidth || 0,
+          width,
         );
         if (state.loaded) {
           ctx.drawImage(state.img, x, y, width, height);
@@ -253,7 +271,9 @@ export const ShapeClip = {
       }
 
       // Fill
-      if (settings.fillColor && settings.fillColor !== "transparent") {
+      const hasFill =
+        !!settings.fillColor && settings.fillColor !== "transparent";
+      if (hasFill) {
         let fillStyle = settings.fillColor;
         if (settings.fillType === "gradient") {
           const grad = ctx.createLinearGradient(x, y, x + width, y + height);
@@ -265,11 +285,15 @@ export const ShapeClip = {
         ctx.fill();
       }
 
-      // Reset shadow for stroke
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
+      // Reset shadow for the stroke only when a fill was painted, so the shadow
+      // does not double up. Stroke-only shapes (e.g. glowing rings) keep the
+      // shadow so their outline still casts a glow.
+      if (hasFill) {
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
 
       // Stroke/Border
       if (
