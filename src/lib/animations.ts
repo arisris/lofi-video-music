@@ -1,5 +1,10 @@
 import { editorStore } from "../store/editor-store";
 import { runtime } from "./runtime";
+import {
+  CLIP_TRANSITION_SECONDS,
+  enterTransition,
+  exitTransition,
+} from "./transitions";
 
 /**
  * Handles Pre-built In/Out Transitions and Dynamic Animations.
@@ -38,60 +43,39 @@ export const applyClipAnimations = (
   const outType = anim.outType || "none";
   const effectType = anim.type || "none";
 
-  const TRANS_DUR = 0.6; // Fixed duration for all transitions
+  /** Pixels travelled by the slide effects. */
+  const SLIDE_DISTANCE = 50;
 
   let opacity = 1;
-  let transX = 0;
-  let transY = 0;
-  let transScale = 1;
+  let offsetY = 0;
+  let scale = 1;
 
   // 1. IN TRANSITIONS
-  if (localTime < TRANS_DUR) {
-    const p = localTime / TRANS_DUR; // 0 to 1
-    const easeOutBack = (x: number) =>
-      1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
-    const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
-
-    if (inType === "fade") {
-      opacity = easeOutCubic(p);
-    } else if (inType === "slide-up") {
-      opacity = easeOutCubic(p);
-      transY = (1 - easeOutCubic(p)) * 50;
-    } else if (inType === "slide-down") {
-      opacity = easeOutCubic(p);
-      transY = (1 - easeOutCubic(p)) * -50;
-    } else if (inType === "zoom-in") {
-      opacity = easeOutCubic(p);
-      transScale = 0.5 + easeOutBack(p) * 0.5;
-    } else if (inType === "bounce") {
-      opacity = easeOutCubic(p);
-      transScale = easeOutBack(p);
-    }
+  if (localTime < CLIP_TRANSITION_SECONDS) {
+    const enter = enterTransition(inType, localTime / CLIP_TRANSITION_SECONDS);
+    opacity *= enter.opacity;
+    offsetY += enter.offsetY;
+    scale *= enter.scale;
   }
 
   // 2. OUT TRANSITIONS
-  if (localTime > duration - TRANS_DUR) {
-    const p = (duration - localTime) / TRANS_DUR; // 1 to 0
-    const easeInCubic = (x: number) => x * x * x;
-
-    if (outType === "fade") {
-      opacity = Math.min(opacity, easeInCubic(p));
-    } else if (outType === "slide-up") {
-      opacity = Math.min(opacity, easeInCubic(p));
-      transY -= (1 - easeInCubic(p)) * 50;
-    } else if (outType === "slide-down") {
-      opacity = Math.min(opacity, easeInCubic(p));
-      transY += (1 - easeInCubic(p)) * 50;
-    } else if (outType === "zoom-out") {
-      opacity = Math.min(opacity, easeInCubic(p));
-      transScale *= 0.5 + easeInCubic(p) * 0.5;
-    }
+  if (localTime > duration - CLIP_TRANSITION_SECONDS) {
+    const exit = exitTransition(
+      outType,
+      (duration - localTime) / CLIP_TRANSITION_SECONDS,
+    );
+    // The exit can only darken what the entrance already did, so a clip short
+    // enough to be entering and leaving at once fades out smoothly instead of
+    // snapping back to full opacity halfway through.
+    opacity = Math.min(opacity, exit.opacity);
+    offsetY += exit.offsetY;
+    scale *= exit.scale;
   }
 
   // Apply Transitions
   ctx.globalAlpha *= opacity;
-  if (transX !== 0 || transY !== 0) ctx.translate(transX, transY);
-  if (transScale !== 1) ctx.scale(transScale, transScale);
+  if (offsetY !== 0) ctx.translate(0, offsetY * SLIDE_DISTANCE);
+  if (scale !== 1) ctx.scale(scale, scale);
 
   // 3. CONTINUOUS ANIMATIONS (Smooth 60fps using performance.now)
   const time = performance.now() / 1000;

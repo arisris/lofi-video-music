@@ -53,6 +53,8 @@ export interface MediaPoolSlice {
   /** Clip type tab active in the main panels. */
   activeClipTab: string;
   activeInspectorTab?: string;
+  /** Music clip whose lyric lines the left Lyrics panel is editing. */
+  lyricsClipId: string | null;
 
   emojiPanelState: EmojiPanelState | null;
   pexelsPanelState: PexelsPanelState | null;
@@ -67,6 +69,7 @@ export const createMediaPoolSlice: StateCreator<
 > = () => ({
   mediaPool: [],
   activeClipTab: "glviz",
+  lyricsClipId: null,
 
   emojiPanelState: null,
   pexelsPanelState: null,

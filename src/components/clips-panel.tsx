@@ -146,10 +146,15 @@ export const ClipsPanel = () => {
     );
   }
 
-  // Global layer branch (title / playlist)
-  if (selectedClipId === "title" || selectedClipId === "playlist") {
-    const globalClip = ClipRegistry.get(selectedClipId) as any;
-    const globalSettings = globalSettingsMap[selectedClipId] as
+  // Global layer branch (lyrics / title / playlist …). A registry id that
+  // never matches a timeline clip is a global layer: timeline ids are
+  // `clip-*`, and everything else is matched above.
+  const globalId = selectedClipId ?? "";
+  const globalClip = globalId
+    ? (ClipRegistry.get(globalId) as any)
+    : undefined;
+  if (globalClip && globalSettingsMap[globalId]) {
+    const globalSettings = globalSettingsMap[globalId] as
       AnyClipSettings | undefined;
     const globalEnabled = globalSettings?.enabled !== false;
     const globalName = globalClip?.name || "Global Layer";
@@ -165,7 +170,7 @@ export const ClipsPanel = () => {
           name={globalName}
           enabled={globalEnabled}
           onToggle={() =>
-            updateClipSettings(selectedClipId, { enabled: !globalEnabled })
+            updateClipSettings(globalId, { enabled: !globalEnabled })
           }
         />
 

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { editorStore, useEditorStore } from "../store/editor-store";
 import { MediaLibraryPanel } from "./media-library-panel";
 import { TextPanel } from "./text-panel";
+import { LyricsPanel } from "./lyrics-panel";
 import { VFXPanel } from "./vfx-panel";
 import { SettingsPanel } from "./settings-panel";
 import { ShapePanel } from "./shape-panel";
@@ -19,6 +20,7 @@ const TAB_ICONS = {
   library: "icon-[ri--folder-video-line]",
   shapes: "icon-[ri--shapes-line]",
   text: "icon-[ri--text-spacing]",
+  lyrics: "icon-[ri--mic-line]",
   vfx: "icon-[ri--magic-line]",
   settings: "icon-[ri--settings-3-line]",
   video: "icon-[ri--movie-2-line]",
@@ -45,6 +47,11 @@ export const MediaPool = () => {
     { id: "library", label: "Media", icon: TAB_ICONS.library },
     { id: "shapes", label: "Shapes", icon: TAB_ICONS.shapes },
     { id: "text", label: "Text", icon: TAB_ICONS.text },
+    // Lyrics are timed against a playing track, so they have nothing to say
+    // on a still thumbnail.
+    ...(isThumbnailMode
+      ? []
+      : [{ id: "lyrics", label: "Lyrics", icon: TAB_ICONS.lyrics }]),
     { id: "vfx", label: "VFX", icon: TAB_ICONS.vfx },
     { id: "settings", label: "Settings", icon: TAB_ICONS.settings },
     isThumbnailMode
@@ -79,6 +86,8 @@ export const MediaPool = () => {
         return <VFXPanel />;
       case "text":
         return <TextPanel />;
+      case "lyrics":
+        return <LyricsPanel />;
       case "settings":
         return <SettingsPanel />;
       case "shapes":

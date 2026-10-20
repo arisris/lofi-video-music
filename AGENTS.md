@@ -30,6 +30,11 @@
   running, and reuses an existing one when there is. It drives its own headless
   Chrome, not the Playwright MCP session below.
 
+  Each file boots the editor and a browser, so a full run costs about a minute.
+  While iterating, run only the file being worked on —
+  `bun test tests/e2e/editor.test.ts` — and save `bun test` for the final
+  before/after a change touches shared code.
+
 ## Dev server
 
 **The user runs the dev server. Do not start it.** If a task seems to need one

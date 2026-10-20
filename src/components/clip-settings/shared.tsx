@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { loadGoogleFont, GoogleFontsList } from "../../lib/fonts";
+import { ENTER_TRANSITIONS, EXIT_TRANSITIONS } from "../../lib/transitions";
 import { useEditorStore } from "../../store/editor-store";
 import { ScrubInput } from "../ui/scrub-input";
 import { ColorInput } from "../ui/color-input";
@@ -608,16 +609,9 @@ export const SharedAnimationSettingsView = ({
               onChange={(e) => update("inType", e.target.value)}
               value={animations.inType ?? "fade"}
             >
-              {[
-                "none",
-                "fade",
-                "slide-up",
-                "slide-down",
-                "zoom-in",
-                "bounce",
-              ].map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {ENTER_TRANSITIONS.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
                 </option>
               ))}
             </select>
@@ -631,13 +625,11 @@ export const SharedAnimationSettingsView = ({
               onChange={(e) => update("outType", e.target.value)}
               value={animations.outType ?? "fade"}
             >
-              {["none", "fade", "slide-up", "slide-down", "zoom-out"].map(
-                (t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ),
-              )}
+              {EXIT_TRANSITIONS.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
