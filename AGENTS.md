@@ -121,3 +121,4 @@ State is swapped between routes via the `mode` slice action (`swapRoute`). The Z
 - **Video recording**: Uses `MediaRecorder` API. Recording settings (resolution, FPS) live on the store as `recordResolution` / `recordFps`.
 - **Clip renderer contract**: `onSettings` in `src/lib/clips/*` and `src/lib/vfx/*` is a React function component `(props: { clip? }) => JSX`; the renderers only reference the view, they never render UI themselves.
 - **Uncontrolled inputs**: textarea/content inputs stay uncontrolled (`defaultValue` + `key` per clip id) so the canvas renderer keeps its own text state.
+- **Pointer-anchored menus**: `src/components/ui/anchored-menu.ts` measures a menu after it renders and keeps it inside the viewport — it opens upwards when there is no room below the pointer, and slides back from the edges. Any menu that opens at the pointer should use the hook; a plain `top: pointerY` gets cut off near the bottom of the screen.

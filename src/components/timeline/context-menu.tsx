@@ -1,5 +1,6 @@
 import { editorStore } from "../../store/editor-store";
 import { closeContextMenu } from "./drag";
+import { useAnchoredMenu } from "../ui/anchored-menu";
 import {
   cloneVids,
   cloneMediaElement,
@@ -13,13 +14,19 @@ export function TimelineContextMenu({
   state: any;
   contextMenu: { x: number; y: number; clipId: string } | null;
 }) {
+  // The menu follows the pointer, but never leaves the viewport.
+  const { ref, style } = useAnchoredMenu(
+    contextMenu ? { x: contextMenu.x, y: contextMenu.y } : null,
+  );
+
   if (!contextMenu) return null;
 
   return (
     <div
+      ref={ref}
       id="timeline-context-menu"
       className="fixed z-9999 min-w-35 rounded-lg border border-slate-700/80 bg-slate-900 py-1.5 shadow-2xl"
-      style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }}
+      style={style}
       onMouseDown={(e) => e.stopPropagation()}
     >
       <button

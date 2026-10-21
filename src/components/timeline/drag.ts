@@ -32,7 +32,6 @@ const closeContextMenuInternal = () => {
     contextMenu = null;
     window.removeEventListener("mousedown", handleWindowMouseDownCloseMenu);
     window.removeEventListener("wheel", closeContextMenuInternal);
-    window.removeEventListener("resize", closeContextMenuInternal);
     redraw();
   }
 };
@@ -52,7 +51,6 @@ export const showContextMenu = (
   contextMenu = { x: e.clientX, y: e.clientY, clipId };
   window.addEventListener("mousedown", handleWindowMouseDownCloseMenu);
   window.addEventListener("wheel", closeContextMenuInternal, { passive: true });
-  window.addEventListener("resize", closeContextMenuInternal);
   redraw();
 };
 
