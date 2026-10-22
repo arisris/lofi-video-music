@@ -6,7 +6,6 @@
     "build": "vite build",
     "preview": "bun run build && vite preview",
     "deploy": "bun run build && wrangler deploy",
-    "test": "bun test tests/",
     "check:tailwind": "bun scripts/check-tailwind.ts",
     "fix:tailwind": "bun scripts/check-tailwind.ts --fix",
     "format": "prettier --write .",
