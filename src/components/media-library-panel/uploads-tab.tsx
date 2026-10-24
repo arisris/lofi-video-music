@@ -1,4 +1,6 @@
-export const UploadsTab = ({ api }: { api: any }) => {
+import type { MediaLibraryApi } from "./types";
+
+export const UploadsTab = ({ api }: { api: MediaLibraryApi }) => {
   const { st, uploads, addAssetToTimeline, triggerUpload } = api;
   return (
     <>

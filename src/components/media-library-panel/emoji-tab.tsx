@@ -1,6 +1,7 @@
+import type { MediaLibraryApi } from "./types";
 import { EMOJI_CATEGORIES } from "./constants";
 
-export const EmojiTab = ({ api }: { api: any }) => {
+export const EmojiTab = ({ api }: { api: MediaLibraryApi }) => {
   const { st, apply, handleEmojiAdd, hoverTimeoutRef, hoverScheduledRef } = api;
   return (
     <>
