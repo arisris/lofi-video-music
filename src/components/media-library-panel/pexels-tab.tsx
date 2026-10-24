@@ -1,4 +1,6 @@
-export const PexelsTab = ({ api }: { api: any }) => {
+import type { MediaLibraryApi, PexelsVideo, PexelsPhoto } from "./types";
+
+export const PexelsTab = ({ api }: { api: MediaLibraryApi }) => {
   const { st, apply, searchPexels, loadMorePexels, handlePexelsAdd } = api;
   return (
     <>
@@ -155,10 +157,13 @@ export const PexelsTab = ({ api }: { api: any }) => {
               !st.pexelsError &&
               (() => {
                 const isVideoMode = st.pexelsMediaType === "video";
-                let items = isVideoMode ? st.pexelsVideos : st.pexelsPhotos;
+                let items: PexelsVideo[] | PexelsPhoto[] = isVideoMode
+                  ? st.pexelsVideos
+                  : st.pexelsPhotos;
 
                 if (isVideoMode && st.pexelsDuration !== "all") {
-                  items = items.filter((video: any) => {
+                  const vids = items as PexelsVideo[];
+                  items = vids.filter((video) => {
                     if (st.pexelsDuration === "short")
                       return video.duration <= 15;
                     if (st.pexelsDuration === "medium")

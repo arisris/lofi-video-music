@@ -3,7 +3,8 @@ import { addClipToTimeline } from "../../lib/clip-factory";
 import { processMediaFile, processMediaUrl } from "../../lib/media-helper";
 import { cloneVids } from "../../utils/helpers";
 import { editorStore, useEditorStore } from "../../store/editor-store";
-import type { PanelState, SubTab } from "./types";
+import type { PanelState, SubTab, MediaLibraryApi, PexelsPhoto, PexelsVideo, PexelsVideoFile, PixabayItem, EmojiItem } from "./types";
+import type { MediaItem } from "../../lib/media-helper";
 import { createPanelState } from "./types";
 import { UploadsTab } from "./uploads-tab";
 import { PixabayTab } from "./pixabay-tab";
@@ -111,10 +112,11 @@ export const MediaLibraryPanel = () => {
     const source = isVideoMode
       ? stRef.current.pexelsVideos
       : stRef.current.pexelsPhotos;
-    let items = source;
+    let items: PexelsVideo[] | PexelsPhoto[] = source;
 
     if (isVideoMode && stRef.current.pexelsDuration !== "all") {
-      items = items.filter((video) => {
+      const vids = source as PexelsVideo[];
+      items = vids.filter((video) => {
         if (stRef.current.pexelsDuration === "short")
           return video.duration <= 15;
         if (stRef.current.pexelsDuration === "medium")
@@ -195,7 +197,7 @@ export const MediaLibraryPanel = () => {
     }
   };
 
-  const addAssetToTimeline = (asset: any, asType: string) => {
+  const addAssetToTimeline = (asset: MediaItem, asType: string) => {
     if (asType === "background") {
       addClipToTimeline("background", {
         bgType: asset.type,
@@ -224,9 +226,9 @@ export const MediaLibraryPanel = () => {
     }
   };
 
-  const handleAssetAdd = (asset: any, asType: string) => {
+  const handleAssetAdd = (asset: MediaItem, asType: string) => {
     // If it's already in the media pool, add immediately
-    const existing = (editorStore.getState().mediaPool as any[]).find(
+    const existing = (editorStore.getState().mediaPool as MediaItem[]).find(
       (m) => m.id === asset.id || m.url === asset.url,
     );
     if (existing) {
@@ -242,10 +244,11 @@ export const MediaLibraryPanel = () => {
       asset.type,
       asset.name,
       asset.source || "stock",
-      (processedAsset: any) => {
+      (processedAsset: MediaItem) => {
         processedAsset.id = asset.id;
+        var pool = editorStore.getState().mediaPool as unknown as MediaItem[];
         editorStore.setState({
-          mediaPool: [...editorStore.getState().mediaPool, processedAsset],
+          mediaPool: [...pool, processedAsset] as never,
         });
         apply({ loadingAssetId: null });
         addAssetToTimeline(processedAsset, asType);
@@ -254,57 +257,59 @@ export const MediaLibraryPanel = () => {
     );
   };
 
-  const handlePexelsAdd = (media: any, asType: string) => {
+  const handlePexelsAdd = (media: PexelsPhoto | PexelsVideo, asType: string) => {
     if (stRef.current.pexelsMediaType === "photo") {
-      const asset = {
-        id: `pexels-photo-${media.id}`,
-        name: `Pexels - ${media.photographer || "Photo"}`,
+      const photo = media as PexelsPhoto;
+      const asset: MediaItem = {
+        id: `pexels-photo-${photo.id}`,
+        name: `Pexels - ${photo.photographer || "Photo"}`,
         type: "image",
         source: "pexels",
-        url: media.src.large || media.src.original,
-        thumbnail: media.src.medium || media.src.small,
+        url: photo.src.large || photo.src.original,
+        thumbnail: photo.src.medium || photo.src.small,
         duration: 0,
-        width: media.width,
-        height: media.height,
+        width: photo.width,
+        height: photo.height,
       };
       handleAssetAdd(asset, asType);
     } else {
-      const files = media.video_files || [];
+      const vid = media as PexelsVideo;
+      const files = vid.video_files || [];
       // Select standard HD resolution for optimal rendering speed
       let bestFile = files.find(
-        (f: any) =>
+        (f: PexelsVideoFile) =>
           f.width >= 960 && f.width <= 1280 && f.file_type === "video/mp4",
       );
       if (!bestFile)
         bestFile = files.find(
-          (f: any) => f.quality === "sd" && f.file_type === "video/mp4",
+          (f: PexelsVideoFile) => f.quality === "sd" && f.file_type === "video/mp4",
         );
       if (!bestFile)
-        bestFile = files.find((f: any) => f.file_type === "video/mp4");
+        bestFile = files.find((f: PexelsVideoFile) => f.file_type === "video/mp4");
       if (!bestFile) bestFile = files[0];
 
       if (!bestFile || !bestFile.link) {
-        console.error("No playable video file found for Pexels ID:", media.id);
+        console.error("No playable video file found for Pexels ID:", vid.id);
         return;
       }
 
-      const asset = {
-        id: `pexels-${media.id}`,
-        name: `Pexels - ${media.user?.name || "Video"}`,
+      const asset: MediaItem = {
+        id: `pexels-${vid.id}`,
+        name: `Pexels - ${vid.user?.name || "Video"}`,
         type: "video",
         source: "pexels",
         url: bestFile.link,
-        thumbnail: media.image,
-        duration: media.duration,
-        width: media.width,
-        height: media.height,
+        thumbnail: vid.image,
+        duration: vid.duration,
+        width: vid.width,
+        height: vid.height,
       };
 
       handleAssetAdd(asset, asType);
     }
   };
 
-  const handlePixabayAdd = (item: any, asType: string) => {
+  const handlePixabayAdd = (item: PixabayItem, asType: string) => {
     if (stRef.current.pixabayMediaType === "video") {
       const videos = item.videos || {};
       const bestVid =
@@ -338,7 +343,7 @@ export const MediaLibraryPanel = () => {
     }
   };
 
-  const handleEmojiAdd = (emoji: any) => {
+  const handleEmojiAdd = (emoji: EmojiItem) => {
     const asset = {
       id: `emoji-${emoji.codepoint}`,
       name: `Emoji - ${emoji.tag}`,
@@ -368,9 +373,10 @@ export const MediaLibraryPanel = () => {
       });
 
       files.forEach((file) => {
-        processMediaFile(file, (asset: any) => {
+        processMediaFile(file, (asset: MediaItem) => {
+          const pool = editorStore.getState().mediaPool as unknown as MediaItem[];
           editorStore.setState({
-            mediaPool: [...editorStore.getState().mediaPool, asset],
+            mediaPool: [...pool, asset] as never,
           });
           apply({ activeUploadsCount: stRef.current.activeUploadsCount - 1 });
           if (stRef.current.activeUploadsCount === 0) {
@@ -479,12 +485,12 @@ export const MediaLibraryPanel = () => {
   // Re-render when clips/selections change through addClipToTimeline's
   // top-level store writes (pushes to mediaPool are in-place, unobserved).
   useEditorStore((s) => s.selectedClipId);
-  const uploads = (editorStore.getState().mediaPool as any[]).filter(
+  const uploads = (editorStore.getState().mediaPool as MediaItem[]).filter(
     (m) =>
       m.source === "upload" || m.source === "pexels" || m.source === "pixabay",
   );
 
-  const api = {
+  const api: MediaLibraryApi = {
     st,
     apply,
     uploads,

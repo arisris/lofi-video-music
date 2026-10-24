@@ -1,4 +1,6 @@
-export const PixabayTab = ({ api }: { api: any }) => {
+import type { MediaLibraryApi } from "./types";
+
+export const PixabayTab = ({ api }: { api: MediaLibraryApi }) => {
   const { st, apply, searchPixabay, loadMorePixabay, handlePixabayAdd } = api;
   return (
     <>
