@@ -9,6 +9,13 @@ export interface ClipSettings {
   [key: string]: unknown;
 }
 
+export interface ClipBBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 /** Entry stored in the global ClipRegistry (static clip definitions). */
 export interface ClipRegistryEntry {
   id: string;
@@ -16,8 +23,27 @@ export interface ClipRegistryEntry {
   icon?: string;
   settings: Partial<ClipSettings>;
   /** Renders the clip's inspector controls (a React component). */
-  onSettings?: (clip: unknown) => unknown;
-  [key: string]: unknown;
+  onSettings?: (props: { clip?: Record<string, any> }) => React.JSX.Element | null;
+  drawItem?(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+    localTime?: number,
+    clip?: Record<string, any> | null,
+  ): void;
+  getItemBoundingBox?(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    settings: Record<string, any>,
+  ): ClipBBox | null;
+  getBoundingBox?(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+  ): ClipBBox;
+  draw?(ctx: CanvasRenderingContext2D, w: number, h: number): void;
 }
 
 export const CLIP_TYPES = [

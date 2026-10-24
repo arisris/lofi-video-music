@@ -269,6 +269,7 @@ export const handleDragStart = (e: DragPointerEvent) => {
                 otherRenderer &&
                 typeof otherRenderer.getItemBoundingBox === "function"
               ) {
+                if (!runtime.ctx) return;
                 const otherBbox = otherRenderer.getItemBoundingBox(
                   runtime.ctx,
                   w,
@@ -436,6 +437,7 @@ export const handleDragMove = (e: DragPointerEvent) => {
         renderer &&
         typeof renderer.getItemBoundingBox === "function"
       ) {
+        if (!runtime.ctx) return;
         const bbox = renderer.getItemBoundingBox(
           runtime.ctx,
           w,
