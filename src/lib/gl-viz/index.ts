@@ -11,6 +11,11 @@ import { KaleidoscopeVisualizer } from "./defs/kaleidoscope";
 import { CircleVisualizer } from "./defs/circle";
 import { WaveformVisualizer } from "./defs/waveform";
 import { LiquidWavesVisualizer } from "./defs/liquid-waves";
+import { NebulaVisualizer } from "./defs/nebula";
+import { VinylVisualizer } from "./defs/vinyl";
+import { OrbVisualizer } from "./defs/orb";
+import { TunnelVisualizer } from "./defs/tunnel";
+import { LissajousVisualizer } from "./defs/lissajous";
 
 registerVisualizer(AuraVisualizer);
 registerVisualizer(BarsVisualizer);
@@ -18,6 +23,11 @@ registerVisualizer(KaleidoscopeVisualizer);
 registerVisualizer(CircleVisualizer);
 registerVisualizer(WaveformVisualizer);
 registerVisualizer(LiquidWavesVisualizer);
+registerVisualizer(NebulaVisualizer);
+registerVisualizer(VinylVisualizer);
+registerVisualizer(OrbVisualizer);
+registerVisualizer(TunnelVisualizer);
+registerVisualizer(LissajousVisualizer);
 
 export * from "./types";
 export * from "./registry";
