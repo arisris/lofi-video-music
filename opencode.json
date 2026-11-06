@@ -7,8 +7,6 @@
         "command": [
           "bunx",
           "@playwright/mcp@latest",
-          "--viewport-size",
-          "1280,720",
           "--executable-path",
           "/home/arisris/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome"
         ]
