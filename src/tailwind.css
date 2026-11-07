@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @plugin "@iconify/tailwind4";
 
+/* Tokens outside Tailwind default scale used by the app:
+   neutral-850 sits between 800 (#262626) and 900 (#171717),
+   neutral-350 sits between 300 (#d4d4d4) and 400 (#a3a3a3). */
 @theme {
-  --color-slate-950: #020617;
+  --color-neutral-850: #1e1e1e;
+  --color-neutral-350: #bcbcbc;
 }
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-50;
+    @apply bg-neutral-900 text-neutral-50;
   }
 }
 
@@ -20,11 +24,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #404040;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #525252;
 }
 
 .no-scrollbar::-webkit-scrollbar {

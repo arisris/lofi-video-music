@@ -38,3 +38,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 *project-llms.txt
 .playwright-mcp/
 .example/
+# local reference backup (old src before rewrite)
+src_old/

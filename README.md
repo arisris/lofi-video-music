@@ -37,4 +37,4 @@ bunx tsc --noEmit -p worker/tsconfig.json  # typecheck the Worker
 
 Setup notes are kept in `AGENTS.md`.
 
-This project was created using `bun init` in bun v1.3.11. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+This project was created using `bun init` in bun v1.4.x. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

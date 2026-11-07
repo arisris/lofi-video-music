@@ -1,26 +1,21 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Router, useLocation } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
-import type { EditorRoute } from "./store/slices/mode";
-import { useEditorStore, editorStore } from "./store/editor-store";
-import { runtime } from "./lib/runtime";
-import { renderLoop, resetRenderTimer } from "./lib/render";
-import { handleDragMove, handleDragEnd, DragPointerEvent } from "./lib/drag";
-import { initAudioEngine, applyAudioSettings } from "./lib/audio";
+import { VideoPreview } from "./modules/editor/VideoPreview";
+import { PlaybackControls } from "./modules/editor/TransportBar";
+import { Timeline } from "./modules/editor/Timeline";
+import { Resizer } from "./modules/editor/Resizer";
+import { MediaDock } from "./modules/dock/MediaDock";
+import { InspectorPanel } from "./modules/editor/InspectorPanel";
+import { RecordSettingsModal } from "./modules/editor/RecordSettingsModal";
+import { useEditorStore } from "./store/editor-store";
+import {
+  handleCanvasDragEnd,
+  handleCanvasDragMove,
+  type DragPointerEvent,
+} from "./modules/editor/canvas-drag";
 
-import { VideoPreview } from "./components/video-preview";
-import { PlaybackControls } from "./components/transport-bar";
-import { Timeline } from "./components/timeline";
-import { Resizer } from "./components/resizer";
-import { MediaPool } from "./components/media-pool";
-import { InspectorPanel } from "./components/inspector-panel";
-import { RecordSettingsModal } from "./components/record-settings-modal";
-
-import { getClipsToSearch } from "./utils/helpers";
-import { bumpClips } from "./store/actions/timeline-actions";
-
-/** Set once per page session so HMR re-mounts never double-schedule the rAF loop. */
-let renderLoopStarted = false;
+type EditorRoute = "/" | "/image";
 
 const toEditorRoute = (location: string): EditorRoute =>
   location.startsWith("/image") ? "/image" : "/";
@@ -34,185 +29,43 @@ const AppContent = () => {
   );
 
   const [location] = useLocation();
-  const lastResolvedRouteRef = useRef<string | null>(null);
+
+  // Panel side being dragged — width transition disabled while dragging
+  // so resize follows the pointer without lag (transition-all + drag = rubber-banding).
+  const [resizingSide, setResizingSide] = useState<"left" | "right" | null>(null);
 
   useEffect(() => {
-    const next = toEditorRoute(location);
-    editorStore.getState().swapRoute(lastResolvedRouteRef.current, next);
-    lastResolvedRouteRef.current = next;
+    useEditorStore.getState().swapRoute(toEditorRoute(location));
   }, [location]);
 
+  // Global canvas drag listener (mirrors src_old/app.tsx): window-level move/up
+  // so a drag survives even when the pointer leaves the canvas.
   useEffect(() => {
-    // Bind the canvas/audio elements the render loop and engine need.
-    let raf = 0;
-    const bindRuntime = () => {
-      runtime.canvas = document.getElementById(
-        "renderCanvas",
-      ) as HTMLCanvasElement | null;
-      runtime.ctx = runtime.canvas?.getContext("2d") ?? null;
-      const audioEl = document.getElementById(
-        "audioElement",
-      ) as HTMLAudioElement | null;
-      runtime.audioEl = audioEl;
-
-      if (!runtime.canvas || !audioEl) {
-        // The preview mounts asynchronously — retry until VideoPreview has rendered.
-        raf = requestAnimationFrame(bindRuntime);
-        return;
-      }
-
-      const audioState = editorStore.getState();
-      if (audioState.isAudioInit) {
-        const clipsToSearch = getClipsToSearch(audioState);
-        const activeClip = clipsToSearch.find(
-          (c: {
-            type: string;
-            start: number;
-            duration: number;
-            settings: { enabled?: boolean };
-          }) =>
-            c.type === "music" &&
-            c.settings?.enabled !== false &&
-            audioState.currentTime >= c.start &&
-            audioState.currentTime <= c.start + c.duration,
-        );
-        if (activeClip) {
-          audioEl.src =
-            (activeClip.settings as { audioUrl?: string }).audioUrl ?? "";
-          audioEl.currentTime =
-            audioState.currentTime -
-            activeClip.start +
-            ((activeClip.settings as { startOffset?: number }).startOffset ||
-              0);
-          initAudioEngine();
-          applyAudioSettings(activeClip);
-        }
-      }
-
-      if (!renderLoopStarted) {
-        renderLoopStarted = true;
-        renderLoop();
-      }
-    };
-    bindRuntime();
-
-    // Global drag listeners, bound once for the whole app.
     const touchMoveOptions: AddEventListenerOptions = { passive: false };
     const onDragMove = (e: MouseEvent | TouchEvent) =>
-      handleDragMove(e as DragPointerEvent);
+      handleCanvasDragMove(e as unknown as DragPointerEvent);
     window.addEventListener("mousemove", onDragMove);
-    window.addEventListener("mouseup", handleDragEnd);
+    window.addEventListener("mouseup", handleCanvasDragEnd);
     window.addEventListener("touchmove", onDragMove, touchMoveOptions);
-    window.addEventListener("touchend", handleDragEnd);
-
+    window.addEventListener("touchend", handleCanvasDragEnd);
     return () => {
-      cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onDragMove);
-      window.removeEventListener("mouseup", handleDragEnd);
-      window.removeEventListener("touchmove", onDragMove, touchMoveOptions);
-      window.removeEventListener("touchend", handleDragEnd);
-    };
-  }, []);
-
-  useEffect(() => {
-    const syncPlayhead = () => {
-      resetRenderTimer();
-      if (runtime.audioCtx && runtime.audioCtx.state === "suspended") {
-        runtime.audioCtx.resume().catch(() => {});
-      }
-      const state = editorStore.getState();
-      if (state.isPlaying && runtime.audioEl) {
-        const audioEl = runtime.audioEl;
-        if (audioEl.paused) {
-          audioEl.play().catch(() => {});
-        }
-        const clipsToSearch = getClipsToSearch(state);
-        const getAbsoluteUrl = (url: string) => {
-          if (!url) return "";
-          try {
-            return new URL(url, window.location.href).href;
-          } catch {
-            return url;
-          }
-        };
-        const currentAudioSrc = getAbsoluteUrl(audioEl.src);
-        const activeClip =
-          clipsToSearch.find(
-            (c: any) =>
-              c.type === "music" &&
-              c.settings?.enabled !== false &&
-              getAbsoluteUrl(c.settings?.audioUrl) === currentAudioSrc,
-          ) ||
-          clipsToSearch.find(
-            (c: any) =>
-              c.type === "music" &&
-              c.settings?.enabled !== false &&
-              state.currentTime >= c.start &&
-              state.currentTime <= c.start + c.duration,
-          );
-        if (activeClip) {
-          const localTime =
-            audioEl.currentTime - ((activeClip.settings as any).startOffset || 0);
-          const nextTime = activeClip.start + localTime;
-          if (Number.isFinite(nextTime)) {
-            editorStore.setState({ currentTime: nextTime });
-          }
-        }
-        bumpClips();
-      }
-    };
-
-    const cancelInteraction = () => {
-      resetRenderTimer();
-      try {
-        handleDragEnd();
-      } catch {
-        /* ignore */
-      }
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        cancelInteraction();
-      } else {
-        syncPlayhead();
-      }
-    };
-
-    const onBlur = () => cancelInteraction();
-    const onFocus = () => syncPlayhead();
-    const onPageShow = () => syncPlayhead();
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("focus", onFocus);
-    window.addEventListener("pageshow", onPageShow);
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("blur", onBlur);
-      window.removeEventListener("focus", onFocus);
-      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("mouseup", handleCanvasDragEnd);
+      window.removeEventListener("touchmove", onDragMove);
+      window.removeEventListener("touchend", handleCanvasDragEnd);
     };
   }, []);
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-950 font-sans text-slate-200">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-neutral-950 font-sans text-neutral-200">
       {/* MAIN WORKSPACE */}
-      <section className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto border-b border-slate-800 bg-slate-950 md:flex-row md:overflow-hidden">
+      <section className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto border-b border-neutral-800 bg-neutral-950 md:flex-row md:overflow-hidden">
         {/* LEFT PANEL: Media Pool */}
         <aside
-          className={`order-2 flex h-auto flex-none flex-col border-b border-slate-800 bg-slate-900/20 transition-all duration-200 md:order-1 md:h-full md:border-r md:border-b-0 ${leftPanelCollapsed ? "w-14" : ""}`}
-          style={{
-            width:
-              window.innerWidth > 768
-                ? leftPanelCollapsed
-                  ? "56px"
-                  : `${mediaPoolWidth || 300}px`
-                : "100%",
-          }}
+          className={`order-2 flex w-full flex-none flex-col border-b border-neutral-800 bg-neutral-900/20 md:order-1 md:h-full md:w-(--panel-w) md:border-r md:border-b-0 ${resizingSide === "left" ? "" : "transition-[width] duration-200"}`}
+          style={{ "--panel-w": leftPanelCollapsed ? "56px" : `${mediaPoolWidth || 300}px` } as CSSProperties}
         >
-          <MediaPool />
+          <MediaDock />
         </aside>
 
         {!leftPanelCollapsed && (
@@ -220,18 +73,19 @@ const AppContent = () => {
             side="left"
             order="md:order-1"
             onResize={(w) => {
-              editorStore.setState({ mediaPoolWidth: w });
+              useEditorStore.setState({ mediaPoolWidth: w });
             }}
+            onDragStateChange={(dragging) => setResizingSide(dragging ? "left" : null)}
           />
         )}
 
         {/* CENTER PANEL: Preview Player */}
-        <main className="relative order-1 flex h-auto flex-none flex-col bg-black md:order-2 md:h-full md:flex-1">
+        <main className="relative order-1 flex h-auto flex-none flex-col bg-black md:order-2 md:h-full md:min-w-0 md:flex-1">
           <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-black">
             <VideoPreview />
           </div>
           <Timeline />
-          <div className="flex-none border-t border-slate-800 bg-slate-900 p-2">
+          <div className="flex-none border-t border-neutral-800 bg-neutral-900 p-2">
             <PlaybackControls />
           </div>
         </main>
@@ -240,31 +94,22 @@ const AppContent = () => {
           side="right"
           order="md:order-2"
           onResize={(w) => {
-            editorStore.setState({ inspectorWidth: w });
+            useEditorStore.setState({ inspectorWidth: w });
           }}
+          onDragStateChange={(dragging) => setResizingSide(dragging ? "right" : null)}
         />
 
         {/* RIGHT PANEL: Inspector / Properties */}
         <aside
-          className="order-3 flex h-auto w-full flex-none flex-col border-t border-slate-800 bg-slate-900/20 md:order-3 md:h-full md:border-t-0 md:border-l"
-          style={{
-            width:
-              window.innerWidth > 768 ? `${inspectorWidth || 320}px` : "100%",
-          }}
+          className={`order-3 flex w-full flex-none flex-col border-t border-neutral-800 bg-neutral-900/20 md:order-3 md:h-full md:w-(--panel-w) md:border-t-0 md:border-l ${resizingSide === "right" ? "" : "transition-[width] duration-200"}`}
+          style={{ "--panel-w": `${inspectorWidth || 320}px` } as CSSProperties}
         >
           <InspectorPanel />
         </aside>
       </section>
 
       {/* Hidden Audio Element */}
-      <audio
-        id="audioElement"
-        crossOrigin="anonymous"
-        onEnded={() => {
-          // Poke subscribed panels so they re-read the store.
-          bumpClips();
-        }}
-      />
+      <audio id="audioElement" crossOrigin="anonymous" />
 
       {/* Recording Settings Modal */}
       {showRecordSettingsModal && <RecordSettingsModal />}
