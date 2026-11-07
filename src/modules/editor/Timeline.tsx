@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { formatTime } from "../../shared/lib/format";
 import { revokeClipUrls } from "../../shared/lib/media-urls";
 import { Button } from "../../shared/ui/Button";
-import { useAnchoredMenu } from "../../shared/ui/anchored-menu";
 import { RangeInput } from "../../shared/ui/RangeInput";
 import { getTotalDuration, useEditorStore } from "../../store/editor-store";
 import type { TimelineClip } from "../../shared/types/clip";
@@ -17,6 +16,7 @@ import {
   handleWheelNative,
 } from "./timeline-drag";
 import { seekTo } from "../audio/audio-engine";
+import { ClipContextMenu } from "./ClipContextMenu";
 
 const TRACK_ROW_H = 48;
 
@@ -137,7 +137,6 @@ export function Timeline() {
   const isRecording = useEditorStore((s) => s.isRecording);
 
   const [menu, setMenu] = useState<{ x: number; y: number; clipId: string } | null>(null);
-  const { ref: menuRef, style: menuStyle } = useAnchoredMenu(menu);
   const tracksAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -146,21 +145,6 @@ export function Timeline() {
     el.addEventListener("wheel", handleWheelNative, { passive: false });
     return () => el.removeEventListener("wheel", handleWheelNative);
   }, []);
-
-  // Close the context menu on outside click / scroll (legacy mirror).
-  useEffect(() => {
-    if (!menu) return;
-    const close = (e: Event) => {
-      const el = document.getElementById("timeline-context-menu");
-      if (!el || !el.contains(e.target as Node)) setMenu(null);
-    };
-    window.addEventListener("mousedown", close);
-    window.addEventListener("wheel", close, { passive: true });
-    return () => {
-      window.removeEventListener("mousedown", close);
-      window.removeEventListener("wheel", close);
-    };
-  }, [menu]);
 
   const secondId = tracks[1]?.id ?? tracks[0]?.id ?? "track-2";
   const totalDuration = useMemo(() => getTotalDuration(clips), [clips]);
@@ -507,36 +491,7 @@ export function Timeline() {
 
       {/* Context menu */}
       {menu && (
-        <div
-          ref={menuRef}
-          id="timeline-context-menu"
-          className="fixed z-9999 min-w-35 rounded-lg border border-neutral-700/80 bg-neutral-900 py-1.5 shadow-2xl"
-          style={menuStyle ?? { left: menu.x, top: menu.y }}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <button
-            className="flex w-full cursor-pointer items-center gap-1.5 px-3 py-1.5 text-left text-xs text-neutral-300 transition-colors hover:bg-blue-600/20 hover:text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              useEditorStore.getState().duplicateClip(menu.clipId);
-              setMenu(null);
-            }}
-          >
-            <i className="icon-[ri--file-copy-line] h-3.5 w-3.5 text-blue-400" />
-            <span>Duplicate Clip</span>
-          </button>
-          <button
-            className="flex w-full cursor-pointer items-center gap-1.5 px-3 py-1.5 text-left text-xs text-neutral-300 transition-colors hover:bg-red-600/20 hover:text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              useEditorStore.getState().removeClip(menu.clipId);
-              setMenu(null);
-            }}
-          >
-            <i className="icon-[ri--delete-bin-line] h-3.5 w-3.5 text-red-400" />
-            <span>Delete Clip</span>
-          </button>
-        </div>
+        <ClipContextMenu x={menu.x} y={menu.y} clipId={menu.clipId} onClose={() => setMenu(null)} />
       )}
     </div>
   );

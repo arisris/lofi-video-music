@@ -189,6 +189,11 @@ export function findHandleAtPos(
 }
 
 export const handleCanvasDragStart = (e: DragPointerEvent) => {
+  // Right/middle click must not start a drag or clear the selection —
+  // the preview context menu handles those buttons separately.
+  const button = (e as unknown as { button?: number }).button;
+  if (button !== undefined && button !== 0) return;
+
   const st = useEditorStore.getState();
   const pos = getEventPos(e);
   useEditorStore.setState({ startDragX: pos.x, startDragY: pos.y });

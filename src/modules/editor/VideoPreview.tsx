@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { designSize, recordSize, toDesignPos } from "../../shared/lib/canvas-space";
 import { runtime } from "../../shared/lib/runtime";
 import { renderFrame } from "../../engine/render-loop";
 import {
   findClipAtPos,
   findHandleAtPos,
+  getEventPos,
   getSelectedCanvasClip,
   handleCanvasDragStart,
   type DragPointerEvent,
@@ -15,6 +16,7 @@ import {
 } from "../audio/audio-engine";
 import { getTotalDuration, useEditorStore } from "../../store/editor-store";
 import { stopRecording } from "../recorder/recorder";
+import { ClipContextMenu } from "./ClipContextMenu";
 
 let isHoveringClip = false;
 
@@ -27,6 +29,41 @@ export function VideoPreview() {
   const recordingTime = useEditorStore((s) => s.recordingTime);
   const aspectRatio = useEditorStore((s) => s.aspectRatio);
   const recordResolution = useEditorStore((s) => s.recordResolution);
+  const [menu, setMenu] = useState<{ x: number; y: number; clipId: string } | null>(null);
+
+  // Delete / Backspace removes the active preview clip (except while typing).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.tagName === "SELECT" ||
+          t.isContentEditable)
+      )
+        return;
+      const st = useEditorStore.getState();
+      const id = st.selectedClipId;
+      if (!id || id === "lyrics") return;
+      if (!st.clips.some((c) => c.id === id)) return;
+      if (st.isRecording) return;
+      e.preventDefault();
+      if (menu) setMenu(null);
+      st.removeClip(id);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menu]);
+
+  // Close the menu once its clip is gone (e.g. deleted via shortcut/undo).
+  useEffect(() => {
+    if (!menu) return;
+    const st = useEditorStore.getState();
+    if (!st.clips.some((c) => c.id === menu.clipId)) setMenu(null);
+  });
 
   // Backing store follows orientation + resolution while recording, same
   // as the legacy app (src_old/components/video-preview.tsx). Outside
@@ -171,6 +208,26 @@ export function VideoPreview() {
       style={{ cursor: cursorStyle }}
       onMouseDown={handleCanvasDragStart as unknown as React.MouseEventHandler}
       onMouseMove={handleMouseMove}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const pos = getEventPos({ clientX: e.clientX, clientY: e.clientY });
+        const hit = findClipAtPos(pos);
+        const st = useEditorStore.getState();
+        let clipId: string | null = null;
+        if (hit && !hit.isGlobalLyrics && hit.clip) {
+          clipId = hit.clip.id;
+          useEditorStore.setState({ selectedClipId: hit.clip.id });
+        } else if (
+          st.selectedClipId &&
+          st.selectedClipId !== "lyrics" &&
+          st.clips.some((c) => c.id === st.selectedClipId)
+        ) {
+          clipId = st.selectedClipId;
+        }
+        if (!clipId) return;
+        setMenu({ x: e.clientX, y: e.clientY, clipId });
+      }}
       onTouchStart={(e) => {
         e.preventDefault();
         handleCanvasDragStart(e as unknown as DragPointerEvent);
@@ -198,6 +255,10 @@ export function VideoPreview() {
         Recording...{" "}
         <span className="ml-1 font-mono text-white">{recordingTime}</span>
       </div>
+
+      {menu && (
+        <ClipContextMenu x={menu.x} y={menu.y} clipId={menu.clipId} onClose={() => setMenu(null)} />
+      )}
     </div>
   );
 }

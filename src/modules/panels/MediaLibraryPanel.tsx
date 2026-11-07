@@ -34,8 +34,18 @@ const EMOJI_CATEGORIES: Array<{ id: string; label: string }> = [
 
 const stockRequest = (url: string, params: Record<string, unknown>): Promise<any> =>
   fetch(`${url}?${new URLSearchParams(params as Record<string, string>).toString()}`).then(
-    (res) => {
-      if (!res.ok) throw new Error(`Stock API ${url} failed (${res.status})`);
+    async (res) => {
+      if (!res.ok) {
+        // Surface the standardized backend error ({ error }) when present.
+        let detail = "";
+        try {
+          const body = (await res.json()) as { error?: unknown };
+          if (typeof body.error === "string" && body.error) detail = `: ${body.error}`;
+        } catch {
+          /* non-JSON error body — keep the generic message */
+        }
+        throw new Error(`Stock API ${url} failed (${res.status})${detail}`);
+      }
       return res.json();
     },
   );
@@ -92,7 +102,7 @@ interface PanelState {
   pexelsVideos: PexelsVideo[];
   pexelsPhotos: PexelsPhoto[];
   pexelsMediaType: "video" | "photo";
-  pexelsOrientation: string;
+  pexelsOrientation: "all" | "landscape" | "portrait" | "square";
   pexelsDuration: string;
   pexelsCurrentPage: number;
   pexelsVisibleCount: number;
@@ -105,8 +115,8 @@ interface PanelState {
   emojiVisibleCount: number;
   hoveredEmojiCodepoint: string | null;
   pixabayQuery: string;
-  pixabayMediaType: string;
-  pixabayOrientation: string;
+  pixabayMediaType: "video" | "photo" | "illustration" | "vector";
+  pixabayOrientation: "all" | "landscape" | "portrait";
   pixabayTransparentOnly: boolean;
   pixabayItems: PixabayItem[];
   pixabayVisibleCount: number;

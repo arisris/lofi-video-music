@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "lofi-video-music",
-  "compatibility_date": "2026-05-06",
+  "compatibility_date": "2026-08-04",
   "main": "./worker/index.ts",
   "workers_dev": true,
   "preview_urls": false,
