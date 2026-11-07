@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
+import { Suspense, lazy, useMemo, useState } from "react";
 import { SectionTitle } from "../../shared/ui/FieldLabel";
 import { useEditorStore } from "../../store/editor-store";
 import { Button } from "../../shared/ui/Button";
 import { SegmentedTabs } from "../../shared/ui/SegmentedTabs";
 import { SelectControl } from "../../shared/ui/Select";
-import { SyncEditor } from "../lyrics/SyncEditor";
+// SyncEditor loads on demand (Sync tab only) so it stays out of the main chunk.
+const SyncEditor = lazy(() =>
+  import("../lyrics/SyncEditor").then((m) => ({ default: m.SyncEditor })),
+);
 import {
   countSunoTags,
   parseLyricText,
@@ -101,7 +104,11 @@ export const LyricsPanel = () => {
         />
 
         <div className="custom-scrollbar min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
-          {inputTab === "sync" && target && <SyncEditor clipId={target.id} />}
+          {inputTab === "sync" && target && (
+            <Suspense fallback={null}>
+              <SyncEditor clipId={target.id} />
+            </Suspense>
+          )}
 
           {inputTab === "raw" && target && (
             <RawTab

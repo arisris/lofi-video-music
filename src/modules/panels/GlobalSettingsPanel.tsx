@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { SectionTitle } from "../../shared/ui/FieldLabel";
 import { useEditorStore } from "../../store/editor-store";
 import { addClipOfType } from "../dock/clip-actions";
-import { downloadBlob, exportProjectBundle, importProjectBundle } from "../project";
+// Project bundle IO (fflate) loads on demand so it stays out of the main chunk.
 
 type TransitionStyle = "fade" | "slide" | "zoom";
 
@@ -51,6 +51,7 @@ export const GlobalSettingsPanel = () => {
     setProjectBusy(true);
     setProjectStatus("Preparing bundle…");
     try {
+      const { downloadBlob, exportProjectBundle } = await import("../project/store-io");
       const { blob, filename, remoteKept } = await exportProjectBundle(projectName);
       downloadBlob(blob, filename);
       setProjectStatus(
@@ -69,6 +70,7 @@ export const GlobalSettingsPanel = () => {
     setProjectBusy(true);
     setProjectStatus("Importing bundle…");
     try {
+      const { importProjectBundle } = await import("../project/store-io");
       const res = await importProjectBundle(file);
       setProjectName(res.project.meta.name);
       const warn = res.mediaFailed.length > 0 ? ` (failed: ${res.mediaFailed.join(", ")})` : "";

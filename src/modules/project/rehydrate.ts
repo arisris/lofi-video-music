@@ -1,6 +1,6 @@
 // Rehydrate: ProjectV1 + asset bytes → store-ready MediaItem & TimelineClip.
 // All DOM element loading (Image/Video/GIF) happens here, centralized.
-import { parseGIF, decompressFrames } from "gifuct-js";
+// gifuct-js loads on demand (GIF path only) so it stays out of the main chunk.
 import type { TimelineClip } from "../../shared/types/clip";
 import type { MediaItem } from "../media/media-helper";
 import type { ProjectMedia, ProjectV1 } from "./schema";
@@ -38,6 +38,7 @@ export interface GifDecoded {
 }
 
 export async function decodeGifBytes(buf: ArrayBuffer): Promise<GifDecoded> {
+  const { parseGIF, decompressFrames } = await import("gifuct-js");
   const gif = parseGIF(buf);
   const raw = decompressFrames(gif, true);
   const baking = document.createElement("canvas");

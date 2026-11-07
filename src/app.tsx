@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { Suspense, lazy, useEffect, useState, type CSSProperties } from "react";
 import { Router, useLocation } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import { VideoPreview } from "./modules/editor/VideoPreview";
@@ -7,7 +7,12 @@ import { Timeline } from "./modules/editor/Timeline";
 import { Resizer } from "./modules/editor/Resizer";
 import { MediaDock } from "./modules/dock/MediaDock";
 import { InspectorPanel } from "./modules/editor/InspectorPanel";
-import { RecordSettingsModal } from "./modules/editor/RecordSettingsModal";
+// RecordSettingsModal loads on demand (record flow only) so it stays out of the main chunk.
+const RecordSettingsModal = lazy(() =>
+  import("./modules/editor/RecordSettingsModal").then((m) => ({
+    default: m.RecordSettingsModal,
+  })),
+);
 import { useEditorStore } from "./store/editor-store";
 import {
   handleCanvasDragEnd,
@@ -112,7 +117,11 @@ const AppContent = () => {
       <audio id="audioElement" crossOrigin="anonymous" />
 
       {/* Recording Settings Modal */}
-      {showRecordSettingsModal && <RecordSettingsModal />}
+      {showRecordSettingsModal && (
+        <Suspense fallback={null}>
+          <RecordSettingsModal />
+        </Suspense>
+      )}
     </div>
   );
 };

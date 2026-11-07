@@ -5,6 +5,21 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react(), cloudflare(), tailwindcss()],
+  build: {
+    rolldownOptions: {
+      output: {
+        // Stable third-party chunk: cached long-term, keeps app code in index.
+        manualChunks: (id) => {
+          if (
+            /node_modules[\\/](react|react-dom|scheduler|zustand|wouter)[\\/]/.test(
+              id,
+            )
+          )
+            return "vendor";
+        },
+      },
+    },
+  },
   server: {
     watch: {
       ignored: [

@@ -1,5 +1,6 @@
 import { generateThumbnail } from "../../shared/lib/thumbnail";
-import { parseGIF, decompressFrames } from "gifuct-js";
+// gifuct-js loads on demand (GIF path only) so it stays out of the main chunk.
+const loadGifDecoder = () => import("gifuct-js");
 
 export interface MediaItem {
   id: string;
@@ -161,7 +162,8 @@ const processGifFile = (
 ) => {
   file
     .arrayBuffer()
-    .then((arrayBuffer) => {
+    .then(async (arrayBuffer) => {
+      const { parseGIF, decompressFrames } = await loadGifDecoder();
       try {
         const gif = parseGIF(arrayBuffer);
         const decompressedFrames = decompressFrames(gif, true);
@@ -268,7 +270,8 @@ const processGifUrl = (
 ) => {
   fetch(url)
     .then((res) => res.arrayBuffer())
-    .then((arrayBuffer) => {
+    .then(async (arrayBuffer) => {
+      const { parseGIF, decompressFrames } = await loadGifDecoder();
       // GIF bytes are reused as a local blob so the pool + export stay
       // self-contained (no remote URL dependency).
       let localUrl = url;
