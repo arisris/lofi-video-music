@@ -67,8 +67,11 @@ interface RevokeState {
 }
 
 export const revokeClipUrls = (clip: TimelineClip, state: RevokeState) => {
+  const poolUrls = new Set(state.mediaPool.map((m) => m.url));
   for (const url of getMediaUrls(clip)) {
     if (!url.startsWith("blob:")) continue;
+    // Still referenced by the library — never revoke.
+    if (poolUrls.has(url)) continue;
     const inUse =
       state.clips.some((c) => c.id !== clip.id && getMediaUrls(c).includes(url)) ||
       (state.videoClips ?? []).some((c) => getMediaUrls(c).includes(url)) ||

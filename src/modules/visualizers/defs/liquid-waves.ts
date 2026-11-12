@@ -19,6 +19,7 @@ uniform float u_audioBins;
 uniform float u_intensity;
 uniform float u_amplitude;
 uniform float u_speed;
+uniform float u_layers;
 uniform float u_rainbow;
 uniform vec3  u_color;
 
@@ -127,8 +128,8 @@ void main() {
       acc.a = acc.a + (1.0 - acc.a) * a;
     }
   }
-  // layer 1
-  {
+  // layer 1 (mids) — gated by the Layers control
+  if (u_layers > 1.5) {
     float wy = waveY1;
     if (y <= wy) {
       float layerOp = op1;
@@ -157,8 +158,8 @@ void main() {
       acc.a = acc.a + (1.0 - acc.a) * a;
     }
   }
-  // layer 2
-  {
+  // layer 2 (highs) — gated by the Layers control
+  if (u_layers > 0.5) {
     float wy = waveY2;
     if (y <= wy) {
       float layerOp = op2;
@@ -200,6 +201,7 @@ export const LiquidWavesVisualizer: VisualizerDef = {
   audio: "fft",
   fragment: FRAGMENT,
   settings: {
+    layers: 3,
     intensity: 1.0,
     amplitude: 1.0,
     speed: 1.0,
@@ -208,6 +210,14 @@ export const LiquidWavesVisualizer: VisualizerDef = {
     opacity: 0.85,
   },
   fields: [
+    {
+      kind: "slider",
+      key: "layers",
+      label: "Layers",
+      min: 1,
+      max: 3,
+      step: 1,
+    },
     {
       kind: "slider",
       key: "intensity",

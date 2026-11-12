@@ -129,9 +129,13 @@ export const WebGLRenderer = {
     g.attachShader(program, vs);
     g.attachShader(program, fs);
     g.linkProgram(program);
+    // Shaders can be freed once linked; a failed program must be freed too.
+    g.deleteShader(vs);
+    g.deleteShader(fs);
 
     if (!g.getProgramParameter(program, g.LINK_STATUS)) {
       console.error("Program link error:", g.getProgramInfoLog(program));
+      g.deleteProgram(program);
       return null;
     }
 

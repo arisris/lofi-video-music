@@ -26,6 +26,7 @@ uniform float u_speed;
 uniform float u_zoom;
 uniform float u_twist;
 uniform float u_spokes;
+uniform float u_shape;
 uniform float u_glow;
 uniform float u_rainbow;
 uniform vec3  u_color;
@@ -52,7 +53,9 @@ void main() {
   vec2 uv = v_texCoord;
   float ar = u_resolution.x / u_resolution.y;
   vec2 p = (uv - 0.5) * vec2(ar, 1.0);
-  float r = length(p);
+  // Square folds the tunnel into a box corridor while keeping the same
+  // depth, rings and spectrum mapping.
+  float r = u_shape > 0.5 ? max(abs(p.x), abs(p.y)) : length(p);
   float a = atan(p.y, p.x);
 
   // Depth: the centre is far away (large z), the edges are near. Scrolling z
@@ -115,6 +118,7 @@ export const TunnelVisualizer: VisualizerDef = {
   bins: 512,
   fragment: FRAGMENT,
   settings: {
+    shape: "0",
     speed: 0.8,
     zoom: 1.2,
     twist: 0.4,
@@ -128,6 +132,15 @@ export const TunnelVisualizer: VisualizerDef = {
     opacity: 1,
   },
   fields: [
+    {
+      kind: "select",
+      key: "shape",
+      label: "Shape",
+      options: [
+        { value: "0", label: "Circle" },
+        { value: "1", label: "Square" },
+      ],
+    },
     { kind: "slider", key: "speed", label: "Speed", min: 0.1, max: 3, step: 0.01 },
     {
       kind: "slider",

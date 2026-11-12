@@ -40,10 +40,50 @@ export const runtime: RuntimeRefs = {
 
 export function ensureAudioElement(): HTMLAudioElement {
   if (!runtime.audioEl) {
+    // Prefer the single hidden <audio id="audioElement"> in the DOM so the
+    // engine and the preview tick share one element (one element = max one
+    // MediaElementSource; two elements = analyser/recorder goes silent).
+    if (typeof document !== "undefined") {
+      const dom = document.getElementById("audioElement") as HTMLAudioElement | null;
+      if (dom) {
+        runtime.audioEl = dom;
+        return dom;
+      }
+    }
     const el = new Audio();
     el.preload = "auto";
     el.crossOrigin = "anonymous";
     runtime.audioEl = el;
   }
   return runtime.audioEl;
+}
+
+/**
+ * Bind the preview's hidden <audio> element. If the engine already wired a
+ * different element (createMediaElementSource), re-wire the graph to the new
+ * element so analyser + recorder destination keep receiving audio.
+ */
+export function bindAudioElement(el: HTMLAudioElement): HTMLAudioElement {
+  if (runtime.audioEl === el) return el;
+  if (!runtime.audioReady || !runtime.audioCtx || !runtime.source) {
+    runtime.audioEl = el;
+    return el;
+  }
+  try {
+    runtime.source.disconnect();
+  } catch {
+    /* noop */
+  }
+  const source = runtime.audioCtx.createMediaElementSource(el);
+  const entry = runtime.eqLow ?? runtime.gainNode ?? runtime.analyser;
+  if (entry) {
+    try {
+      source.connect(entry);
+    } catch {
+      /* noop */
+    }
+  }
+  runtime.source = source;
+  runtime.audioEl = el;
+  return el;
 }

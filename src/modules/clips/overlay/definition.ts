@@ -37,7 +37,15 @@ export const overlayClip: ClipDefinition = {
     ctx.globalAlpha *= opacity;
 
     const mediaType = typeof settings.mediaType === "string" ? settings.mediaType : "none";
-    if (mediaType === "image" && settings.mediaElement) {
+    const canDrawVideo = (v: unknown): v is HTMLVideoElement =>
+      !!v &&
+      (v as HTMLVideoElement).readyState >= 2 &&
+      (v as HTMLVideoElement).videoWidth > 0;
+    const canDrawImage = (img: unknown): img is HTMLImageElement =>
+      !!img &&
+      (img as HTMLImageElement).complete !== false &&
+      ((img as HTMLImageElement).naturalWidth || 0) > 0;
+    if (mediaType === "image" && canDrawImage(settings.mediaElement)) {
       ctx.drawImage(settings.mediaElement as HTMLImageElement, 0, 0);
     } else if (mediaType === "gif" && Array.isArray(settings.gifFrames) && (settings.gifFrames as GifFrame[]).length > 0) {
       const frames = settings.gifFrames as GifFrame[];
@@ -52,7 +60,11 @@ export const overlayClip: ClipDefinition = {
       const f = frames[idx];
       if (f?.canvas) ctx.drawImage(f.canvas, f.dims.left, f.dims.top);
     } else if (mediaType === "video" && Array.isArray(settings.mediaElements)) {
-      const vids = settings.mediaElements as HTMLVideoElement[];
+      const vids = (settings.mediaElements as HTMLVideoElement[]).filter(canDrawVideo);
+      if (vids.length === 0) {
+        ctx.restore();
+        return;
+      }
       const videoDuration = typeof settings.videoDuration === "number" ? settings.videoDuration : vids[0]?.duration;
       if (videoDuration) {
         if (settings.loop !== false) {
@@ -62,8 +74,8 @@ export const overlayClip: ClipDefinition = {
           const period = videoDuration - cross;
           const loopIndex = Math.floor(virtual / period);
           const loopTime = virtual % period;
-          const primary = vids[loopIndex % 2];
-          const secondary = vids[(loopIndex + 1) % 2];
+          const primary = vids[loopIndex % 2] ?? vids[0];
+          const secondary = vids[(loopIndex + 1) % 2] ?? vids[0];
           if (loopTime < cross && loopIndex > 0) {
             ctx.drawImage(secondary, 0, 0);
             ctx.save();

@@ -13,7 +13,11 @@ export const filmGrainVfx: VfxDefinition = {
     { key: "glitchFrequency", label: "Glitch", kind: "slider", min: 0, max: 2, step: 0.1 },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
-  draw({ ctx, w, h, settings, state }) {
+  draw({ ctx, w, h, settings, time, state }) {
+    if (typeof state.lastT !== "number") state.lastT = time;
+    // Frame-rate independent timers (k = elapsed 60fps-frames).
+    const k = Math.min(Math.max((time - (state.lastT as number)) * 60, 0), 3);
+    state.lastT = time;
     if (!state.noise) {
       const nSize = 128;
       const noise = document.createElement("canvas");
@@ -54,8 +58,8 @@ export const filmGrainVfx: VfxDefinition = {
     }
     if (typeof state.active !== "number") state.active = 0;
     if (typeof state.cooldown !== "number") state.cooldown = 0;
-    if ((state.cooldown as number) > 0) state.cooldown = (state.cooldown as number) - 1;
-    if ((state.active as number) > 0) state.active = (state.active as number) - 1;
+    if ((state.cooldown as number) > 0) state.cooldown = (state.cooldown as number) - k;
+    if ((state.active as number) > 0) state.active = (state.active as number) - k;
 
     let trigger = false;
     if (settings.audioReactive) {
@@ -67,7 +71,7 @@ export const filmGrainVfx: VfxDefinition = {
       if (state.active !== 0) trigger = true;
     } else {
       const freq = typeof settings.glitchFrequency === "number" ? settings.glitchFrequency : 0.3;
-      if (Math.random() < 0.015 * freq && state.active === 0 && state.cooldown === 0) {
+      if (Math.random() < 0.015 * freq * k && state.active === 0 && state.cooldown === 0) {
         state.active = 4 + Math.floor(Math.random() * 6);
         state.cooldown = 25;
       }

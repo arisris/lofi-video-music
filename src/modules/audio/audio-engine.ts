@@ -120,6 +120,27 @@ const toAbsoluteUrl = (url: string): string => {
   }
 };
 
+/** At most one pending loadedmetadata seek per element (rapid src swaps). */
+let pendingSeek: { el: HTMLAudioElement; handler: () => void } | null = null;
+
+function setPendingSeek(el: HTMLAudioElement, handler: () => void) {
+  if (pendingSeek && (pendingSeek.el !== el || pendingSeek.handler !== handler)) {
+    try {
+      pendingSeek.el.removeEventListener("loadedmetadata", pendingSeek.handler);
+    } catch {
+      /* noop */
+    }
+  }
+  pendingSeek = { el, handler };
+  el.addEventListener("loadedmetadata", handler, { once: true });
+}
+
+function clearPendingSeek(el: HTMLAudioElement, handler: () => void) {
+  if (pendingSeek && pendingSeek.el === el && pendingSeek.handler === handler) {
+    pendingSeek = null;
+  }
+}
+
 /**
  * Move the playhead + sync <audio> — adapts src_old seekGlobal.
  * Swaps src when the active clip changes, sets the offset, play/pause follows state.
@@ -150,6 +171,7 @@ export function seekTo(time: number) {
     audioEl.src = url;
     applyAudioSettings(clip);
     const onLoaded = () => {
+      clearPendingSeek(audioEl, onLoaded);
       if (playhead < audioDur) {
         try {
           audioEl.currentTime = Math.max(0, playhead);
@@ -161,9 +183,9 @@ export function seekTo(time: number) {
       } else {
         audioEl.pause();
       }
-      audioEl.removeEventListener("loadedmetadata", onLoaded);
     };
-    audioEl.addEventListener("loadedmetadata", onLoaded);
+    setPendingSeek(audioEl, onLoaded);
+    if (audioEl.readyState >= 1) onLoaded();
   } else {
     if (playhead < audioDur) {
       try {
@@ -189,16 +211,46 @@ export function playAudio() {
   if (!clip) { audioEl.pause(); return; }
   const url = typeof clip.settings.audioUrl === "string" ? clip.settings.audioUrl : "";
   const startOffset = typeof clip.settings.startOffset === "number" ? clip.settings.startOffset : 0;
-  if (url && toAbsoluteUrl(audioEl.src) !== toAbsoluteUrl(url)) audioEl.src = url;
-  applyAudioSettings(clip);
   if (!url) { audioEl.pause(); return; }
-  const playhead = st.currentTime - clip.start + startOffset;
   const audioDur = typeof clip.settings.audioDuration === "number" ? clip.settings.audioDuration : clip.duration;
-  if (playhead < audioDur) {
-    try { audioEl.currentTime = Math.max(0, playhead); } catch { /* noop */ }
+  const playAt = (offset: number) => {
+    if (offset >= audioDur) {
+      audioEl.pause();
+      return;
+    }
+    // Setting currentTime before metadata is ready throws/no-ops — defer.
+    if (audioEl.readyState < 1) {
+      const onLoaded = () => {
+        clearPendingSeek(audioEl, onLoaded);
+        try {
+          audioEl.currentTime = Math.max(0, offset);
+        } catch { /* noop */ }
+        applyAudioSettings(clip);
+        if (useEditorStore.getState().playing) {
+          void audioEl.play().catch(() => {});
+        }
+      };
+      setPendingSeek(audioEl, onLoaded);
+      // Cached metadata can already be ready by the time we listen.
+      if (audioEl.readyState >= 1) onLoaded();
+      return;
+    }
+    try { audioEl.currentTime = Math.max(0, offset); } catch { /* noop */ }
     void audioEl.play().catch(() => {});
-  } else {
-    audioEl.pause();
+  };
+  if (toAbsoluteUrl(audioEl.src) !== toAbsoluteUrl(url)) {
+    audioEl.src = url;
+    applyAudioSettings(clip);
+    playAt(st.currentTime - clip.start + startOffset);
+    return;
+  }
+  applyAudioSettings(clip);
+  // Already at the right source: only re-seek when drifted to avoid churn.
+  const playhead = st.currentTime - clip.start + startOffset;
+  if (Math.abs(audioEl.currentTime - playhead) > 0.35 || audioEl.paused) {
+    playAt(playhead);
+  } else if (audioEl.paused) {
+    void audioEl.play().catch(() => {});
   }
 }
 

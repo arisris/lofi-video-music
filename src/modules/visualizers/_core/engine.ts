@@ -225,12 +225,21 @@ const getFallbackTexture = (gl: WebGLRenderingContext): WebGLTexture => {
  * Textures are cached by URL and uploaded asynchronously; until one lands the
  * fallback stays bound, so swapping images mid-playback never stalls a frame.
  */
+const imageErrorAt = new Map<string, number>();
+/** Failed URLs are not retried for 30s — without this a broken image
+ * re-fires a 404 + texture re-upload attempt every single frame. */
+const IMAGE_RETRY_MS = 30_000;
+
 const getImageTexture = (
   gl: WebGLRenderingContext,
   url: string,
 ): WebGLTexture | null => {
   if (!url) return null;
   if (imageTextures.has(url)) return imageTextures.get(url) ?? null;
+  const lastError = imageErrorAt.get(url);
+  if (lastError !== undefined && Date.now() - lastError < IMAGE_RETRY_MS) {
+    return null;
+  }
 
   imageTextures.set(url, null);
   const img = new Image();
@@ -241,6 +250,7 @@ const getImageTexture = (
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     setTextureParams(gl, tex);
     imageTextures.set(url, tex);
+    imageErrorAt.delete(url);
     if (img.naturalWidth > 0 && img.naturalHeight > 0) {
       imageAspects.set(url, img.naturalWidth / img.naturalHeight);
     }
@@ -249,6 +259,7 @@ const getImageTexture = (
     console.warn(`[glviz] could not load texture "${url}"`);
     imageTextures.delete(url);
     imageAspects.delete(url);
+    imageErrorAt.set(url, Date.now());
   };
   img.src = url;
   return null;
@@ -388,5 +399,22 @@ export const drawVisualizer = (
   // two canvases are the same size, the source rectangle is the clip's own
   // rect; passing the GL-space y here would copy the mirrored strip.
   // Copying only this rectangle keeps sibling clips from bleeding together.
-  if (glCanvas) ctx2d.drawImage(glCanvas, x, y, w, h, x, y, w, h);
+  // Copying only this rectangle keeps sibling clips from bleeding together.
+  // The opacity slider has no shader uniform in most defs — apply it here at
+  // composite time so the control actually does something on every variant.
+  if (glCanvas) {
+    const opacity =
+      typeof settings.opacity === "number" && Number.isFinite(settings.opacity)
+        ? Math.min(1, Math.max(0, settings.opacity))
+        : 1;
+    if (opacity <= 0) return;
+    if (opacity < 1) {
+      ctx2d.save();
+      ctx2d.globalAlpha *= opacity;
+      ctx2d.drawImage(glCanvas, x, y, w, h, x, y, w, h);
+      ctx2d.restore();
+    } else {
+      ctx2d.drawImage(glCanvas, x, y, w, h, x, y, w, h);
+    }
+  }
 };

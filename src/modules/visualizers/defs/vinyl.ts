@@ -29,6 +29,7 @@ uniform float u_groove;
 uniform float u_sheen;
 uniform float u_glow;
 uniform float u_beat;
+uniform float u_strobe;
 uniform float u_tonearm;
 uniform vec3  u_color;
 uniform vec4  u_background;
@@ -134,6 +135,18 @@ void main() {
   col += u_color * edgeGlow;
   alpha = max(alpha, edgeGlow);
 
+  // Strobe dots: a ring of platter-locked timing marks near the edge, the
+  // classic turntable dots.
+  float strobeM = 0.0;
+  if (u_strobe > 0.5) {
+    float duplex = fract((a + rot) / TAU * 90.0) - 0.5;
+    float arc = abs(duplex) * (TAU / 90.0) * RECORD;
+    strobeM = smoothstep(0.007, 0.0035, arc)
+            * smoothstep(0.014, 0.007, abs(r - RECORD * 0.93));
+    col += vec3(0.55) * strobeM * 0.5;
+    alpha = max(alpha, strobeM * 0.7);
+  }
+
   // Composite over the chosen background.
   col = mix(u_background.rgb, col, alpha);
   float aOut = mix(u_background.a, 1.0, alpha);
@@ -154,6 +167,7 @@ export const VinylVisualizer: VisualizerDef = {
     sheen: 0.6,
     glow: 0.5,
     beat: 0.8,
+    strobe: false,
     tonearm: true,
     color: "#f59e0b",
     // Transparent by default: the platter floats over whatever is behind it.
@@ -204,6 +218,7 @@ export const VinylVisualizer: VisualizerDef = {
       step: 0.05,
     },
     { kind: "toggle", key: "tonearm", label: "Tonearm" },
+    { kind: "toggle", key: "strobe", label: "Strobe dots" },
     { kind: "color", key: "color", label: "Accent Color" },
     { kind: "color", key: "background", label: "Background", alpha: true },
     {

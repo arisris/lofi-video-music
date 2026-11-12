@@ -32,7 +32,11 @@ export const glvizClip: ClipDefinition = {
   defaultSettings: {
     ...DEFAULT_TRANSFORM,
     variant: "bars",
-    ...(listVisualizerDefs()[0]?.settings ?? { intensity: 60, color: "#22d3ee" }),
+    // Defaults must match the default variant — defs[0] is aura, so spreading
+    // it here would leak aura's values (e.g. glow 1 instead of bars' 0.5)
+    // into every fresh bars clip.
+    ...(listVisualizerDefs().find((d) => d.id === "bars")?.settings ??
+      listVisualizerDefs()[0]?.settings ?? { intensity: 60, color: "#22d3ee" }),
   },
   schema: [],
   SettingsView: GlvizSettingsView,

@@ -42,16 +42,12 @@ export function serializeSettings(settings: Record<string, unknown>): Record<str
     if (RUNTIME_KEYS.has(k) || typeof v === "function" || isRuntimeValue(v)) continue;
     if (Array.isArray(v)) {
       const arr = v.filter((x) => typeof x !== "function" && !isRuntimeValue(x));
-      // Only keep primitive arrays / shallow JSON-safe objects.
-      if (arr.every((x) => x === null || ["string", "number", "boolean"].includes(typeof x))) {
-        out[k] = [...arr];
-      } else if (k === "lines") {
-        // Lyrics: array of { text, start, end } objects — safe.
-        try {
-          out[k] = JSON.parse(JSON.stringify(arr));
-        } catch {
-          /* ignore */
-        }
+      // Keep any JSON-safe array (primitives or plain objects like lyrics
+      // lines, keyframes, points). Drop only unserializable entries.
+      try {
+        out[k] = JSON.parse(JSON.stringify(arr));
+      } catch {
+        /* drop unserializable value */
       }
       continue;
     }

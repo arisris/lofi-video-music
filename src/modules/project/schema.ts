@@ -76,12 +76,37 @@ export interface ProjectV1 {
 export function isProjectV1(v: unknown): v is ProjectV1 {
   if (!v || typeof v !== "object") return false;
   const p = v as Record<string, unknown>;
-  return (
-    p.version === PROJECT_VERSION &&
-    typeof p.meta === "object" &&
-    typeof p.output === "object" &&
-    typeof (p.routes as Record<string, unknown> | undefined)?.video === "object" &&
-    typeof (p.routes as Record<string, unknown> | undefined)?.thumb === "object" &&
-    Array.isArray(p.mediaPool)
-  );
+  if (p.version !== PROJECT_VERSION) return false;
+  if (typeof p.meta !== "object" || !p.meta) return false;
+  if (typeof p.output !== "object" || !p.output) return false;
+  const routes = p.routes as Record<string, unknown> | undefined;
+  if (typeof routes?.video !== "object" || typeof routes?.thumb !== "object") return false;
+  if (!Array.isArray(p.mediaPool)) return false;
+  const validRoute = (r: unknown): boolean => {
+    if (!r || typeof r !== "object") return false;
+    const clips = (r as Record<string, unknown>).clips;
+    if (!Array.isArray(clips)) return false;
+    return clips.every((c) => {
+      if (!c || typeof c !== "object") return false;
+      const o = c as Record<string, unknown>;
+      return (
+        typeof o.id === "string" &&
+        !!o.id &&
+        typeof o.type === "string" &&
+        typeof o.start === "number" &&
+        Number.isFinite(o.start) &&
+        typeof o.duration === "number" &&
+        Number.isFinite(o.duration) &&
+        typeof o.settings === "object" &&
+        o.settings !== null
+      );
+    });
+  };
+  const validPool = (p.mediaPool as unknown[]).every((m) => {
+    if (!m || typeof m !== "object") return false;
+    const o = m as Record<string, unknown>;
+    const src = o.source as Record<string, unknown> | undefined;
+    return typeof o.id === "string" && !!o.id && !!src && typeof src.value === "string";
+  });
+  return validRoute(routes.video) && validRoute(routes.thumb) && validPool;
 }

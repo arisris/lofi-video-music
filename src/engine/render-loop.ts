@@ -57,8 +57,17 @@ export function renderProjectFrame(
   // not start — so the most recently stacked clip is always on top
   // even when its start is earlier. Audio-only music is skipped.
 
-  const bgClips = active
-    .filter((c) => c.type === "background")
+  const allBgClips = clips.filter(
+    (c) =>
+      c.type === "background" &&
+      (c.settings.enabled as boolean | undefined) !== false,
+  );
+  // Overlap window ±0.5s so adjacent clips crossfade instead of hard-cutting
+  // (mirrors src_old/lib/render.ts).
+  const isBgActive = (c: TimelineClip) =>
+    time >= c.start - 0.5 && time <= c.start + c.duration + 0.5;
+  const bgClips = allBgClips
+    .filter(isBgActive)
     .sort((a, b) => a.start - b.start);
   const fgClips = active.filter(
     (c) => c.type !== "background" && c.type !== "music",
@@ -78,21 +87,46 @@ export function renderProjectFrame(
   for (const clip of bgClips) {
     const def = clipRegistry.get(clip.type);
     if (!def) continue;
-    def.draw({
-      ctx,
-      w,
-      h,
-      settings: clip.settings,
-      localTime: time - clip.start,
-      duration: clip.duration,
-      clipId: clip.id,
-    });
+    const localTime = time - clip.start;
+    // 1s crossfade when the previous clip ends exactly where this one starts;
+    // the newer clip paints on top (sorted by start ascending).
+    let fade = 1;
+    if (localTime >= -0.5 && localTime < 0.5) {
+      const prev = allBgClips.find(
+        (c) =>
+          c.id !== clip.id &&
+          Math.abs(c.start + c.duration - clip.start) < 0.2,
+      );
+      if (prev) fade = Math.max(0, Math.min(1, (localTime + 0.5) / 1.0));
+    }
+    const baseOpacity =
+      typeof clip.settings.opacity === "number" ? clip.settings.opacity : 1;
+    // Full-canvas bbox so the x/y/scale/rotation transform applies around the
+    // frame centre (mirrors src_old/lib/render.ts drawWithTransform on the
+    // background pass). Animation stays inside def.draw; withClipTransform is
+    // transform-only. The def keeps no getItemBoundingBox on purpose so the
+    // clip never hijacks canvas hit-testing.
+    const bgBbox = { x: 0, y: 0, width: w, height: h };
+    const bgSettings: Record<string, unknown> = { ...clip.settings, opacity: baseOpacity * fade };
+    withClipTransform(ctx, bgSettings, bgBbox, () =>
+      def.draw({
+        ctx,
+        w,
+        h,
+        // Shallow copy — never mutate the store.
+        settings: bgSettings,
+        localTime,
+        duration: clip.duration,
+        clipId: clip.id,
+      }),
+    );
     if (Array.isArray(clip.settings.mediaElements)) {
       manageVideoPlayback(
         clip,
         time,
         "mediaElements",
         (clip.settings.loop as boolean | undefined) !== false,
+        0.5,
       );
     }
   }
@@ -124,7 +158,16 @@ export function renderProjectFrame(
       ? def.getItemBoundingBox(ctx, w, h, clip.settings, localTime)
       : null;
     if (bbox) withClipTransform(ctx, clip.settings, bbox, drawOne);
-    else drawOne();
+    else {
+      // A def may leak globalAlpha/composite/transform — contain it so the
+      // next clip is not contaminated (only the transform is reset below).
+      ctx.save();
+      try {
+        drawOne();
+      } finally {
+        ctx.restore();
+      }
+    }
     if (Array.isArray(clip.settings.mediaElements)) {
       manageVideoPlayback(
         clip,
@@ -160,7 +203,14 @@ export function renderProjectFrame(
             clipId: track.music.id,
           });
         if (bbox) withClipTransform(ctx, merged, bbox, drawOne);
-        else drawOne();
+        else {
+          ctx.save();
+          try {
+            drawOne();
+          } finally {
+            ctx.restore();
+          }
+        }
       }
     }
   }

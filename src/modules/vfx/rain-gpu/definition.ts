@@ -101,13 +101,17 @@ export const rainGpuVfx: VfxDefinition = {
       ctx.restore();
       return;
     }
-    if (!rainProgram) {
+    if (!rainProgram && !state.shaderFailed) {
       rainProgram = WebGLRenderer.compileProgram(
         WebGLRenderer.DEFAULT_VERTEX_SHADER,
         RAIN_FRAGMENT_SHADER_SRC,
       );
+      // compileProgram already logs the error once — remember the failure so
+      // we don't spam the console on every frame.
+      if (!rainProgram) state.shaderFailed = true;
       if (!rainProgram) return;
     }
+    if (!rainProgram) return;
 
     const now = performance.now();
     if (typeof state.animTime !== "number") {

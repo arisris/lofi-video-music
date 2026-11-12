@@ -20,6 +20,21 @@ export const startRecording = (mode?: "timeline" | "clip") => {
   }
   const st = useEditorStore.getState();
   const recordMode = mode ?? st.pendingRecordMode;
+  // Validate before mutating any state: a failed start must not move the
+  // playhead, resize the canvas, or arm recordingTargetEnd.
+  if (!runtime.canvas || !runtime.dest) {
+    alert("Recording is not ready yet. Try again once media has loaded.");
+    return;
+  }
+  let mimeType = "video/webm; codecs=vp9,opus";
+  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/webm";
+  if (typeof MediaRecorder !== "undefined" && !MediaRecorder.isTypeSupported(mimeType) && MediaRecorder.isTypeSupported("video/mp4")) {
+    mimeType = "video/mp4";
+  }
+  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported(mimeType)) {
+    alert("Recording is not supported in your browser.");
+    return;
+  }
   // Clip mode (mirrors src_old/lib/recorder.ts): start from the beginning of the active
   // music clip under the playhead and stop automatically at the end of that clip.
   let startAt = 0;
@@ -38,11 +53,8 @@ export const startRecording = (mode?: "timeline" | "clip") => {
   runtime.recordedChunks = [];
 
   const target = recordSize(st.aspectRatio || "16:9", st.recordResolution);
-  if (runtime.canvas) {
-    runtime.canvas.width = target.w;
-    runtime.canvas.height = target.h;
-  }
-  if (!runtime.canvas || !runtime.dest) return;
+  runtime.canvas.width = target.w;
+  runtime.canvas.height = target.h;
 
   const fps = st.recordFps || 30;
   const canvasStream = runtime.canvas.captureStream(fps);
@@ -50,12 +62,6 @@ export const startRecording = (mode?: "timeline" | "clip") => {
     ...canvasStream.getTracks(),
     ...runtime.dest.stream.getTracks(),
   ]);
-
-  let mimeType = "video/webm; codecs=vp9,opus";
-  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/webm";
-  if (!MediaRecorder.isTypeSupported(mimeType) && MediaRecorder.isTypeSupported("video/mp4")) {
-    mimeType = "video/mp4";
-  }
 
   try {
     runtime.mediaRecorder = new MediaRecorder(combined, { mimeType });
@@ -105,7 +111,9 @@ export const startRecording = (mode?: "timeline" | "clip") => {
     setTimeout(tick, 1000);
   };
   tick();
-  if (!st.playing) playAudio();
+  // Always (re)start playback from the recording start so audio and playhead
+  // are in sync even if music was already playing mid-timeline.
+  playAudio();
 };
 
 export const stopRecording = () => {

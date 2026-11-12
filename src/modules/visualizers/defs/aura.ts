@@ -7,7 +7,7 @@
 // its own aspect, never folded, masked or cropped - everything reactive lives
 // on the shape around it.
 
-import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { AUDIO_LIVE_V, AUDIO_PEAK_V, type VisualizerDef } from "../_core/types";
 
 const FRAGMENT = `
 precision mediump float;
@@ -28,8 +28,10 @@ uniform float u_spread;
 uniform float u_breath;
 uniform float u_rotate;
 uniform float u_markSize;
-uniform vec3  u_glowColor;
-uniform vec4  u_fill;
+uniform float u_spikes;
+uniform float u_spikeDepth;
+uniform float u_spikePulse;
+uniform vec3  u_glowColor;uniform vec4  u_fill;
 uniform vec4  u_background;
 
 const float TAU = 6.2831853;
@@ -66,8 +68,47 @@ float sdDiamond(vec2 p, float r) {
   return (p.x + p.y - r) * 0.7071;
 }
 
+float sdHexagon(vec2 p, float r) {
+  const vec3 k = vec3(-0.866025404, 0.5, 0.577350269);
+  p = abs(p);
+  p -= 2.0 * min(dot(k.xy, p), 0.0) * k.xy;
+  p -= vec2(clamp(p.x, -k.z * r, k.z * r), r);
+  return length(p) * sign(p.y);
+}
+
+float sdStar5(vec2 p, float r) {
+  const vec2 k1 = vec2(0.809016994375, -0.587785252292);
+  const vec2 k2 = vec2(-k1.x, k1.y);
+  p.x = abs(p.x);
+  p -= 2.0 * max(dot(k1, p), 0.0) * k1;
+  p -= 2.0 * max(dot(k2, p), 0.0) * k2;
+  p.x = abs(p.x);
+  p.y -= r;
+  vec2 ba = 2.0 * vec2(-k1.y, k1.x) - vec2(0.0, 1.0);
+  float h = clamp(dot(p, ba) / dot(ba, ba), 0.0, r);
+  return length(p - ba * h) * sign(p.y * ba.x - p.x * ba.y);
+}
+
+float sdHeart(vec2 p, float s) {
+  vec2 q = p / s;
+  q.x = abs(q.x);
+  float d;
+  if (q.y + q.x > 1.0)
+    d = (length(q - vec2(0.25, 0.75)) - sqrt(2.0) / 4.0) * sqrt(0.5);
+  else
+    d = sqrt(min(dot(q - vec2(0.0, 1.0), q - vec2(0.0, 1.0)),
+                 dot(q - 0.5 * max(q.x + q.y, 0.0), q - 0.5 * max(q.x + q.y, 0.0))))
+        * sign(q.x - q.y);
+  return d * s;
+}
+
+float sdMoon(vec2 p, float r, vec2 cut, float cutR) {
+  return max(length(p) - r, -(length(p - cut) - cutR));
+}
+
 // Each shape is scaled to roughly fill the same 0..1 box, so switching between
-// them changes the silhouette rather than the apparent size.
+// them changes the silhouette rather than the apparent size. Ids 0-2 are the
+// original set and must keep their numbers - saved clips store the shape id.
 float shapeDistance(vec2 p) {
   if (u_shape < 0.5) {
     // Cat: a slightly tall head with two pointed ears. Both ends of an ear's base
@@ -82,7 +123,37 @@ float shapeDistance(vec2 p) {
   if (u_shape < 1.5) {
     return sdRing(p, 0.58, 0.14);
   }
-  return sdDiamond(p, 0.82);
+  if (u_shape < 2.5) {
+    return sdDiamond(p, 0.82);
+  }
+  if (u_shape < 3.5) {
+    // Bear: round head with two round ears.
+    float head = length(p * vec2(1.0, 0.94)) - 0.55;
+    float earL = length(p - vec2(-0.44, 0.40)) - 0.20;
+    float earR = length(p - vec2(0.44, 0.40)) - 0.20;
+    return min(head, min(earL, earR));
+  }
+  if (u_shape < 4.5) {
+    // Bunny: small head with two long upright ears.
+    float head = length(p * vec2(1.0, 0.9)) - 0.48;
+    float earL = sdSegment(p, vec2(-0.16, 0.30), vec2(-0.26, 0.88), 0.13);
+    float earR = sdSegment(p, vec2(0.16, 0.30), vec2(0.26, 0.88), 0.13);
+    return min(head, min(earL, earR));
+  }
+  if (u_shape < 5.5) {
+    return length(p) - 0.62;
+  }
+  if (u_shape < 6.5) {
+    return sdHexagon(p, 0.62);
+  }
+  if (u_shape < 7.5) {
+    return sdStar5(p, 0.62);
+  }
+  if (u_shape < 8.5) {
+    return sdHeart(p, 0.55);
+  }
+  // Crescent moon, opening towards the upper right.
+  return sdMoon(p, 0.62, vec2(0.28, 0.12), 0.52);
 }
 
 void main() {
@@ -103,7 +174,32 @@ void main() {
   float swell = 1.0 + bass * u_breath;
   float size = u_size * swell;
 
-  float d = shapeDistance(sp / size) * size;
+  float d0 = shapeDistance(sp / size) * size;
+  float d = d0;
+
+  // Spiky outline: each spike reads its own spectrum band, Bars-style, so
+  // neighbours pulse independently with the track instead of swelling as one.
+  // The picture stays clipped to the unspiked base shape, so spikes read as
+  // light rays rather than cracks in the image.
+  if (u_spikes > 0.5) {
+    float ang = atan(sp.y, sp.x);
+    float ridge = pow(0.5 + 0.5 * cos(ang * u_spikes), 6.0);
+    float spikeLen;
+    if (u_spikePulse > 0.5) {
+      float idx = min(floor(ang / TAU * u_spikes + 0.5 * u_spikes), u_spikes - 1.0);
+      float t = (idx + 0.5) / u_spikes;
+      // Low-to-mid spectrum: the top bins sit near silence on most material,
+      // which would leave half the spikes permanently flat.
+      vec2 bandUv = vec2(0.003 + t * 0.25, ${AUDIO_LIVE_V});
+      float live = texture2D(u_audio, bandUv).r;
+      float peak = texture2D(u_audio, vec2(bandUv.x, ${AUDIO_PEAK_V})).r;
+      float pulse = max(live, peak * 0.85);
+      spikeLen = 0.15 + pulse * (1.0 + u_breath * 2.5);
+    } else {
+      spikeLen = 1.0;
+    }
+    d -= ridge * u_spikeDepth * size * spikeLen;
+  }
 
   // Both glows are gated to the outside. The rim's exponential was left
   // ungated at first and kept bleeding across the interior, which turned the
@@ -126,9 +222,9 @@ void main() {
   float body = 1.0 - smoothstep(-0.004, 0.004, d);
   vec3 col = mix(u_background.rgb, u_fill.rgb, body) + glow;
 
-  // The picture, drawn last and drawn straight. Not folded, not cropped and not
-  // clipped to the silhouette - the only thing that changes its proportions is
-  // its own aspect, and it scales with the shape so the two stay together.
+  // The picture, drawn last and drawn straight. Clipped to the unspiked base
+  // silhouette (d0 < 0): it never spills past the shape edge, and spikes
+  // read as light rays rather than cracks in the image.
   float mark = 0.0;
   if (u_imageAspect > 0.0) {
     // Not "half": reserved word in GLSL ES 1.00, and the shader will not compile.
@@ -137,7 +233,7 @@ void main() {
     else halfSize.x *= u_imageAspect;
 
     vec2 rel = p / (halfSize * 2.0) + 0.5;
-    if (rel.x > 0.0 && rel.x < 1.0 && rel.y > 0.0 && rel.y < 1.0) {
+    if (rel.x > 0.0 && rel.x < 1.0 && rel.y > 0.0 && rel.y < 1.0 && d0 < 0.0) {
       // Alpha is honoured, so a logo cut out of a transparent PNG still shows
       // the silhouette through it rather than stamping its empty corners down.
       //
@@ -172,6 +268,9 @@ export const AuraVisualizer: VisualizerDef = {
     breath: 0.35,
     rotate: 0,
     markSize: 0.35,
+    spikes: 0,
+    spikeDepth: 0.12,
+    spikePulse: true,
     glowColor: "#fbbf24",
     fill: "#0b0b10ff",
     background: "#00000000",
@@ -185,8 +284,15 @@ export const AuraVisualizer: VisualizerDef = {
       label: "Shape",
       options: [
         { value: "0", label: "Cat head" },
+        { value: "3", label: "Bear" },
+        { value: "4", label: "Bunny" },
+        { value: "5", label: "Disc" },
         { value: "1", label: "Ring" },
         { value: "2", label: "Diamond" },
+        { value: "6", label: "Hexagon" },
+        { value: "7", label: "Star" },
+        { value: "8", label: "Heart" },
+        { value: "9", label: "Moon" },
       ],
     },
     {
@@ -198,6 +304,25 @@ export const AuraVisualizer: VisualizerDef = {
       step: 0.005,
     },
     { kind: "slider", key: "glow", label: "Glow", min: 0, max: 3, step: 0.01 },
+    // Spikes ride the silhouette edge, so they sit with the other
+    // shape-reactive controls rather than next to the picture ones.
+    {
+      kind: "slider",
+      key: "spikes",
+      label: "Spikes",
+      min: 0,
+      max: 32,
+      step: 1,
+    },
+    {
+      kind: "slider",
+      key: "spikeDepth",
+      label: "Spike depth",
+      min: 0,
+      max: 0.4,
+      step: 0.005,
+    },
+    { kind: "toggle", key: "spikePulse", label: "Spike pulse" },
     {
       kind: "slider",
       key: "spread",
@@ -241,7 +366,7 @@ export const AuraVisualizer: VisualizerDef = {
       kind: "image",
       key: "image",
       label: "Image",
-      hint: "Optional. Shown as-is inside the shape: never folded, masked or cropped.",
+      hint: "Optional. Shown whole and clipped to the silhouette.",
     },
     {
       kind: "slider",

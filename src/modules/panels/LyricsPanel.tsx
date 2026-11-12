@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { SectionTitle } from "../../shared/ui/FieldLabel";
 import { useEditorStore } from "../../store/editor-store";
 import { Button } from "../../shared/ui/Button";
@@ -44,6 +44,11 @@ export const LyricsPanel = () => {
   // one global layer follows the currently playing music. No lyrics layer.
   const targets = useMemo(() => clips.filter((c) => c.type === "music"), [clips]);
   const target = targets.find((c) => c.id === targetId) ?? targets[0] ?? null;
+  // The selected target may be deleted or replaced by an import — fall back
+  // instead of silently pointing at a different clip.
+  useEffect(() => {
+    if (targetId && !targets.some((c) => c.id === targetId)) setTargetId(null);
+  }, [targets, targetId]);
   const lines = useMemo(
     () => (Array.isArray(target?.settings.lines) ? (target.settings.lines as LyricLine[]) : []),
     [target],

@@ -1,6 +1,7 @@
 // Combined color picker / hex text field / alpha scrubber.
 // Verbatim port of src_old/components/ui/color-input.tsx; `onChange` is an
 // alias of `onUpdate` for new callers.
+import { useState } from "react";
 import { ScrubInput } from "./ScrubInput";
 
 export interface ColorInputProps {
@@ -46,6 +47,22 @@ export function ColorInput({ label, value, onUpdate, onChange }: ColorInputProps
   const emit = onUpdate ?? onChange ?? (() => {});
   const currentHex = getHex(value ?? "");
   const currentAlpha = getAlpha(value ?? "");
+  const [draft, setDraft] = useState<string | null>(null);
+
+  const commit = () => {
+    if (draft === null) return;
+    // Accept #rgb/#rrggbb/rgba()/named; fall back to the previous value on
+    // garbage instead of storing an invalid string that flashes the picker.
+    const t = draft.trim();
+    const ok =
+      t === "" ||
+      t === "transparent" ||
+      /^#[0-9a-f]{3,8}$/i.test(t) ||
+      /^rgba?\(/i.test(t) ||
+      /^[a-z]+$/i.test(t);
+    if (ok && t !== "") emit(t);
+    setDraft(null);
+  };
 
   return (
     <div className="mb-4">
@@ -69,14 +86,24 @@ export function ColorInput({ label, value, onUpdate, onChange }: ColorInputProps
           )}
         </div>
 
-        {/* 2. Text Input */}
+        {/* 2. Text Input (uncontrolled while typing, commits on blur/Enter) */}
         <input
           type="text"
           className={`h-full flex-1 border-none bg-transparent px-2 font-mono text-neutral-300 outline-none ${
             (value ?? "").length > 15 ? "text-[9px]" : "text-[10px]"
           }`}
-          value={value || "#000000"}
-          onChange={(e) => emit(e.target.value)}
+          key={`${label}-${value ?? ""}`}
+          defaultValue={value || "#000000"}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            if (e.key === "Escape") {
+              (e.target as HTMLInputElement).value = value || "#000000";
+              setDraft(null);
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
         />
 
         {/* 3. Alpha Slider */}

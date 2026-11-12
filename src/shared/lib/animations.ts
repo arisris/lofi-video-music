@@ -90,11 +90,11 @@ export const applyClipAnimations = (
 
   // Calculate Audio Boost (if enabled)
   let audioBoost = 1.0;
-  if (anim.audioReactive && runtime.dataArray) {
+  if (anim.audioReactive && runtime.dataArray && runtime.dataArray.length > 0) {
     // Average some mid-low frequencies for a good 'thump'
     let sum = 0;
-    const count = 20;
-    for (let i = 0; i < count; i++) sum += runtime.dataArray[i];
+    const count = Math.min(20, runtime.dataArray.length);
+    for (let i = 0; i < count; i++) sum += runtime.dataArray[i] ?? 0;
     const avg = sum / count; // 0 to 255
     audioBoost = 1.0 + (avg / 255) * 1.5; // Up to 2.5x boost
   }

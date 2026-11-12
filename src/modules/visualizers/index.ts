@@ -5,7 +5,6 @@ import { CircleVisualizer } from "./defs/circle";
 import { KaleidoscopeVisualizer } from "./defs/kaleidoscope";
 import { LiquidWavesVisualizer } from "./defs/liquid-waves";
 import { LissajousVisualizer } from "./defs/lissajous";
-import { NebulaVisualizer } from "./defs/nebula";
 import { OrbVisualizer } from "./defs/orb";
 import { TunnelVisualizer } from "./defs/tunnel";
 import { VinylVisualizer } from "./defs/vinyl";
@@ -18,7 +17,6 @@ for (const def of [
   KaleidoscopeVisualizer,
   LiquidWavesVisualizer,
   LissajousVisualizer,
-  NebulaVisualizer,
   OrbVisualizer,
   TunnelVisualizer,
   VinylVisualizer,

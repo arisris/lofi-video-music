@@ -1,6 +1,6 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
-import { BaseParticle } from "../_core/base-particle";
+import { BaseParticle, finiteSetting } from "../_core/base-particle";
 
 // Adapted verbatim from src_old/lib/vfx/snow.ts (Snowball).
 class Snowball extends BaseParticle {
@@ -34,7 +34,7 @@ class Snowball extends BaseParticle {
     this.canvasWidth = w;
     this.canvasHeight = h;
     const dt = this.step(time);
-    const speedMultiplier = settings.speed !== undefined ? (settings.speed as number) : 1.0;
+    const speedMultiplier = finiteSetting(settings, "speed", 1.0);
     const activeSpeed = this.speed * speedMultiplier * (settings.audioReactive ? 0.4 + audioLevel * 1.6 : 1.0);
     this.y += activeSpeed * dt;
     const sway = Math.sin(time * this.swaySpeed + this.swayOffset) * this.swayAmount;
@@ -43,8 +43,8 @@ class Snowball extends BaseParticle {
   }
 
   drawSnow(ctx: CanvasRenderingContext2D, settings: Record<string, unknown>, audioLevel = 0) {
-    const sizeMultiplier = settings.size !== undefined ? (settings.size as number) : 1.0;
-    const opacityMultiplier = settings.opacity !== undefined ? (settings.opacity as number) : 0.8;
+    const sizeMultiplier = finiteSetting(settings, "size", 1.0);
+    const opacityMultiplier = finiteSetting(settings, "opacity", 0.8);
     const r = this.radius * sizeMultiplier * (settings.audioReactive ? 0.8 + audioLevel * 0.6 : 1.0);
     const o = Math.min(1.0, this.opacity * opacityMultiplier * (settings.audioReactive ? 0.5 + audioLevel * 0.5 : 1.0));
     ctx.save();

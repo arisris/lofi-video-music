@@ -109,14 +109,16 @@ export function drawTextItem(
 
   let contentToDraw = content;
   if (item.textEffect === "typewriter") {
-    const speed = typeof item.typewriterSpeed === "number" ? item.typewriterSpeed : 15;
-    let charCount = Math.floor(localTime * speed);
+    const speed = typeof item.typewriterSpeed === "number" && Number.isFinite(item.typewriterSpeed) ? item.typewriterSpeed : 15;
+    const t = Number.isFinite(localTime) ? Math.max(0, localTime) : 0;
+    let charCount = Math.floor(t * speed);
     if (item.typewriterOut !== false && Number.isFinite(duration)) {
-      charCount = Math.min(charCount, Math.floor((duration - localTime) * speed));
+      charCount = Math.min(charCount, Math.floor((duration - t) * speed));
     }
     charCount = Math.max(0, charCount);
-    contentToDraw = contentToDraw.slice(0, charCount);
-    if (contentToDraw.endsWith("\\") && content.charAt(charCount) === "n") {
+    // Code-point (not UTF-16) slice so emoji are never split mid-surrogate.
+    contentToDraw = Array.from(contentToDraw).slice(0, charCount).join("");
+    if (contentToDraw.endsWith("\\") && Array.from(content).slice(charCount, charCount + 1).join("") === "n") {
       contentToDraw = contentToDraw.slice(0, -1);
     }
   }

@@ -224,7 +224,7 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
     const newEnd = newStart + newDur;
     for (const point of snapPoints) {
       if (Math.abs(newEnd - point) < SNAP_THRESHOLD) {
-        if (isDraggingClip?.type === "move") newStart = point - newDur;
+        if (isDraggingClip?.type === "move") newStart = Math.max(0, point - newDur);
         else newDur = point - newStart;
         nextSnap.push({ time: point, type: "end" });
         break;
@@ -236,8 +236,12 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
     clip.type === "overlay" &&
     s.mediaType === "video" &&
     s.loop === false &&
-    typeof s.videoDuration === "number"
+    typeof s.videoDuration === "number" &&
+    isDraggingClip?.type !== "resize-start"
   ) {
+    // Non-looping overlay: duration is locked to the media length. Skip this
+    // on resize-start (the user is moving the left edge) so the snap above
+    // is not immediately overwritten.
     const speed = typeof s.speed === "number" ? s.speed : 1.0;
     newDur = s.videoDuration / speed;
   }
@@ -278,10 +282,10 @@ export const handleWheelNative = (e: WheelEvent) => {
     const delta = e.deltaY > 0 ? 0.8 : 1.2;
     const oldZoom = st.timelineZoom;
     const newZoom = Math.max(0.1, Math.min(50, oldZoom * delta));
-    const centerTime = (st.timelineScrollLeft + 400) / oldZoom;
+    const centerTime = (st.timelineScrollLeft + visibleWidth / 2) / oldZoom;
     useEditorStore.setState({
       timelineZoom: newZoom,
-      timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, centerTime * newZoom - 400)),
+      timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, centerTime * newZoom - visibleWidth / 2)),
     });
   } else if (e.shiftKey) {
     useEditorStore.setState({

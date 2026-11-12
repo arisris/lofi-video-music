@@ -163,8 +163,10 @@ export async function collectExportBlobs(
       const liveUrl = liveUrlOf(m.id);
       if (!liveUrl) continue;
       try {
-        const blob = liveUrl.startsWith("blob:") ? await (await fetch(liveUrl)).blob() : undefined;
-        if (blob) out.set(m.source.value, blob);
+        // blob: URLs are local uploads; remote URLs are best-effort
+        // downloads so the bundle stays self-contained.
+        const blob = await (await fetch(liveUrl)).blob();
+        if (blob && blob.size > 0) out.set(m.source.value, blob);
       } catch {
         /* skip missing media */
       }

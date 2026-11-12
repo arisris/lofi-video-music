@@ -29,6 +29,7 @@ uniform float u_reflection;
 uniform float u_glow;
 uniform float u_rainbow;
 uniform float u_mode;
+uniform float u_mirror;
 uniform vec3  u_color;
 
 // Bars mode grows solid columns up from a baseline, with a mirrored strip
@@ -97,6 +98,10 @@ void main() {
   if (u_centre > 0.5) {
     idx = min(floor(abs(uv.x - 0.5) * 2.0 * bars), bars - 1.0);
   }
+
+  // Mirror folds the column around the vertical centre, so the lower half
+  // draws the same bar as the upper half instead of a reflection strip.
+  float my = u_mirror > 0.5 ? 0.5 + abs(uv.y - 0.5) : uv.y;
 
   float px = u_resolution.x;
   float py = u_resolution.y;
@@ -171,8 +176,8 @@ void main() {
     int fullBlocks = int(floor(activeFloat));
     float fraction = activeFloat - float(fullBlocks);
 
-    bool above = uv.y >= baseline;
-    float dist = above ? (uv.y - baseline) : (baseline - uv.y);
+    bool above = my >= baseline;
+    float dist = above ? (my - baseline) : (baseline - my);
     int cellIndex = int(floor(dist / pitchFrac));
     if (cellIndex < 0) discard;
 
@@ -187,7 +192,7 @@ void main() {
     float cellOpacity = 1.0;
     if (cellIndex == fullBlocks) cellOpacity = max(fraction, 0.05);
 
-    if (!above) {
+    if (!above && u_mirror < 0.5) {
       cellOpacity *= u_reflection * (1.0 - float(cellIndex) / max(1.0, activeFloat + 1.0));
       if (cellOpacity < 0.01) discard;
     }
@@ -218,8 +223,8 @@ void main() {
   // Bars mode: solid columns with rounded caps and a peak hold.
   // ------------------------------------------------------------------
   float baseline = 1.0 - REFLECTION;
-  bool mirrored = uv.y < baseline;
-  float y = mirrored ? 2.0 * baseline - uv.y : uv.y;
+  bool mirrored = my < baseline;
+  float y = mirrored ? 2.0 * baseline - my : my;
   float yPx = (y - baseline) * py;
 
   float barH = max(h, MIN_BAR) * REFLECTION;
@@ -243,7 +248,7 @@ void main() {
   float peakH = min(max(peakLevel * REFLECTION, barH), capRoom);
   float capD = roundedBox(vec2(dxPx, yPx - peakH * py), vec2(hw, capHalfH), min(hw, capHalfH));
   float capA = smoothstep(0.5, -0.5, capD) * step(0.004, peakH - barH);
-  if (mirrored) capA = 0.0;
+  if (mirrored && u_mirror < 0.5) capA = 0.0;
   capA *= clamp(u_peak, 0.0, 1.0) * smoothstep(1.0, 0.88, peakLevel);
 
   float alpha = max(barA, capA);
@@ -264,8 +269,8 @@ void main() {
   vec3 col = mix(base, vec3(1.0), tip * 0.5) + base * tip * u_glow;
   col = mix(col, mix(base, vec3(1.0), 0.9), capA / max(alpha, 0.001));
 
-  if (mirrored) {
-    alpha *= (1.0 - (baseline - uv.y) / REFLECTION) * u_reflection;
+  if (mirrored && u_mirror < 0.5) {
+    alpha *= (1.0 - (baseline - my) / REFLECTION) * u_reflection;
   }
 
   gl_FragColor = vec4(col, alpha);
@@ -281,6 +286,7 @@ export const BarsVisualizer: VisualizerDef = {
   fragment: FRAGMENT,
   settings: {
     mode: "0",
+    mirror: false,
     bars: 64,
     intensity: 1.35,
     width: 0.42,
@@ -325,6 +331,7 @@ export const BarsVisualizer: VisualizerDef = {
       step: 0.01,
     },
     { kind: "toggle", key: "centre", label: "Centre Bass" },
+    { kind: "toggle", key: "mirror", label: "Mirror" },
     {
       kind: "slider",
       key: "detail",

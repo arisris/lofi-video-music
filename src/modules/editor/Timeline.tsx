@@ -91,9 +91,9 @@ function ClipBlock({ clip, zoom, selected }: { clip: TimelineClip; zoom: number;
       style={{ left: `${clip.start * zoom}px`, width: `${Math.max(1, clip.duration * zoom)}px` }}
       onMouseDown={(e) => beginClipDrag(e, clip, "move")}
     >
-      {markers.map((t) => (
+      {markers.map((t, i) => (
         <div
-          key={`marker-${t}`}
+          key={`marker-${i}-${t}`}
           className="pointer-events-none absolute top-0 bottom-0 z-10 w-px border-l border-dashed border-cyan-400/60"
           style={{ left: `${t * zoom}px` }}
         />
@@ -112,7 +112,7 @@ function ClipBlock({ clip, zoom, selected }: { clip: TimelineClip; zoom: number;
       )}
       <div className="pointer-events-none flex h-full w-full items-center gap-2 overflow-hidden px-2">
         {(clip.type === "background" || clip.type === "overlay") && thumbnail ? (
-          <img src={thumbnail} className="h-4 w-4 shrink-0 rounded border border-neutral-600 object-cover" />
+          <img src={thumbnail} alt="" className="h-4 w-4 shrink-0 rounded border border-neutral-600 object-cover" />
         ) : (
           <i className={icon} />
         )}
@@ -342,7 +342,7 @@ export function Timeline() {
           ))}
           {/* Rows */}
           <div
-            className="absolute right-0 left-0"
+            className="absolute left-0"
             style={{ left: `${-scrollLeft}px`, top: `${-scrollTop}px`, width: `${timelineWidth}px` }}
           >
             {tracks.map((track) => (
@@ -402,10 +402,20 @@ export function Timeline() {
                 const files = Array.from(e.target.files ?? []);
                 (e.target as HTMLInputElement).value = "";
                 files.forEach((file) => {
+                  if (!file.type.startsWith("audio/")) return;
                   const url = URL.createObjectURL(file);
                   const audio = new Audio();
+                  const cleanup = () => {
+                    audio.onerror = null;
+                    audio.onloadedmetadata = null;
+                  };
+                  audio.onerror = () => {
+                    cleanup();
+                    URL.revokeObjectURL(url);
+                  };
                   audio.src = url;
                   audio.onloadedmetadata = () => {
+                    cleanup();
                     const st = useEditorStore.getState();
                     const musics = st.clips.filter((c) => c.type === "music");
                     const start =

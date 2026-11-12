@@ -1,5 +1,6 @@
 import type { ClipDefinition } from "../../../shared/types/clip";
 import { applyClipAnimations } from "../../../shared/lib/animations";
+import { DEFAULT_TRANSFORM } from "../../../shared/lib/canvas-transform";
 import { drawBackground } from "../../../shared/lib/draw-bg";
 
 // Background: color/gradient + image/video (Ken Burns) — media settings
@@ -10,6 +11,7 @@ export const backgroundClip: ClipDefinition = {
   icon: "mdi:image",
   defaultDuration: 60,
   defaultSettings: {
+    ...DEFAULT_TRANSFORM,
     color: "#0f172a",
     style: "solid",
     mediaType: "none",
@@ -34,7 +36,34 @@ export const backgroundClip: ClipDefinition = {
     if (settings.mediaType === "image" && settings.mediaElement) {
       drawBackground(settings.mediaElement as HTMLImageElement, w, h, localTime, opacity, 0, 1, settings as Record<string, unknown>, ctx);
     } else if (settings.mediaType === "video" && Array.isArray(settings.mediaElements) && (settings.mediaElements as unknown[])[0]) {
-      drawBackground((settings.mediaElements as HTMLVideoElement[])[0], w, h, localTime, opacity, 0, 1, settings as Record<string, unknown>, ctx);
+      // Seamless loop: ping-pong the element pair with a short crossfade at
+      // each loop seam (mirrors src_old/lib/render.ts). media-helper always
+      // provisions two elements; fall back to single when it didn't.
+      const vids = settings.mediaElements as HTMLVideoElement[];
+      const trackObj = settings as Record<string, unknown>;
+      const videoDuration = typeof settings.videoDuration === "number" ? settings.videoDuration : 0;
+      const speed = typeof settings.speed === "number" ? settings.speed : 1;
+      if (videoDuration > 0 && vids.length >= 2 && vids[1]) {
+        const crossfadeDur = Math.min(1.5, videoDuration / 4);
+        const period = videoDuration - crossfadeDur;
+        if (period > 0) {
+          const virtualTime = Math.max(0, localTime * speed);
+          const loopIndex = Math.floor(virtualTime / period);
+          const loopTime = virtualTime % period;
+          const primary = vids[loopIndex % 2];
+          const secondary = vids[(loopIndex + 1) % 2];
+          if (loopTime < crossfadeDur && loopIndex > 0 && primary && secondary) {
+            drawBackground(secondary, w, h, Math.max(0, localTime), opacity, 0, 1, trackObj, ctx);
+            drawBackground(primary, w, h, Math.max(0, localTime), opacity * (loopTime / crossfadeDur), 0, 1, trackObj, ctx);
+          } else if (primary) {
+            drawBackground(primary, w, h, Math.max(0, localTime), opacity, 0, 1, trackObj, ctx);
+          }
+        } else {
+          drawBackground(vids[0], w, h, Math.max(0, localTime), opacity, 0, 1, trackObj, ctx);
+        }
+      } else {
+        drawBackground(vids[0], w, h, localTime, opacity, 0, 1, trackObj, ctx);
+      }
     } else {
       const color = typeof settings.color === "string" ? settings.color : "#0f172a";
       ctx.save();

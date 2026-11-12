@@ -26,6 +26,7 @@ uniform float u_points;
 uniform float u_phase;
 uniform float u_scale;
 uniform float u_width;
+uniform float u_grid;
 uniform float u_glow;
 uniform float u_rainbow;
 uniform vec3  u_color;
@@ -70,7 +71,18 @@ void main() {
   float wUv = max(0.5, u_width) / u_resolution.y;
   float core = exp(-minD * minD / (wUv * wUv * 0.12));
   float halo = exp(-minD * minD / (wUv * wUv * 5.0)) * 0.55;
-  float intensity = core + halo;
+  float traceI = core + halo;
+
+  // Retro scope graticule: centre cross plus an inscribed circle, drawn dim
+  // so the trace stays the bright part.
+  float gridM = 0.0;
+  if (u_grid > 0.5) {
+    vec2 g = abs(p);
+    float axes = smoothstep(0.0016, 0.0004, min(g.x, g.y));
+    float circ = smoothstep(0.0025, 0.0008, abs(length(p) - 0.32));
+    gridM = max(axes, circ) * 0.22;
+  }
+  float intensity = max(traceI, gridM);
   if (intensity < 0.004) discard;
 
   vec3 col;
@@ -81,6 +93,7 @@ void main() {
     col = u_color;
   }
   col *= 1.0 + u_audioLevel * 0.5;
+  if (gridM > traceI) col = vec3(0.42, 0.52, 0.62);
   gl_FragColor = vec4(col, clamp(intensity, 0.0, 1.0));
 }
 `;
@@ -93,6 +106,7 @@ export const LissajousVisualizer: VisualizerDef = {
   bins: 512,
   fragment: FRAGMENT,
   settings: {
+    grid: false,
     points: 120,
     phase: 0.25,
     scale: 0.8,
@@ -137,6 +151,7 @@ export const LissajousVisualizer: VisualizerDef = {
       unit: "px",
     },
     { kind: "slider", key: "glow", label: "Glow", min: 0, max: 2, step: 0.05 },
+    { kind: "toggle", key: "grid", label: "Scope grid" },
     { kind: "toggle", key: "rainbow", label: "Rainbow Mode" },
     { kind: "color", key: "color", label: "Trace Color" },
     {

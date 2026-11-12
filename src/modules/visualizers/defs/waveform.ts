@@ -21,6 +21,7 @@ uniform float u_audioLevel;
 uniform float u_intensity;
 uniform float u_thickness;
 uniform float u_smooth;
+uniform float u_mode;
 uniform float u_glow;
 uniform float u_rainbow;
 uniform vec3  u_color;
@@ -116,9 +117,33 @@ void main() {
     col = u_color;
   }
 
+  vec3 lineCol = col * (1.0 + glow * 0.5);
   float alpha = core + glow * 0.7;
+
+  if (u_mode > 0.5 && u_mode < 1.5) {
+    // Mirror: a second line reflected across the centre, reusing the already
+    // sampled neighbours so it costs no extra texture taps.
+    vec2 tangentM = vec2(2.0, (yl - yr) * py);
+    vec2 normalM = normalize(vec2(-tangentM.y, tangentM.x));
+    float distM = abs((yPx - (1.0 - y0) * py) * normalM.y);
+    float coreM = 1.0 - smoothstep(halfWidth - aa, halfWidth + aa, distM);
+    float glowM = exp(-max(distM - halfWidth, 0.0) / spread) * u_glow * (0.6 + u_audioLevel * 0.8);
+    lineCol = col * (1.0 + max(glow, glowM) * 0.5);
+    alpha = max(core, coreM) + max(glow, glowM) * 0.7;
+  } else if (u_mode > 1.5) {
+    // Filled: the area between the curve and the centre line, in a dimmer
+    // wash of the same colour so the stroke stays the bright part.
+    float lo = min(0.5, y0);
+    float hiF = max(0.5, y0);
+    float feather = 2.0 / py;
+    float fill = smoothstep(lo - feather, lo + feather, uv.y)
+               * (1.0 - smoothstep(hiF - feather, hiF + feather, uv.y));
+    alpha = max(alpha, fill * 0.35);
+    lineCol = mix(col * 0.6, lineCol, clamp(core + glow, 0.0, 1.0));
+  }
+
   if (alpha < 0.004) discard;
-  gl_FragColor = vec4(col * (1.0 + glow * 0.5), clamp(alpha, 0.0, 1.0));
+  gl_FragColor = vec4(lineCol, clamp(alpha, 0.0, 1.0));
 }
 `;
 
@@ -130,6 +155,7 @@ export const WaveformVisualizer: VisualizerDef = {
   bins: 512,
   fragment: FRAGMENT,
   settings: {
+    mode: "0",
     intensity: 1.0,
     thickness: 2.5,
     smooth: 0.35,
@@ -139,6 +165,16 @@ export const WaveformVisualizer: VisualizerDef = {
     opacity: 1,
   },
   fields: [
+    {
+      kind: "select",
+      key: "mode",
+      label: "Style",
+      options: [
+        { value: "0", label: "Line" },
+        { value: "1", label: "Mirror" },
+        { value: "2", label: "Filled" },
+      ],
+    },
     {
       kind: "slider",
       key: "intensity",

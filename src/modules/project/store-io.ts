@@ -4,6 +4,7 @@ import type { TimelineClip } from "../../shared/types/clip";
 import type { MediaItem } from "../media/media-helper";
 import { useEditorStore } from "../../store/editor-store";
 import type { ProjectV1 } from "./schema";
+import { pauseAudio } from "../audio/audio-engine";
 import { serializeProject } from "./serialize";
 import { collectExportBlobs, rehydrateClip, rehydrateMedia } from "./rehydrate";
 import { packBundle, projectFileName, unpackBundle } from "./bundle";
@@ -41,13 +42,8 @@ export function buildProjectFromStore(name?: string): ProjectV1 {
  * stashing the inactive route's live clips when the snapshot is still null.
  */
 export async function exportProjectBundle(name?: string): Promise<{ blob: Blob; filename: string; remoteKept: string[] }> {
-  const st = useEditorStore.getState();
-  // Refresh the inactive route snapshot from live if needed (mirrors swapRoute).
-  if (st.route === "/" && st.videoClips === null && st.clips.length > 0) {
-    useEditorStore.setState({ videoClips: [...st.clips], videoSel: st.selectedClipId });
-  } else if (st.route === "/image" && st.thumbClips === null && st.clips.length > 0) {
-    useEditorStore.setState({ thumbClips: [...st.clips], thumbSel: st.selectedClipId });
-  }
+  // Pure read: derive both routes' live clips without writing snapshots back
+  // to the store (export must not mutate editor state).
   const fresh = useEditorStore.getState();
   // Build the project using the correct live + snapshot clips per route.
   const project = serializeProject({
@@ -92,6 +88,13 @@ export interface ImportResult {
 
 /** Import a bundle: unpack zip → rehydrate media → replace all editor state. */
 export async function importProjectBundle(file: File | Blob): Promise<ImportResult> {
+  // Pause first: swapping clip lists mid-play races the render loop and the
+  // audio/video playback managers.
+  {
+    const cur = useEditorStore.getState();
+    if (cur.playing) cur.setPlaying(false);
+    pauseAudio();
+  }
   const buf = new Uint8Array(await file.arrayBuffer());
   const { project, assets } = unpackBundle(buf);
   const failed: string[] = [];
@@ -149,6 +152,30 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
     const layers = clips.filter((c) => c.type === "lyrics");
     const overlap = (a: TimelineClip, b: TimelineClip) =>
       Math.max(0, Math.min(a.start + a.duration, b.start + b.duration) - Math.max(a.start, b.start));
+    // Assign each lyrics layer to exactly one music clip (most overlap) so a
+    // layer is never duplicated across tracks, and never silently dropped:
+    // layers with no overlap are kept as-is.
+    const musics = clips.filter((c) => c.type === "music");
+    const assigned = new Map<string, TimelineClip[]>();
+    const unassigned: TimelineClip[] = [];
+    for (const l of layers) {
+      let best: TimelineClip | null = null;
+      let bestOv = 0;
+      for (const m of musics) {
+        const ov = overlap(l, m);
+        if (ov > bestOv) {
+          bestOv = ov;
+          best = m;
+        }
+      }
+      if (best && bestOv > 0) {
+        const arr = assigned.get(best.id) ?? [];
+        arr.push(l);
+        assigned.set(best.id, arr);
+      } else {
+        unassigned.push(l);
+      }
+    }
     const out: TimelineClip[] = [];
     for (const m of clips) {
       if (m.type === "lyrics") continue;
@@ -177,20 +204,11 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
           });
         }
       }
-      // Merge leftover layers into the most-overlapping music (axis shifted).
-      let best: TimelineClip | null = null;
-      let bestOv = 0;
-      for (const l of layers) {
-        const ov = overlap(l, m);
-        if (ov > bestOv) {
-          bestOv = ov;
-          best = l;
-        }
-      }
-      if (best && bestOv > 0) {
-        const llines = (best.settings as Record<string, unknown>).lines;
+      // Merge only layers assigned to this music clip (axis shifted).
+      for (const layer of assigned.get(m.id) ?? []) {
+        const llines = (layer.settings as Record<string, unknown>).lines;
         if (Array.isArray(llines)) {
-          const shift = best.start - m.start;
+          const shift = layer.start - m.start;
           for (const l of llines as unknown[]) {
             const o = l as Record<string, unknown>;
             const shiftT = (v: unknown) =>
@@ -203,6 +221,8 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
       delete (next.settings as Record<string, unknown>).lyrics;
       out.push(next);
     }
+    // Layers with no overlapping music are preserved, not dropped.
+    out.push(...unassigned);
     return out;
   };
   const videoClips: TimelineClip[] = normalizeMusicLyrics(
@@ -211,8 +231,27 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
   const thumbClips: TimelineClip[] = project.routes.thumb.clips.map((c) =>
     applyClipAudio(c, rehydrateClip(c, pool)),
   );
-  // Revoke old blobs that are no longer used.
+  // Revoke old blobs that are no longer used (pool + clip-owned audio).
   const st = useEditorStore.getState();
+  const oldAudio = new Set<string>();
+  for (const c of [...st.clips, ...(st.videoClips ?? []), ...(st.thumbClips ?? [])]) {
+    const u = (c.settings as Record<string, unknown>).audioUrl;
+    if (typeof u === "string" && u.startsWith("blob:")) oldAudio.add(u);
+  }
+  const newAudio = new Set<string>();
+  for (const c of [...videoClips, ...thumbClips]) {
+    const u = (c.settings as Record<string, unknown>).audioUrl;
+    if (typeof u === "string" && u.startsWith("blob:")) newAudio.add(u);
+  }
+  for (const u of oldAudio) {
+    if (!newAudio.has(u)) {
+      try {
+        URL.revokeObjectURL(u);
+      } catch {
+        /* noop */
+      }
+    }
+  }
   for (const m of st.mediaPool) {
     if (m.url.startsWith("blob:") && !pool.some((p) => p.url === m.url)) {
       try {
@@ -223,7 +262,15 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
     }
   }
   const route = st.route;
+  const aspectRatio = project.output.aspectRatio === "9:16" ? "9:16" : "16:9";
+  const recordResolution =
+    project.output.recordResolution === "1080p" ||
+    project.output.recordResolution === "1440p" ||
+    project.output.recordResolution === "720p"
+      ? project.output.recordResolution
+      : st.recordResolution;
   useEditorStore.setState({
+    projectName: typeof project.meta.name === "string" && project.meta.name ? project.meta.name : st.projectName,
     tracks: project.tracks.length > 0 ? project.tracks : st.tracks,
     mediaPool: pool,
     videoClips,
@@ -237,9 +284,9 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
     // New project = old undo history no longer applies.
     past: [],
     future: [],
-    aspectRatio: project.output.aspectRatio,
-    recordResolution: project.output.recordResolution as typeof st.recordResolution,
-    recordFps: project.output.recordFps,
+    aspectRatio,
+    recordResolution,
+    recordFps: Number.isFinite(project.output.recordFps) ? project.output.recordFps : st.recordFps,
     lyricsSettings: { ...st.lyricsSettings, ...(project.lyricsSettings ?? {}) },
   });
   return { project, mediaLoaded: pool.length, mediaFailed: failed };

@@ -1,7 +1,7 @@
 // Scrubbable (drag-to-change) + manual input number field.
 // Verbatim port of src_old/components/ui/scrub-input.tsx; `onChange` is an
 // alias of `onUpdate` for new callers (SchemaFields, VisualizerSettings).
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export interface ScrubInputProps {
   label?: string;
@@ -26,8 +26,14 @@ export function ScrubInput({
   ghost = false,
 }: ScrubInputProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState("");
   const dragRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const emit = onUpdate ?? onChange ?? (() => {});
+
+  useEffect(() => {
+    if (isEditing) inputRef.current?.focus();
+  }, [isEditing]);
 
   const startDrag = (e: React.MouseEvent) => {
     if (!label) return;
@@ -56,11 +62,12 @@ export function ScrubInput({
     document.body.style.cursor = "ew-resize";
   };
 
-  const commitTyped = (raw: string) => {
-    const val = parseFloat(raw);
+  const commit = () => {
+    const val = parseFloat(draft);
     if (!Number.isNaN(val)) {
       emit(Math.max(min, Math.min(max, val)));
     }
+    setIsEditing(false);
   };
 
   return (
@@ -81,28 +88,28 @@ export function ScrubInput({
         </div>
       )}
 
-      {/* Value Area: Used for manual input */}
+      {/* Value Area: uncontrolled while typing, commits on blur/Enter */}
       {isEditing ? (
         <input
-          ref={(el) => {
-            el?.focus();
-            el?.select();
-          }}
+          ref={inputRef}
           type="number"
-          value={value}
+          defaultValue={value}
           step={step}
           className="h-full w-full flex-1 bg-neutral-900 px-2 font-mono text-[11px] text-white outline-none"
-          onBlur={() => setIsEditing(false)}
-          onChange={(e) => commitTyped(e.target.value)}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
           onKeyDown={(e) => {
-            if (e.key === "Enter") setIsEditing(false);
+            if (e.key === "Enter") commit();
             if (e.key === "Escape") setIsEditing(false);
           }}
         />
       ) : (
         <div
           className="flex h-full flex-1 cursor-text items-center px-2 font-mono text-[11px] text-neutral-200 select-none"
-          onClick={() => setIsEditing(true)}
+          onClick={() => {
+            setDraft(String(value));
+            setIsEditing(true);
+          }}
         >
           {Math.round(value * 100) / 100}
         </div>

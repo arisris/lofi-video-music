@@ -26,6 +26,7 @@ uniform float u_radius;
 uniform float u_size;
 uniform float u_glow;
 uniform float u_pulse;
+uniform float u_mode;
 uniform float u_rainbow;
 uniform vec3  u_color;
 
@@ -99,6 +100,11 @@ void main() {
 
   // spoke body
   float inBar = step(inner, r) * step(r, outer) * angMask;
+  // Dots variant: one bead per spoke riding the column tip instead of the
+  // full column. The arc-length approximation keeps the beads circular.
+  float beadR = max(0.006, spokeHalf * max(outer, 0.05) * 0.55);
+  float bead = smoothstep(beadR, beadR * 0.45, length(vec2(r - outer, angDist * max(outer, 0.05))));
+  float shapeA = u_mode > 0.5 ? bead : inBar;
   // glow along the spoke
   float glowMask = angMask * exp(-abs(r - (inner + outer) * 0.5) / max(0.001, (outer - inner) * 0.6 + 0.005)) * 0.6;
 
@@ -121,7 +127,7 @@ void main() {
   float tip = smoothstep(outer - 0.02, outer, r);
   col = mix(col, vec3(1.0), tip * 0.45);
 
-  float alpha = inBar + glowMask * u_glow;
+  float alpha = shapeA + glowMask * u_glow;
 
   // pulsing core ring
   float bass = texture2D(u_audio, vec2(0.005, ${AUDIO_LIVE_V})).r;
@@ -148,6 +154,7 @@ export const CircleVisualizer: VisualizerDef = {
   bins: 256,
   fragment: FRAGMENT,
   settings: {
+    mode: "0",
     bars: 48,
     intensity: 1.1,
     width: 0.55,
@@ -160,6 +167,15 @@ export const CircleVisualizer: VisualizerDef = {
     opacity: 1,
   },
   fields: [
+    {
+      kind: "select",
+      key: "mode",
+      label: "Style",
+      options: [
+        { value: "0", label: "Spokes" },
+        { value: "1", label: "Dots" },
+      ],
+    },
     { kind: "slider", key: "bars", label: "Bars", min: 8, max: 128, step: 1 },
     {
       kind: "slider",

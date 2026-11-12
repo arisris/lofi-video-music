@@ -11,6 +11,8 @@ export const drawBackground = (
   ctx: CanvasRenderingContext2D,
 ) => {
   if (!mediaEl) return;
+  if (!Number.isFinite(alpha)) return;
+  if (!Number.isFinite(scaleMult) || scaleMult <= 0) scaleMult = 1.0;
   ctx.save();
   ctx.globalAlpha = alpha;
 
@@ -22,9 +24,9 @@ export const drawBackground = (
 
   // Force disable Ken Burns for video backgrounds as requested
   const bgKind =
-    (trackObj as Record<string, unknown>).mediaType ??
-    (trackObj as Record<string, unknown>).bgType;
-  const isVideo = trackObj && bgKind === "video";
+    (trackObj as Record<string, unknown> | null)?.mediaType ??
+    (trackObj as Record<string, unknown> | null)?.bgType;
+  const isVideo = !!trackObj && bgKind === "video";
 
   if (trackObj && (trackObj as Record<string, unknown>).currentEffect && !isVideo) {
     effect = (trackObj as Record<string, unknown>).currentEffect as string;
@@ -63,10 +65,19 @@ export const drawBackground = (
     translateY += (trackObj as Record<string, any>).bgOffsetY || 0;
   }
 
-  const mediaWidth = mediaEl.width;
-  const mediaHeight = mediaEl.height;
+  const isVideoEl = "videoWidth" in mediaEl;
+  const mediaWidth = isVideoEl
+    ? (mediaEl as HTMLVideoElement).videoWidth
+    : (mediaEl as HTMLImageElement).naturalWidth;
+  const mediaHeight = isVideoEl
+    ? (mediaEl as HTMLVideoElement).videoHeight
+    : (mediaEl as HTMLImageElement).naturalHeight;
 
   if (!mediaWidth || !mediaHeight) {
+    ctx.restore();
+    return;
+  }
+  if (isVideoEl && (mediaEl as HTMLVideoElement).readyState < 2) {
     ctx.restore();
     return;
   }
@@ -97,19 +108,8 @@ export const drawBackground = (
     maxTy = ch / 2;
   }
 
-  let clampedTx = Math.max(minTx, Math.min(maxTx, translateX));
-  let clampedTy = Math.max(minTy, Math.min(maxTy, translateY));
-
-  if (trackObj) {
-    if (translateX < minTx)
-      (trackObj as Record<string, any>).bgOffsetX = ((trackObj as Record<string, any>).bgOffsetX || 0) + minTx - translateX;
-    if (translateX > maxTx)
-      (trackObj as Record<string, any>).bgOffsetX = ((trackObj as Record<string, any>).bgOffsetX || 0) - (translateX - maxTx);
-    if (translateY < minTy)
-      (trackObj as Record<string, any>).bgOffsetY = ((trackObj as Record<string, any>).bgOffsetY || 0) + minTy - translateY;
-    if (translateY > maxTy)
-      (trackObj as Record<string, any>).bgOffsetY = ((trackObj as Record<string, any>).bgOffsetY || 0) - (translateY - maxTy);
-  }
+  const clampedTx = Math.max(minTx, Math.min(maxTx, translateX));
+  const clampedTy = Math.max(minTy, Math.min(maxTy, translateY));
 
   ctx.translate(clampedTx, clampedTy);
   ctx.scale(scale, scale);

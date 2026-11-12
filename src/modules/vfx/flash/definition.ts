@@ -10,10 +10,14 @@ export const flashVfx: VfxDefinition = {
     { key: "frequency", label: "Frequency", kind: "slider", min: 0, max: 1, step: 0.05 },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
-  draw({ ctx, w, h, settings, state }) {
+  draw({ ctx, w, h, settings, time, state }) {
     if (typeof state.opacity !== "number") state.opacity = 0;
     if (typeof state.cooldown !== "number") state.cooldown = 0;
-    if ((state.cooldown as number) > 0) state.cooldown = (state.cooldown as number) - 1;
+    if (typeof state.lastT !== "number") state.lastT = time;
+    // Frame-rate independent decay (k = elapsed 60fps-frames).
+    const k = Math.min(Math.max((time - (state.lastT as number)) * 60, 0), 3);
+    state.lastT = time;
+    if ((state.cooldown as number) > 0) state.cooldown = (state.cooldown as number) - k;
 
     if (settings.audioReactive) {
       const bass = getAudioLevel("bass");
@@ -22,7 +26,7 @@ export const flashVfx: VfxDefinition = {
         state.opacity = 0.2 + Math.random() * 0.3;
         state.cooldown = 30;
       }
-    } else if (Math.random() < 0.002 * (typeof settings.frequency === "number" ? settings.frequency : 0.5) * 5 && (state.opacity as number) <= 0) {
+    } else if (Math.random() < 0.002 * (typeof settings.frequency === "number" ? settings.frequency : 0.5) * 5 * k && (state.opacity as number) <= 0) {
       state.opacity = 0.2 + Math.random() * 0.3;
     }
 
@@ -31,7 +35,7 @@ export const flashVfx: VfxDefinition = {
       ctx.fillStyle = `rgba(255, 255, 255, ${state.opacity as number})`;
       ctx.fillRect(0, 0, w, h);
       ctx.restore();
-      state.opacity = (state.opacity as number) - 0.04;
+      state.opacity = (state.opacity as number) - 0.04 * k;
     }
   },
 };

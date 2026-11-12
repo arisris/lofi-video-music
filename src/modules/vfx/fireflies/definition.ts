@@ -1,6 +1,6 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
-import { BaseParticle } from "../_core/base-particle";
+import { BaseParticle, finiteSetting } from "../_core/base-particle";
 
 // Adapted verbatim from src_old/lib/vfx/fireflies.ts (Firefly).
 class Firefly extends BaseParticle {
@@ -35,7 +35,7 @@ class Firefly extends BaseParticle {
     this.angleChange += (Math.random() - 0.5) * 0.02;
     this.angleChange = Math.max(-0.15, Math.min(0.15, this.angleChange));
     this.angle += this.angleChange;
-    const speedMultiplier = settings.speed !== undefined ? (settings.speed as number) : 1.0;
+    const speedMultiplier = finiteSetting(settings, "speed", 1.0);
     const activeSpeed = this.speed * speedMultiplier * (settings.audioReactive ? 1.0 + audioLevel * 2.5 : 1.0);
     this.x += Math.cos(this.angle) * activeSpeed;
     this.y += Math.sin(this.angle) * activeSpeed;
@@ -46,7 +46,7 @@ class Firefly extends BaseParticle {
   }
 
   drawFly(ctx: CanvasRenderingContext2D, settings: Record<string, unknown>, time: number, audioLevel = 0) {
-    const sizeMultiplier = settings.size !== undefined ? (settings.size as number) : 1.0;
+    const sizeMultiplier = finiteSetting(settings, "size", 1.0);
     const color = typeof settings.color === "string" ? settings.color : "#facc15";
     const pulse = Math.sin(time * 3 + this.pulseOffset) * 0.2 + 0.8;
     const r = this.radius * sizeMultiplier * pulse * (settings.audioReactive ? 0.8 + audioLevel * 1.0 : 1.0);

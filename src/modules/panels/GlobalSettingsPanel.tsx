@@ -4,14 +4,6 @@ import { useEditorStore } from "../../store/editor-store";
 import { addClipOfType } from "../dock/clip-actions";
 // Project bundle IO (fflate) loads on demand so it stays out of the main chunk.
 
-type TransitionStyle = "fade" | "slide" | "zoom";
-
-const TRANSITION_STYLES: Array<[TransitionStyle, string]> = [
-  ["fade", "Fade"],
-  ["slide", "Slide"],
-  ["zoom", "Zoom"],
-];
-
 export const GlobalSettingsPanel = () => {
   const selectedClipId = useEditorStore((s) => s.selectedClipId);
   const select = useEditorStore((s) => s.select);
@@ -19,8 +11,6 @@ export const GlobalSettingsPanel = () => {
   const updateClipSettings = useEditorStore((s) => s.updateClipSettings);
   const projectName = useEditorStore((s) => s.projectName);
   const setProjectName = useEditorStore((s) => s.setProjectName);
-  const [transitionStyle, setTransitionStyle] = useState<TransitionStyle>("fade");
-  const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const [projectStatus, setProjectStatus] = useState<string | null>(null);
   const [projectBusy, setProjectBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -31,11 +21,12 @@ export const GlobalSettingsPanel = () => {
   const toggleGlobalLayer = (e: React.MouseEvent, id: "title" | "playlist") => {
     e.stopPropagation();
     const target = id === "title" ? titleClip : playlistClip;
-    setHidden((h) => {
-      const next = { ...h, [id]: !h[id] };
-      if (target) updateClipSettings(target.id, { opacity: next[id] ? 0 : 1 });
-      return next;
-    });
+    // Toggle `enabled` (not opacity) so this matches the Inspector eye and
+    // the renderer, which both key off enabled !== false.
+    if (target) {
+      const enabled = (target.settings.enabled as boolean | undefined) !== false;
+      updateClipSettings(target.id, { enabled: !enabled });
+    }
   };
 
   const selectLayer = (id: "title" | "playlist") => {
@@ -44,8 +35,8 @@ export const GlobalSettingsPanel = () => {
     else addClipOfType(id, {});
   };
 
-  const titleEnabled = !hidden.title;
-  const playlistEnabled = !hidden.playlist;
+  const titleEnabled = (titleClip?.settings.enabled as boolean | undefined) !== false;
+  const playlistEnabled = (playlistClip?.settings.enabled as boolean | undefined) !== false;
 
   const handleExport = async () => {
     setProjectBusy(true);
@@ -129,21 +120,6 @@ export const GlobalSettingsPanel = () => {
             <p className="mt-2 text-[10px] leading-relaxed text-neutral-400">{projectStatus}</p>
           )}
         </div>
-        <div className="mb-4">
-          <label className="mb-2 block text-xs text-neutral-400">Transition Style</label>
-          <div className="flex gap-2">
-            {TRANSITION_STYLES.map(([style, label]) => (
-              <button
-                key={style}
-                className={`flex-1 rounded py-1.5 text-xs transition ${transitionStyle === style ? "bg-blue-600 text-white" : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"}`}
-                onClick={() => setTransitionStyle(style)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="mb-6">
           <SectionTitle className="mb-3">
             Global Overlays

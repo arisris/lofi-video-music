@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { designSize, recordSize, toDesignPos } from "../../shared/lib/canvas-space";
-import { runtime } from "../../shared/lib/runtime";
+import { runtime, bindAudioElement } from "../../shared/lib/runtime";
 import { renderFrame } from "../../engine/render-loop";
 import {
   findClipAtPos,
@@ -19,6 +19,15 @@ import { stopRecording } from "../recorder/recorder";
 import { ClipContextMenu } from "./ClipContextMenu";
 
 let isHoveringClip = false;
+
+const toAbsoluteUrl = (url: string): string => {
+  if (!url) return "";
+  try {
+    return new URL(url, window.location.href).href;
+  } catch {
+    return url;
+  }
+};
 
 /** Canvas preview area: render target + interaksi drag/transform clip. */
 export function VideoPreview() {
@@ -104,11 +113,12 @@ export function VideoPreview() {
     }
 
     if (hoverCursor) {
-      useEditorStore.setState({ canvasCursor: hoverCursor });
+      if (canvasCursor !== hoverCursor) useEditorStore.setState({ canvasCursor: hoverCursor });
       isHoveringClip = false;
     } else {
       const hit = findClipAtPos(pos);
-      useEditorStore.setState({ canvasCursor: hit ? "move" : null });
+      const next = hit ? "move" : null;
+      if (canvasCursor !== next) useEditorStore.setState({ canvasCursor: next });
       isHoveringClip = !!hit;
     }
   };
@@ -122,20 +132,14 @@ export function VideoPreview() {
     if (!ctx) return;
     runtime.canvas = canvas;
     runtime.ctx = ctx;
-    // Bind hidden audio element for the audio engine.
-    runtime.audioEl = document.getElementById(
+    // Bind hidden audio element for the audio engine (re-wires the graph
+    // if the engine already created a source for a different element).
+    const domAudio = document.getElementById(
       "audioElement",
     ) as HTMLAudioElement | null;
+    if (domAudio) bindAudioElement(domAudio);
     let raf = 0;
     let last = performance.now();
-    const toAbsoluteUrl = (url: string): string => {
-      if (!url) return "";
-      try {
-        return new URL(url, window.location.href).href;
-      } catch {
-        return url;
-      }
-    };
     const tick = (now: number) => {
       const st = useEditorStore.getState();
       const dt = (now - last) / 1000;
@@ -168,9 +172,8 @@ export function VideoPreview() {
                 applyAudioSettings(activeClip);
                 if (st.playing) void audioEl.play().catch(() => {});
               }
-              audioEl.removeEventListener("loadedmetadata", onLoaded);
             };
-            audioEl.addEventListener("loadedmetadata", onLoaded);
+            audioEl.addEventListener("loadedmetadata", onLoaded, { once: true });
             st.setTime(st.currentTime + dt);
           } else if (!audioEl.paused) {
             const localTime =

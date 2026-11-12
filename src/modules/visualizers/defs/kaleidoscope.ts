@@ -22,6 +22,7 @@ uniform float u_time;
 uniform float u_audioLevel;
 uniform float u_segments;
 uniform float u_spin;
+uniform float u_twirl;
 uniform float u_zoom;
 uniform float u_bands;
 uniform float u_radius;
@@ -42,6 +43,8 @@ void main() {
   float seg = max(2.0, floor(u_segments));
   float sector = TAU / seg;
   a = abs(mod(a, sector) - sector * 0.5);
+  // Twirl bends each wedge into a spiral; zero keeps the classic straight fold.
+  a += r * u_twirl;
 
   // Bass swells the zoom, and the overall level speeds the drift, so the
   // pattern breathes with the track instead of spinning at a constant rate.
@@ -52,8 +55,9 @@ void main() {
   vec2 q = vec2(cos(a + spin), sin(a + spin)) * (r * zoom) + 0.5;
   vec3 col = texture2D(u_image, fract(q)).rgb * u_color;
 
-  // Concentric rings, each reading a different point of the spectrum.
-  float ring = texture2D(u_audio, vec2(fract(r * u_bands - u_time * 0.10), ${AUDIO_LIVE_V})).r;
+  // Concentric rings, each reading a different point of the spectrum. Twirl
+  // shears them into a spiral; at zero they stay perfectly concentric.
+  float ring = texture2D(u_audio, vec2(fract(r * u_bands - u_time * 0.10 + a * u_twirl * 0.159), ${AUDIO_LIVE_V})).r;
   col += u_color * ring * 0.55;
   col += u_color * u_audioLevel * 0.12;
 
@@ -83,6 +87,7 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
   settings: {
     segments: 8,
     spin: 0.35,
+    twirl: 0,
     zoom: 1.4,
     bands: 6,
     radius: 0.5,
@@ -103,6 +108,7 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
       step: 1,
     },
     { kind: "slider", key: "spin", label: "Spin", min: 0, max: 2, step: 0.01 },
+    { kind: "slider", key: "twirl", label: "Twirl", min: 0, max: 3, step: 0.05 },
     {
       kind: "slider",
       key: "zoom",

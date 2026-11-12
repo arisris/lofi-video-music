@@ -28,6 +28,7 @@ uniform float u_disp;
 uniform float u_freq;
 uniform float u_spin;
 uniform float u_pulse;
+uniform float u_ring;
 uniform float u_glow;
 uniform vec3  u_color;
 uniform vec3  u_rim;
@@ -86,7 +87,17 @@ void main() {
   float halo = exp(-max(r - rEff, 0.0) / max(R * 0.18, 0.001)) * u_glow * 0.25;
   col += u_rim * halo;
 
-  float alpha = mask + halo;
+  // A thin tilted ring outside the silhouette, Saturn-style. Masked to start
+  // past the edge so it never covers the sphere's face.
+  float ringM = 0.0;
+  if (u_ring > 0.5) {
+    vec2 q = mat2(0.9394, 0.3429, -0.3429, 0.9394) * p;
+    float rd = abs(length(q * vec2(1.0, 3.4)) - R * 1.55);
+    ringM = smoothstep(0.010, 0.004, rd) * smoothstep(rEff - 0.01, rEff + 0.025, r);
+    col += u_rim * ringM * (0.45 + u_glow * 0.6);
+  }
+
+  float alpha = mask + halo + ringM * 0.85;
   col = mix(u_background.rgb, col, mask);
   alpha = mix(u_background.a, alpha, mask);
   gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
@@ -106,6 +117,7 @@ export const OrbVisualizer: VisualizerDef = {
     freq: 3,
     spin: 0.3,
     pulse: 0.5,
+    ring: false,
     glow: 0.6,
     color: "#38bdf8",
     rim: "#f472b6",
@@ -146,6 +158,7 @@ export const OrbVisualizer: VisualizerDef = {
       max: 2,
       step: 0.05,
     },
+    { kind: "toggle", key: "ring", label: "Saturn ring" },
     { kind: "slider", key: "glow", label: "Glow", min: 0, max: 2, step: 0.05 },
     { kind: "color", key: "color", label: "Body Color" },
     { kind: "color", key: "rim", label: "Rim Color" },

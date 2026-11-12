@@ -375,11 +375,9 @@ export const handleCanvasDragMove = (e: DragPointerEvent) => {
       const currentDist = Math.sqrt(currentDx * currentDx + currentDy * currentDy);
       let scaleFactor = 1;
       if (state.initialDragDistance > 0) {
-        scaleFactor = currentDist / state.initialDragDistance;
-        const mxStart = state.startDragX - state.dragPivot.x;
-        const myStart = state.startDragY - state.dragPivot.y;
-        const dot = currentDx * mxStart + currentDy * myStart;
-        if (dot < 0) scaleFactor = -scaleFactor;
+        // No mirroring: dragging past the pivot just shrinks toward the
+        // minimum instead of flipping negative (which collapsed to 0.05).
+        scaleFactor = Math.max(currentDist, 1) / state.initialDragDistance;
       }
       const patch = {
         scaleX: Math.max(0.05, state.initialScaleX * scaleFactor),
@@ -563,12 +561,16 @@ export function drawCanvasOverlays(
   const design = getDesignSize();
   const dw = w ?? design.w;
   const dh = h ?? design.h;
+  // The render loop draws overlays inside the backing-store scale transform,
+  // so raw pixel widths grow while recording. Compensate to keep guides and
+  // handles visually constant in design space.
+  const inv = 1 / (ctx.getTransform().a || 1);
 
   if (state.canvasSnaps.length > 0) {
     ctx.save();
     ctx.strokeStyle = "#f43e5e";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 1.5 * inv;
+    ctx.setLineDash([6 * inv, 4 * inv]);
     for (const snap of state.canvasSnaps) {
       ctx.beginPath();
       if (snap.type === "x") {
@@ -615,7 +617,7 @@ export function drawCanvasOverlays(
 
   ctx.save();
   ctx.strokeStyle = "#3b82f6";
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.5 * inv;
   ctx.beginPath();
   ctx.moveTo(ptTL.x, ptTL.y);
   ctx.lineTo(ptTR.x, ptTR.y);
@@ -632,14 +634,15 @@ export function drawCanvasOverlays(
   const drawHandle = (pt: { x: number; y: number }, isCircle = false) => {
     ctx.fillStyle = "#ffffff";
     ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * inv;
     ctx.beginPath();
     if (isCircle) {
-      ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+      ctx.arc(pt.x, pt.y, 6 * inv, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     } else {
-      ctx.rect(pt.x - 5, pt.y - 5, 10, 10);
+      const r = 5 * inv;
+      ctx.rect(pt.x - r, pt.y - r, r * 2, r * 2);
       ctx.fill();
       ctx.stroke();
     }

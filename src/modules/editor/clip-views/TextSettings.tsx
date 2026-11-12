@@ -33,7 +33,13 @@ function computeCoords(trigger: HTMLElement | null) {
     left = window.innerWidth - boxWidth - 16;
   }
   if (left < 16) left = 16;
-  if (top < 16) top = rect.bottom + 8;
+  if (top < 16) {
+    top = rect.bottom + 8;
+    // Trigger near the bottom: the flipped box can still overflow.
+    if (top + boxHeight > window.innerHeight - 16) {
+      top = Math.max(16, window.innerHeight - boxHeight - 16);
+    }
+  }
 
   return { top, left };
 }
