@@ -1,4 +1,4 @@
-// Full text renderer — adapted from src_old/lib/clips/text-clip.ts drawItem.
+// Full text renderer
 // `item` = flat clip settings. Supports: multiline, emoji, typewriter, wavy,
 // shadow, background box.
 import {

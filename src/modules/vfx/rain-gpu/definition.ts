@@ -2,7 +2,7 @@ import { getAudioLevel } from "../../audio/audio-engine";
 import { WebGLRenderer, type UniformValue } from "../../../shared/lib/webgl-renderer";
 import type { VfxDefinition } from "../_core/types";
 
-// GPU rain shader — adapted from src_old/lib/vfx/rain-gpu.ts.
+// GPU rain shader
 let rainProgram: WebGLProgram | null = null;
 
 const RAIN_FRAGMENT_SHADER_SRC = `

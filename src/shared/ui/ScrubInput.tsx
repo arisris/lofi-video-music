@@ -1,5 +1,5 @@
 // Scrubbable (drag-to-change) + manual input number field.
-// Verbatim port of src_old/components/ui/scrub-input.tsx; `onChange` is an
+// `onChange` is an
 // alias of `onUpdate` for new callers (SchemaFields, VisualizerSettings).
 import { useEffect, useRef, useState } from "react";
 

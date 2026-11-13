@@ -12,6 +12,7 @@
 // the edge can carry a different hue.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { TAU_GLSL, glowField, opacityField } from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -34,7 +35,7 @@ uniform vec3  u_color;
 uniform vec3  u_rim;
 uniform vec4  u_background;
 
-const float TAU = 6.2831853;
+${TAU_GLSL}
 const float PI = 3.14159265;
 
 void main() {
@@ -159,20 +160,11 @@ export const OrbVisualizer: VisualizerDef = {
       step: 0.05,
     },
     { kind: "toggle", key: "ring", label: "Saturn ring" },
-    { kind: "slider", key: "glow", label: "Glow", min: 0, max: 2, step: 0.05 },
+    glowField(),
     { kind: "color", key: "color", label: "Body Color" },
     { kind: "color", key: "rim", label: "Rim Color" },
     { kind: "color", key: "background", label: "Background", alpha: true },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    opacityField(),
   ],
   // Radial, so it wants a square box.
   bbox: (w: number, h: number) => {

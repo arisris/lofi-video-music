@@ -1,6 +1,5 @@
 // 1:1 text property panel of the legacy app: content editor + emoji, typography,
 // stroke & shadow, background box, text effects, transform, animation.
-// Reference: src_old/components/clip-settings/text.tsx + shared.tsx.
 import { useEffect, useState } from "react";
 import charsData from "../../../data/chars.json";
 import { loadGoogleFont } from "../../../shared/lib/fonts";
@@ -162,7 +161,22 @@ export interface SettingsBinding {
   set: (key: string, value: unknown) => void;
 }
 
-export function TypographySettings({ clipId, binding }: { clipId?: string; binding?: SettingsBinding }) {
+export function TypographySettings({
+  clipId,
+  binding,
+  hideLineHeight = false,
+  hideAlign = false,
+  hideTextColor = false,
+}: {
+  clipId?: string;
+  binding?: SettingsBinding;
+  /** Lyrics space vertically with Line Gap instead — Line H would be dead. */
+  hideLineHeight?: boolean;
+  /** Lyrics always draw centered — Align would be dead. */
+  hideAlign?: boolean;
+  /** Lyrics set the active color in Lyric Display — a second Text Color here would be a dead duplicate. */
+  hideTextColor?: boolean;
+}) {
   const clipBinding = useClipSettings(clipId ?? "");
   const { values, set } = binding ?? clipBinding;
 
@@ -183,7 +197,7 @@ export function TypographySettings({ clipId, binding }: { clipId?: string; bindi
         value={typeof values.fontFamily === "string" ? values.fontFamily : "sans-serif"}
         onUpdate={(val) => update("fontFamily", val)}
       />
-      <div className="mb-3 grid grid-cols-2 gap-3">
+      <div className={`mb-3 grid gap-3 ${hideLineHeight ? "grid-cols-1" : "grid-cols-2"}`}>
         <div>
           <FieldLabel>Size</FieldLabel>
           <ScrubInput
@@ -194,6 +208,7 @@ export function TypographySettings({ clipId, binding }: { clipId?: string; bindi
             onUpdate={(val) => update("fontSize", val)}
           />
         </div>
+        {!hideLineHeight && (
         <div>
           <FieldLabel>Line H</FieldLabel>
           <ScrubInput
@@ -205,8 +220,9 @@ export function TypographySettings({ clipId, binding }: { clipId?: string; bindi
             onUpdate={(val) => update("lineHeight", val)}
           />
         </div>
+        )}
       </div>
-      <div className="mb-3 grid grid-cols-2 gap-3">
+      <div className={`mb-3 grid gap-3 ${hideAlign ? "grid-cols-1" : "grid-cols-2"}`}>
         <div>
           <FieldLabel>Weight</FieldLabel>
           <SelectControl
@@ -216,6 +232,7 @@ export function TypographySettings({ clipId, binding }: { clipId?: string; bindi
             size="sm"
           />
         </div>
+        {!hideAlign && (
         <div>
           <FieldLabel>Align</FieldLabel>
           <SelectControl
@@ -225,12 +242,15 @@ export function TypographySettings({ clipId, binding }: { clipId?: string; bindi
             size="sm"
           />
         </div>
+        )}
       </div>
+      {!hideTextColor && (
       <ColorInput
         label="Text Color"
         value={typeof values.textColor === "string" ? values.textColor : "#ffffff"}
         onUpdate={(val) => update("textColor", val)}
       />
+      )}
     </>
   );
 }

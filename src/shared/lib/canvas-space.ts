@@ -1,7 +1,7 @@
 // Design coordinate space: every clip is laid out, hit-tested, and dragged here.
 // Fixed (landscape 1280x720, portrait 720x1280) — only the canvas backing store
 // grows during recording, and the render loop scales design space up
-// to fill it. Old reference: src_old/lib/canvas-space.ts
+// to fill it.
 //
 // Cycle note: the store only imports *types* from this module (import type,
 // erased at build), so the runtime import of the store here is one-way safe.
@@ -35,25 +35,7 @@ export function getDesignSize(): DesignSize {
   }
 }
 
-export function designSizeFor(aspectRatio: "16:9" | "9:16"): DesignSize {
-  return designSize(aspectRatio);
-}
-
-export function fitScale(
-  containerW: number,
-  containerH: number,
-): { scale: number; outW: number; outH: number } {
-  const { w, h } = getDesignSize();
-  const scale = Math.min(containerW / w, containerH / h);
-  return { scale, outW: w * scale, outH: h * scale };
-}
-
 export type RecordResolution = "720p" | "1080p" | "1440p";
-
-/** Canvas backing-store size for preview vs recording. */
-export function getDesignSizeLegacy(): { w: number; h: number } {
-  return getDesignSize();
-}
 
 /** Backing store captured by MediaRecorder for resolution + orientation. */
 export function recordSize(

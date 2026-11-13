@@ -1,5 +1,5 @@
-// Pointer interactions on the preview canvas — adapted from src_old/lib/drag.ts
-// to the new store (clips/currentTime/tracks, immutable updates without bumpClips).
+// Pointer interactions on the preview canvas, adapted to the new store
+// (clips/currentTime/tracks, immutable updates without bumpClips).
 // The new model has no global clip (title/playlist/lyrics are plain timeline
 // clips) so the global branch was removed; hit-test order follows the
 // render layer order (clips added later are on top).
@@ -329,14 +329,78 @@ export const handleCanvasDragStart = (e: DragPointerEvent) => {
   }
 };
 
+/** Snap a drag target to canvas guides; returns the adjusted position + snaps. */
+function snapDragTarget(
+  bbox: ClipBBox,
+  settings: Record<string, unknown>,
+  targetX: number,
+  targetY: number,
+  snapTargetsX: Array<{ value: number }>,
+  snapTargetsY: Array<{ value: number }>,
+  defaultOriginY = 0.5,
+): { x: number; y: number; snaps: Array<{ type: "x" | "y"; value: number }> } {
+  const num = (v: unknown, fb: number) =>
+    typeof v === "number" && Number.isFinite(v) ? v : fb;
+  const sx = num(settings.scaleX, 1);
+  const sy = num(settings.scaleY, 1);
+  const originX = num(settings.originX, 0.5);
+  const originY = num(settings.originY, defaultOriginY);
+  const baseCx = bbox.x + bbox.width * originX;
+  const baseCy = bbox.y + bbox.height * originY;
+  const currentCx = baseCx + targetX;
+  const currentCy = baseCy + targetY;
+  const hitW = bbox.width * sx;
+  const hitH = bbox.height * sy;
+  const currentLeft = currentCx - hitW * originX;
+  const currentRight = currentLeft + hitW;
+  const currentTop = currentCy - hitH * originY;
+  const currentBottom = currentTop + hitH;
+  const snaps: Array<{ type: "x" | "y"; value: number }> = [];
+  const SNAP_THRESHOLD = 15;
+
+  for (const target of snapTargetsX) {
+    if (Math.abs(currentCx - target.value) < SNAP_THRESHOLD) {
+      targetX = target.value - baseCx;
+      snaps.push({ type: "x", value: target.value });
+      break;
+    }
+    if (Math.abs(currentLeft - target.value) < SNAP_THRESHOLD) {
+      targetX = target.value - baseCx + hitW * originX;
+      snaps.push({ type: "x", value: target.value });
+      break;
+    }
+    if (Math.abs(currentRight - target.value) < SNAP_THRESHOLD) {
+      targetX = target.value - baseCx - hitW * (1 - originX);
+      snaps.push({ type: "x", value: target.value });
+      break;
+    }
+  }
+  for (const target of snapTargetsY) {
+    if (Math.abs(currentCy - target.value) < SNAP_THRESHOLD) {
+      targetY = target.value - baseCy;
+      snaps.push({ type: "y", value: target.value });
+      break;
+    }
+    if (Math.abs(currentTop - target.value) < SNAP_THRESHOLD) {
+      targetY = target.value - baseCy + hitH * originY;
+      snaps.push({ type: "y", value: target.value });
+      break;
+    }
+    if (Math.abs(currentBottom - target.value) < SNAP_THRESHOLD) {
+      targetY = target.value - baseCy - hitH * (1 - originY);
+      snaps.push({ type: "y", value: target.value });
+      break;
+    }
+  }
+  return { x: targetX, y: targetY, snaps };
+}
+
 export const handleCanvasDragMove = (e: DragPointerEvent) => {
   const state = useEditorStore.getState();
   if (!state.isDragging) return;
   const pos = getEventPos(e);
   const dx = pos.x - state.startDragX;
   const dy = pos.y - state.startDragY;
-  const num = (v: unknown, fb: number) =>
-    typeof v === "number" && Number.isFinite(v) ? v : fb;
 
   if (state.transformMode === "background") {
     const selected = state.clips.find(
@@ -394,69 +458,18 @@ export const handleCanvasDragMove = (e: DragPointerEvent) => {
     if (state.selectedClipId === "lyrics") {
       const g = globalLyricsBbox();
       if (!g) return;
-      let targetX = state.initialOffsetX + dx;
-      let targetY = state.initialOffsetY + dy;
-      const canvasSnaps: Array<{ type: "x" | "y"; value: number }> = [];
-      const bbox = g.bbox;
-      {
-        const s = g.settings;
-        const sx = num(s.scaleX, 1);
-        const sy = num(s.scaleY, 1);
-        const originX = num(s.originX, 0.5);
-        const originY = num(s.originY, 1);
-        const baseCx = bbox.x + bbox.width * originX;
-        const baseCy = bbox.y + bbox.height * originY;
-        const currentCx = baseCx + targetX;
-        const currentCy = baseCy + targetY;
-        const hitW = bbox.width * sx;
-        const hitH = bbox.height * sy;
-        const currentLeft = currentCx - hitW * originX;
-        const currentRight = currentLeft + hitW;
-        const currentTop = currentCy - hitH * originY;
-        const currentBottom = currentTop + hitH;
+      const snapped = snapDragTarget(
+        g.bbox,
+        g.settings,
+        state.initialOffsetX + dx,
+        state.initialOffsetY + dy,
+        state.staticSnapTargetsX || [],
+        state.staticSnapTargetsY || [],
+        1,
+      );
 
-        const snapTargetsX = state.staticSnapTargetsX || [];
-        const snapTargetsY = state.staticSnapTargetsY || [];
-        const SNAP_THRESHOLD = 15;
-
-        for (const target of snapTargetsX) {
-          if (Math.abs(currentCx - target.value) < SNAP_THRESHOLD) {
-            targetX = target.value - baseCx;
-            canvasSnaps.push({ type: "x", value: target.value });
-            break;
-          }
-          if (Math.abs(currentLeft - target.value) < SNAP_THRESHOLD) {
-            targetX = target.value - baseCx + hitW * originX;
-            canvasSnaps.push({ type: "x", value: target.value });
-            break;
-          }
-          if (Math.abs(currentRight - target.value) < SNAP_THRESHOLD) {
-            targetX = target.value - baseCx - hitW * (1 - originX);
-            canvasSnaps.push({ type: "x", value: target.value });
-            break;
-          }
-        }
-        for (const target of snapTargetsY) {
-          if (Math.abs(currentCy - target.value) < SNAP_THRESHOLD) {
-            targetY = target.value - baseCy;
-            canvasSnaps.push({ type: "y", value: target.value });
-            break;
-          }
-          if (Math.abs(currentTop - target.value) < SNAP_THRESHOLD) {
-            targetY = target.value - baseCy + hitH * originY;
-            canvasSnaps.push({ type: "y", value: target.value });
-            break;
-          }
-          if (Math.abs(currentBottom - target.value) < SNAP_THRESHOLD) {
-            targetY = target.value - baseCy - hitH * (1 - originY);
-            canvasSnaps.push({ type: "y", value: target.value });
-            break;
-          }
-        }
-      }
-
-      state.updateLyricsSettings({ x: targetX, y: targetY });
-      useEditorStore.setState({ canvasSnaps });
+      state.updateLyricsSettings({ x: snapped.x, y: snapped.y });
+      useEditorStore.setState({ canvasSnaps: snapped.snaps });
       return;
     }
     const timelineClip = state.clips.find((c) => c.id === state.selectedClipId);
@@ -466,7 +479,7 @@ export const handleCanvasDragMove = (e: DragPointerEvent) => {
     const { w, h } = getDesignSize();
     let targetX = state.initialOffsetX + dx;
     let targetY = state.initialOffsetY + dy;
-    const canvasSnaps: Array<{ type: "x" | "y"; value: number }> = [];
+    let canvasSnaps: Array<{ type: "x" | "y"; value: number }> = [];
 
     const renderer = clipRegistry.get(timelineClip.type);
     if (renderer?.getItemBoundingBox && runtime.ctx) {
@@ -478,60 +491,17 @@ export const handleCanvasDragMove = (e: DragPointerEvent) => {
         state.currentTime - timelineClip.start,
       );
       if (bbox) {
-        const s = timelineClip.settings as Record<string, unknown>;
-        const sx = num(s.scaleX, 1);
-        const sy = num(s.scaleY, 1);
-        const originX = num(s.originX, 0.5);
-        const originY = num(s.originY, 0.5);
-        const baseCx = bbox.x + bbox.width * originX;
-        const baseCy = bbox.y + bbox.height * originY;
-        const currentCx = baseCx + targetX;
-        const currentCy = baseCy + targetY;
-        const hitW = bbox.width * sx;
-        const hitH = bbox.height * sy;
-        const currentLeft = currentCx - hitW * originX;
-        const currentRight = currentLeft + hitW;
-        const currentTop = currentCy - hitH * originY;
-        const currentBottom = currentTop + hitH;
-
-        const snapTargetsX = state.staticSnapTargetsX || [];
-        const snapTargetsY = state.staticSnapTargetsY || [];
-        const SNAP_THRESHOLD = 15;
-
-        for (const target of snapTargetsX) {
-          if (Math.abs(currentCx - target.value) < SNAP_THRESHOLD) {
-            targetX = target.value - baseCx;
-            canvasSnaps.push({ type: "x", value: target.value });
-            break;
-          }
-          if (Math.abs(currentLeft - target.value) < SNAP_THRESHOLD) {
-            targetX = target.value - baseCx + hitW * originX;
-            canvasSnaps.push({ type: "x", value: target.value });
-            break;
-          }
-          if (Math.abs(currentRight - target.value) < SNAP_THRESHOLD) {
-            targetX = target.value - baseCx - hitW * (1 - originX);
-            canvasSnaps.push({ type: "x", value: target.value });
-            break;
-          }
-        }
-        for (const target of snapTargetsY) {
-          if (Math.abs(currentCy - target.value) < SNAP_THRESHOLD) {
-            targetY = target.value - baseCy;
-            canvasSnaps.push({ type: "y", value: target.value });
-            break;
-          }
-          if (Math.abs(currentTop - target.value) < SNAP_THRESHOLD) {
-            targetY = target.value - baseCy + hitH * originY;
-            canvasSnaps.push({ type: "y", value: target.value });
-            break;
-          }
-          if (Math.abs(currentBottom - target.value) < SNAP_THRESHOLD) {
-            targetY = target.value - baseCy - hitH * (1 - originY);
-            canvasSnaps.push({ type: "y", value: target.value });
-            break;
-          }
-        }
+        const snapped = snapDragTarget(
+          bbox,
+          timelineClip.settings as Record<string, unknown>,
+          targetX,
+          targetY,
+          state.staticSnapTargetsX || [],
+          state.staticSnapTargetsY || [],
+        );
+        targetX = snapped.x;
+        targetY = snapped.y;
+        canvasSnaps = snapped.snaps;
       }
     }
 
@@ -551,7 +521,7 @@ export const handleCanvasDragEnd = () => {
   });
 };
 
-/** Draw snap guides + selection transform box (mirror src_old/lib/render.ts). */
+/** Draw snap guides + selection transform box. */
 export function drawCanvasOverlays(
   ctx: CanvasRenderingContext2D,
   w?: number,

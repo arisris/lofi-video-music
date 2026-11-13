@@ -1,4 +1,4 @@
-// Media element + blob URL clone/revoke — adapted from src_old/utils/helpers.ts
+// Media element + blob URL clone/revoke
 // (getMediaUrls/cloneMediaElement/cloneVids/revokeClipUrls) to the new store
 // (clips + snapshot videoClips/thumbClips + mediaPool).
 import type { TimelineClip } from "../types/clip";

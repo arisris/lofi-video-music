@@ -11,6 +11,7 @@
 // the vanishing point.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { TAU_GLSL, glowField, rainbowField, mainColorField, opacityField } from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -32,7 +33,7 @@ uniform float u_rainbow;
 uniform vec3  u_color;
 uniform vec4  u_background;
 
-const float TAU = 6.2831853;
+${TAU_GLSL}
 
 vec3 hsl2rgb(vec3 hsl) {
   float h = hsl.x, s = hsl.y, l = hsl.z;
@@ -159,20 +160,11 @@ export const TunnelVisualizer: VisualizerDef = {
       max: 12,
       step: 1,
     },
-    { kind: "slider", key: "glow", label: "Glow", min: 0, max: 2, step: 0.05 },
-    { kind: "toggle", key: "rainbow", label: "Rainbow Mode" },
-    { kind: "color", key: "color", label: "Main Color" },
+    glowField(),
+    rainbowField(),
+    mainColorField(),
     { kind: "color", key: "background", label: "Background", alpha: true },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    opacityField(),
   ],
   // A full-frame background.
   bbox: (w: number, h: number) => ({ x: 0, y: 0, width: w, height: h }),

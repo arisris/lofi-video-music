@@ -347,6 +347,33 @@ export function resolveActiveLineIndex(
 }
 
 /**
+ * Karaoke-hold index: the latest-started non-empty line at or before
+ * trackTime, or -1 when nothing has started yet.
+ *
+ * Unlike resolveActiveLineIndex this never blanks inside gaps, on empty
+ * markers, or after the last explicit end — once the first line starts the
+ * stack stays on screen. Before the first start it returns -1 so nothing
+ * shows early.
+ */
+export function resolveHeldLineIndex(
+  lines: LyricLine[] | undefined,
+  trackTime: number,
+): number {
+  if (!lines || lines.length === 0) return -1;
+  let held = -1;
+  let heldStart = Number.NEGATIVE_INFINITY;
+  for (let i = 0; i < lines.length; i++) {
+    const s = lines[i].start;
+    if (s === null || trackTime < s || !lines[i].text) continue;
+    if (s > heldStart || (s === heldStart && i > held)) {
+      held = i;
+      heldStart = s;
+    }
+  }
+  return held;
+}
+
+/**
  * Writes `start`, leaving the line where it is in the list.
  *
  * Deliberately unsorted. The list is the lyric in the order it was written, and
@@ -451,5 +478,3 @@ export function serializeLrc(data: LyricsData): string {
 
   return `${out.join("\n")}\n`;
 }
-
-export const EMPTY_LYRICS: LyricsData = { lines: [] };

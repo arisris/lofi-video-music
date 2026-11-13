@@ -1,4 +1,4 @@
-// Adapted from src_old/utils/helpers.ts generateThumbnail.
+// Thumbnail for an image or video element.
 export const generateThumbnail = (
   source: HTMLImageElement | HTMLVideoElement,
   isVideo = false,

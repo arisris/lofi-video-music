@@ -5,6 +5,7 @@
 // texture and reads as a pure light pattern, so the style is usable either way.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { TAU_GLSL, opacityField } from "../_core/shader";
 
 // The audio texture carries a peak-hold row as well as the live one, so every
 // sample names the row it wants. Leaving these at the midpoint would quietly
@@ -29,7 +30,7 @@ uniform float u_radius;
 uniform vec3  u_color;
 uniform vec4  u_background;
 
-const float TAU = 6.2831853;
+${TAU_GLSL}
 
 void main() {
   vec2 p = v_texCoord - 0.5;
@@ -138,16 +139,7 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
       label: "Image",
       hint: "Optional. Warps a picture; without one it renders as light only.",
     },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    opacityField(),
   ],
   // A radial visual wants a square box; the default lower-half strip leaves it
   // stretched, so this is the first definition to use the bbox hook.

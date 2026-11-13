@@ -1,4 +1,4 @@
-// Playlist clip inspector — mirrors src_old/components/clip-settings/playlist.tsx:
+// Playlist clip inspector
 // Max Tracks + Truncate, then typography/stroke/background + Transform.
 import { useClipSettings } from "../../../shared/hooks/useClipSettings";
 import { InspectorRoot } from "../../../shared/ui/InspectorRoot";

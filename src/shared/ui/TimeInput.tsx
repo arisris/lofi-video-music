@@ -27,10 +27,9 @@ export interface TimeInputProps {
 /**
  * Typeable time field in `mm:ss.xx`.
  *
- * Verbatim port of src_old/components/ui/time-input.tsx: raw second counts
- * are unreadable past one minute, and a plain ScrubInput shows exactly
- * that — this field formats the same number every LRC surface uses
- * and parses `mm:ss.xx`, `m:ss`, `ss.xx` or plain `ss` back.
+ * Raw second counts are unreadable past one minute, and a plain ScrubInput
+ * shows exactly that — this field formats the same number every LRC surface
+ * uses and parses `mm:ss.xx`, `m:ss`, `ss.xx` or plain `ss` back.
  */
 export const TimeInput = ({
   label,

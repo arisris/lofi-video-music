@@ -52,7 +52,7 @@ export function renderProjectFrame(
   );
 
   // Bottom layer: backgrounds first, sorted by ascending start so clips
-  // added later paint over during crossfades (mirrors src_old/lib/render.ts).
+  // added later paint over during crossfades.
   // Top layer: other occluders follow ARRAY ORDER (insertion order),
   // not start — so the most recently stacked clip is always on top
   // even when its start is earlier. Audio-only music is skipped.
@@ -63,7 +63,6 @@ export function renderProjectFrame(
       (c.settings.enabled as boolean | undefined) !== false,
   );
   // Overlap window ±0.5s so adjacent clips crossfade instead of hard-cutting
-  // (mirrors src_old/lib/render.ts).
   const isBgActive = (c: TimelineClip) =>
     time >= c.start - 0.5 && time <= c.start + c.duration + 0.5;
   const bgClips = allBgClips
@@ -102,8 +101,8 @@ export function renderProjectFrame(
     const baseOpacity =
       typeof clip.settings.opacity === "number" ? clip.settings.opacity : 1;
     // Full-canvas bbox so the x/y/scale/rotation transform applies around the
-    // frame centre (mirrors src_old/lib/render.ts drawWithTransform on the
-    // background pass). Animation stays inside def.draw; withClipTransform is
+    // frame centre (same convention as withClipTransform on the background
+    // pass). Animation stays inside def.draw; withClipTransform is
     // transform-only. The def keeps no getItemBoundingBox on purpose so the
     // clip never hijacks canvas hit-testing.
     const bgBbox = { x: 0, y: 0, width: w, height: h };
@@ -132,7 +131,6 @@ export function renderProjectFrame(
   }
 
   // Dim media backgrounds so upper layers stay readable
-  // (mirrors src_old/lib/render.ts: rgba(0,0,0,0.4)).
   if (hasBgMedia) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
     ctx.fillRect(0, 0, w, h);
@@ -178,7 +176,7 @@ export function renderProjectFrame(
     }
   }
 
-  // Global lyrics (production/src_old model: Qr): lines belong to the music clip
+  // Global lyrics (production model: Qr): lines belong to the music clip
   // currently playing, drawn with the global lyricsSettings style. The global
   // transform applies around the layout bbox (mirrors old drawWithTransform).
   {
@@ -218,7 +216,7 @@ export function renderProjectFrame(
   // Snap guides + selection transform box (editor only, not headless).
   if (opts.overlays !== false) drawCanvasOverlays(ctx, w, h);
   // Reset the context to identity so painters outside this frame
-  // don't inherit the backing-store scale (mirrors src_old/lib/render.ts).
+  // don't inherit the backing-store scale.
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 

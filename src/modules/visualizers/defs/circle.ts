@@ -9,6 +9,7 @@
 // the size down leaves room for the shadow without touching the spectrum.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { HSL_GLSL, TAU_GLSL, glowField, rainbowField, mainColorField, opacityField } from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -30,38 +31,9 @@ uniform float u_mode;
 uniform float u_rainbow;
 uniform vec3  u_color;
 
-const float TAU = 6.2831853;
+${TAU_GLSL}
 
-vec3 rgb2hsl(vec3 c) {
-  float mx = max(max(c.r, c.g), c.b);
-  float mn = min(min(c.r, c.g), c.b);
-  float h = 0.0, s = 0.0;
-  float l = (mx + mn) * 0.5;
-  float d = mx - mn;
-  if (d > 0.0001) {
-    s = l > 0.5 ? d / (2.0 - mx - mn) : d / (mx + mn);
-    if (mx == c.r) h = (c.g - c.b) / d + (c.g < c.b ? 6.0 : 0.0);
-    else if (mx == c.g) h = (c.b - c.r) / d + 2.0;
-    else h = (c.r - c.g) / d + 4.0;
-    h /= 6.0;
-  }
-  return vec3(h, s, l);
-}
-
-vec3 hsl2rgb(vec3 hsl) {
-  float h = hsl.x, s = hsl.y, l = hsl.z;
-  float c = (1.0 - abs(2.0 * l - 1.0)) * s;
-  float x = c * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
-  float m = l - c * 0.5;
-  vec3 rgb;
-  if (h < 1.0 / 6.0) rgb = vec3(c, x, 0.0);
-  else if (h < 2.0 / 6.0) rgb = vec3(x, c, 0.0);
-  else if (h < 3.0 / 6.0) rgb = vec3(0.0, c, x);
-  else if (h < 4.0 / 6.0) rgb = vec3(0.0, x, c);
-  else if (h < 5.0 / 6.0) rgb = vec3(x, 0.0, c);
-  else rgb = vec3(c, 0.0, x);
-  return rgb + m;
-}
+${HSL_GLSL}
 
 void main() {
   vec2 p = v_texCoord - 0.5;
@@ -212,7 +184,7 @@ export const CircleVisualizer: VisualizerDef = {
       max: 2,
       step: 0.005,
     },
-    { kind: "slider", key: "glow", label: "Glow", min: 0, max: 2, step: 0.05 },
+    glowField(),
     {
       kind: "slider",
       key: "pulse",
@@ -221,18 +193,9 @@ export const CircleVisualizer: VisualizerDef = {
       max: 2,
       step: 0.05,
     },
-    { kind: "toggle", key: "rainbow", label: "Rainbow Mode" },
-    { kind: "color", key: "color", label: "Main Color" },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    rainbowField(),
+    mainColorField(),
+    opacityField(),
   ],
   bbox: (w: number, h: number) => {
     const size = Math.min(w, h) * 0.9;

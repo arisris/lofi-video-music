@@ -1,6 +1,6 @@
 // Adapter: each VFX definition is registered as a ClipDefinition so it joins
-// the timeline (trim/move/enable over a time range) — mirrors src_old where
-// VFX were added via addClipToTimeline(vfx.id) and drawn in the timeline pass.
+// the timeline (trim/move/enable over a time range; added via
+// addClipToTimeline(vfx.id) and drawn in the timeline pass).
 // Per-clip-id persistent particle state (replaces `clip.drops` in the old code
 // and the global Map in the old VFX pass).
 import type { ClipDefinition } from "../../../shared/types/clip";

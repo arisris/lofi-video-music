@@ -8,6 +8,7 @@
 // on the shape around it.
 
 import { AUDIO_LIVE_V, AUDIO_PEAK_V, type VisualizerDef } from "../_core/types";
+import { TAU_GLSL, opacityField } from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -34,7 +35,7 @@ uniform float u_spikePulse;
 uniform vec3  u_glowColor;uniform vec4  u_fill;
 uniform vec4  u_background;
 
-const float TAU = 6.2831853;
+${TAU_GLSL}
 
 // Distance to a line segment, inflated by \`r\`. Cheaper than a triangle and
 // good enough for a soft ear.
@@ -368,16 +369,7 @@ export const AuraVisualizer: VisualizerDef = {
       label: "Image",
       hint: "Optional. Shown whole and clipped to the silhouette.",
     },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    opacityField(),
   ],
   // Radial, so it wants a square box - the same reasoning as the kaleidoscope.
   bbox: (w: number, h: number) => {

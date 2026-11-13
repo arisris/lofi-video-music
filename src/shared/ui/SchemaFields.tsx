@@ -1,7 +1,6 @@
 // Generic renderer for FieldSchema. Every clip inspector uses this,
 // so there is no more Slider/Scrub/Color triple-copy per clip.
-// Old references: src_old/components/clip-settings/fields.tsx,
-// src_old/components/clip-settings/shared.tsx, vfx-controls.tsx
+// Covers the old per-clip fields/shared/vfx-controls panels in one place.
 import type { FieldSchema } from "../types/clip";
 import { ColorInput } from "./ColorInput";
 import { ScrubInput } from "./ScrubInput";

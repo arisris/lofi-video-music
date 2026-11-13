@@ -37,10 +37,12 @@ export const LyricsPanel = () => {
   const route = useEditorStore((s) => s.route);
   const updateClipSettings = useEditorStore((s) => s.updateClipSettings);
   const select = useEditorStore((s) => s.select);
+  const stack = useEditorStore((s) => s.lyricsSettings.karaokeMode === true);
+  const updateLyricsSettings = useEditorStore((s) => s.updateLyricsSettings);
   const [inputTab, setInputTab] = useState<InputTab>("sync");
   const [targetId, setTargetId] = useState<string | null>(null);
 
-  // Production/src_old model: lyrics attach to a music clip (settings.lines),
+  // Production model: lyrics attach to a music clip (settings.lines),
   // one global layer follows the currently playing music. No lyrics layer.
   const targets = useMemo(() => clips.filter((c) => c.type === "music"), [clips]);
   const target = targets.find((c) => c.id === targetId) ?? targets[0] ?? null;
@@ -91,6 +93,14 @@ export const LyricsPanel = () => {
               radius="rounded-lg"
               wrapperClassName="min-w-0 flex-1"
             />
+            <Button
+              variant="icon"
+              size="sm"
+              title={stack ? "Display mode: Stack — click for Single line" : "Display mode: Single line — click for Stack"}
+              onClick={() => updateLyricsSettings({ karaokeMode: !stack })}
+            >
+              <i className={`${stack ? "icon-[ri--stack-line]" : "icon-[ri--align-center]"} h-4 w-4 ${stack ? "text-blue-400" : ""}`} />
+            </Button>
             <Button
               variant="icon"
               size="sm"

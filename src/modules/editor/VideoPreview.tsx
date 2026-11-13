@@ -75,7 +75,7 @@ export function VideoPreview() {
   });
 
   // Backing store follows orientation + resolution while recording, same
-  // as the legacy app (src_old/components/video-preview.tsx). Outside
+  // as the legacy app. Outside
   // recording the backing store is the preview design space.
   const { w: width, h: height } = isRecording
     ? recordSize(aspectRatio, recordResolution)
@@ -144,7 +144,7 @@ export function VideoPreview() {
       const st = useEditorStore.getState();
       const dt = (now - last) / 1000;
       if (st.playing) {
-        // Mirror src_old/lib/render.ts: audio is the master clock when the
+        // Audio is the master clock when the
         // active clip matches; otherwise advance with dt; stop at the total.
         const list = clipsForAudio();
         const activeClip = list.find(

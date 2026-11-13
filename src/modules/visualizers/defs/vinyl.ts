@@ -11,6 +11,7 @@
 // platter through it) and is drawn last, so it sits on top of the grooves.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { TAU_GLSL, opacityField } from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -34,7 +35,7 @@ uniform float u_tonearm;
 uniform vec3  u_color;
 uniform vec4  u_background;
 
-const float TAU = 6.2831853;
+${TAU_GLSL}
 const float RECORD = 0.46;
 
 // Distance to a line segment, inflated by r - the tonearm is one of these.
@@ -227,16 +228,7 @@ export const VinylVisualizer: VisualizerDef = {
       label: "Label image",
       hint: "Optional. Spins on the record's centre; without one the label uses the accent colour.",
     },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    opacityField(),
   ],
   // A platter is round, so it wants a square box.
   bbox: (w: number, h: number) => {

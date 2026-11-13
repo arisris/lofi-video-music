@@ -7,9 +7,10 @@ A browser-based editor for building lofi music videos: compose a timeline with m
 - **Runtime**: [Bun](https://bun.com)
 - **Build**: Vite 8 + Cloudflare Vite plugin
 - **UI**: React 19 + Tailwind CSS v4, canvas-based render loop
-- **State**: Zustand (single store in `src/store/`, slices per domain)
+- **State**: Zustand (single store in `src/store/`)
 - **Language**: TypeScript throughout (no JavaScript sources left)
 - **Backend**: Cloudflare Worker (`worker/index.ts`) proxying the Pexels and Pixabay APIs
+- **Projects**: export/import `.lofi.zip` bundles (`src/modules/project/`); validate with `bun run validate:project <bundle.lofi.zip>`
 
 ## Development
 

@@ -4,7 +4,7 @@ import { DEFAULT_TRANSFORM } from "../../../shared/lib/canvas-transform";
 import { drawBackground } from "../../../shared/lib/draw-bg";
 
 // Background: color/gradient + image/video (Ken Burns) — media settings
-// are filled via MediaPanel. See src_old/lib/clips/draw-bg.ts.
+// are filled via MediaPanel.
 export const backgroundClip: ClipDefinition = {
   type: "background",
   name: "Background",
@@ -37,7 +37,7 @@ export const backgroundClip: ClipDefinition = {
       drawBackground(settings.mediaElement as HTMLImageElement, w, h, localTime, opacity, 0, 1, settings as Record<string, unknown>, ctx);
     } else if (settings.mediaType === "video" && Array.isArray(settings.mediaElements) && (settings.mediaElements as unknown[])[0]) {
       // Seamless loop: ping-pong the element pair with a short crossfade at
-      // each loop seam (mirrors src_old/lib/render.ts). media-helper always
+      // each loop seam. media-helper always
       // provisions two elements; fall back to single when it didn't.
       const vids = settings.mediaElements as HTMLVideoElement[];
       const trackObj = settings as Record<string, unknown>;

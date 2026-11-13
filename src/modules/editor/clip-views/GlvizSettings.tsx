@@ -1,4 +1,4 @@
-// Glviz clip inspector — mirrors src_old/components/clip-settings/glviz.tsx:
+// Glviz clip inspector
 // style picker (replaces settings with the definition defaults, not a merge),
 // definition schema controls, then Transform + Animations.
 import { useClipSettings } from "../../../shared/hooks/useClipSettings";

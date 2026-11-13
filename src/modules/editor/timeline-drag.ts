@@ -1,4 +1,4 @@
-// Timeline drag & scrub — adapted from src_old/components/timeline/drag.ts
+// Timeline drag & scrub
 // to the new store (clips/tracks/snapLines, no bumpClips/redraw: zustand
 // re-renders directly). The only model difference: audio search
 // for snap uses the active route clips.

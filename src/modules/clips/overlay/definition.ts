@@ -8,7 +8,7 @@ interface GifFrame {
   delay: number;
 }
 
-// Image/gif/video overlay — adapted from src_old/lib/clips/overlay-clip.ts.
+// Image/gif/video overlay
 export const overlayClip: ClipDefinition = {
   type: "overlay",
   name: "Overlay",

@@ -1,6 +1,5 @@
 // Single generic registry for clips, vfx, and visualizers.
-// Replaces the 3 parallel registries in src_old:
-// lib/clips/registry.ts, lib/vfx/index.ts, lib/gl-viz/registry.ts
+// Replaces the 3 parallel per-domain registries (clips, vfx, visualizers).
 export interface RegistryEntry {
   type: string;
 }

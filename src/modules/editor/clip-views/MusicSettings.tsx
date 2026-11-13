@@ -1,4 +1,4 @@
-// Music clip inspector — mirrors src_old/components/clip-settings/music.tsx:
+// Music clip inspector
 // name, volume/speed/pan (applied live to the audio engine), 3-band EQ,
 // Apply to All Clips, and the duration/offset info box.
 import { useState } from "react";

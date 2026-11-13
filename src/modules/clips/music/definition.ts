@@ -1,6 +1,6 @@
 import type { ClipDefinition } from "../../../shared/types/clip";
 
-// Full settings adapted from src_old/components/clip-settings/music.tsx
+// Full music settings
 // (file picker + duration info follow in MusicSettingsView).
 export const musicClip: ClipDefinition = {
   type: "music",

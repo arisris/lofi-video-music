@@ -1,4 +1,4 @@
-// Overlay clip inspector — mirrors src_old/components/clip-settings/overlay.tsx:
+// Overlay clip inspector
 // replace media source, video loop (with duration lock), video speed,
 // opacity, then Transform + Animations.
 import { processMediaFile } from "../../media/media-helper";

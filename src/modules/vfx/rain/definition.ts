@@ -2,7 +2,7 @@ import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 import { BaseParticle, finiteSetting } from "../_core/base-particle";
 
-// Class adapted verbatim from src_old/lib/vfx/rain.ts (Drop).
+// Falling rain-drop particle.
 class Drop extends BaseParticle {
   length = 10;
   speed = 800;

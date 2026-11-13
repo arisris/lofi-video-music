@@ -1,6 +1,6 @@
 // Timeline: header Tracks, ruler, track rows, bottom Add Music + zoom.
 // Interactions (move/resize across tracks, snap, audio-synced scrub, wheel)
-// adapted from src_old/components/timeline/; drag state lives in timeline-drag.ts.
+// Timeline drag & scrub state lives in timeline-drag.ts.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatTime } from "../../shared/lib/format";
 import { revokeClipUrls } from "../../shared/lib/media-urls";

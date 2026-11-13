@@ -2,7 +2,7 @@ import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 import { BaseParticle, finiteSetting } from "../_core/base-particle";
 
-// Adapted verbatim from src_old/lib/vfx/snow.ts (Snowball).
+// Drifting snowball particle.
 class Snowball extends BaseParticle {
   radius = 3;
   speed = 80;

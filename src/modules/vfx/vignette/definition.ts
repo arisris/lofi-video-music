@@ -2,7 +2,7 @@ import { getAudioLevel } from "../../audio/audio-engine";
 import { hexToRGB } from "../../../shared/lib/format";
 import type { VfxDefinition } from "../_core/types";
 
-// Adapted from src_old/lib/vfx/vignette.ts.
+// Beat-reactive vignette.
 export const vignetteVfx: VfxDefinition = {
   type: "vignette",
   name: "Beat Vignette",

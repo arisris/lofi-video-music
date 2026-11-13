@@ -1,7 +1,7 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 
-// Adapted from src_old/lib/vfx/flash.ts (state moved from `clip` to `state`).
+// Lightning flash (per-clip state lives in VfxState).
 export const flashVfx: VfxDefinition = {
   type: "flash",
   name: "Lightning Flash",

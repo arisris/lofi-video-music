@@ -1,4 +1,4 @@
-// Global lyrics in the production/src_old model: lines owned by the active
+// Global lyrics in the production model: lines owned by the active
 // music clip, drawn as one global layer. Pure helper (no store) used by the
 // render loop and canvas drag so axis/selection always match.
 import type { TimelineClip } from "../../shared/types/clip";

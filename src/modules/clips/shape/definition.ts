@@ -3,7 +3,7 @@ import { applyClipAnimations } from "../../../shared/lib/animations";
 import { DEFAULT_TRANSFORM } from "../../../shared/lib/canvas-transform";
 import { getIconDataAsync, getIconImage } from "./icon-render";
 
-// Full vector shapes — adapted from src_old/lib/clips/shape-clip.ts
+// Full vector shapes
 // (rectangle/circle/triangle/star/polygon/heart/icon + gradient fill).
 function num(s: Record<string, unknown>, key: string, fallback: number): number {
   return typeof s[key] === "number" ? (s[key] as number) : fallback;

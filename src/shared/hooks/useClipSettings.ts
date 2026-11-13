@@ -1,6 +1,5 @@
 // The single way to read/write a clip instance's settings.
-// Guarantees immutable updates -> re-render. Old references:
-// src_old/store/actions/timeline-actions.ts, clip-settings.ts
+// Guarantees immutable updates -> re-render.
 import { useEditorStore } from "../../store/editor-store";
 
 export function useClipSettings(clipId: string) {

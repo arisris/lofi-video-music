@@ -1,5 +1,4 @@
 // Single domain type. No BBox/MediaItem duplicates.
-// Old references: src_old/types/clips.ts, src_old/lib/gl-viz/types.ts
 import type { JSX } from "react";
 
 export const CLIP_TYPES = [
@@ -13,7 +12,7 @@ export const CLIP_TYPES = [
   "playlist",
   "glviz",
   // Visual effects are timeline clips like any other clip
-  // (mirror src_old: addClipToTimeline(vfx.id)).
+  //).
   "rain",
   "rain_gpu",
   "snow",

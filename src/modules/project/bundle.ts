@@ -3,7 +3,6 @@ import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import type { ProjectV1 } from "./schema";
 import { isProjectV1 } from "./schema";
 
-export const BUNDLE_NAME = "project.lofi.zip";
 const PROJECT_ENTRY = "project.json";
 
 export function projectFileName(metaName: string): string {

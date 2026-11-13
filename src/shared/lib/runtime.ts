@@ -1,5 +1,4 @@
-// Browser runtime refs. Simplified from src_old/lib/runtime.ts:
-// all nullable, created lazily by the audio engine.
+// Browser runtime refs — all nullable, created lazily by the audio engine.
 export interface RuntimeRefs {
   audioCtx: AudioContext | null;
   analyser: AnalyserNode | null;

@@ -237,7 +237,7 @@ function linesOfClip(clipId: string): LyricLine[] {
 /**
  * Per-clip sync editor — timing by ear.
  *
- * Adapted from the Sync tab in src_old/components/lyrics-panel.tsx (old model
+ * Adapted from the old Sync tab (music-clip model;
  * attached to the music clip + global layer; new model: lines on the lyrics
  * clip itself). Music runs from the transport bar; the panel only records
  * moments: two taps per line (start, then end), and nothing ever calls

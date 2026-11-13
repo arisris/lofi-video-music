@@ -12,6 +12,7 @@
 // two texture taps, capped by the Points control.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { glowField, rainbowField, opacityField } from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -150,20 +151,11 @@ export const LissajousVisualizer: VisualizerDef = {
       step: 0.5,
       unit: "px",
     },
-    { kind: "slider", key: "glow", label: "Glow", min: 0, max: 2, step: 0.05 },
+    glowField(),
     { kind: "toggle", key: "grid", label: "Scope grid" },
-    { kind: "toggle", key: "rainbow", label: "Rainbow Mode" },
+    rainbowField(),
     { kind: "color", key: "color", label: "Trace Color" },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    opacityField(),
   ],
   // A scope is square.
   bbox: (w: number, h: number) => {

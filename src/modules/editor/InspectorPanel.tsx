@@ -105,12 +105,13 @@ function clipDisplayName(type: string, settings: Record<string, unknown>, fallba
  */
 function LyricsGlobalView() {
   const enabled = useEditorStore((s) => s.lyricsSettings.enabled !== false);
+  const stack = useEditorStore((s) => s.lyricsSettings.karaokeMode === true);
   const updateLyricsSettings = useEditorStore((s) => s.updateLyricsSettings);
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-neutral-900 p-5">
       <PanelHeader
         icon="icon-[ri--mic-line]"
-        name="Lyrics"
+        name={`Lyrics · ${stack ? "Stack" : "Single"}`}
         enabled={enabled}
         onToggle={() => updateLyricsSettings({ enabled: !enabled })}
       />
@@ -135,7 +136,7 @@ export function InspectorPanel() {
   }
   const def = clipRegistry.get(clip.type);
   const Custom = def?.SettingsView;
-  // 1:1 property panel of the legacy app (see src_old/components/clip-settings/).
+  // 1:1 property panel of the legacy app.
   // Text/title have dedicated views; everything else has one view per clip type.
   const TypeView =
     clip.type === "text"

@@ -2,7 +2,7 @@ import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 import { BaseParticle } from "../_core/base-particle";
 
-// Adapted verbatim from src_old/lib/vfx/smoke.ts (SmokeParticle).
+// Smoke puff particle.
 class SmokeParticle extends BaseParticle {
   size = 30;
   speed = 1;

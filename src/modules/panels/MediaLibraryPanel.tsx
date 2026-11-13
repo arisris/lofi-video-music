@@ -50,6 +50,177 @@ const stockRequest = (url: string, params: Record<string, unknown>): Promise<any
     },
   );
 
+/** Shared stock-tab search header (Pixabay + Pexels). */
+function StockSearchBar({
+  query,
+  placeholder,
+  showFilters,
+  onQueryChange,
+  onToggleFilters,
+  onSearch,
+}: {
+  query: string;
+  placeholder: string;
+  showFilters: boolean;
+  onQueryChange: (v: string) => void;
+  onToggleFilters: () => void;
+  onSearch: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative flex-1">
+        <input
+          type="text"
+          placeholder={placeholder}
+          className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 pl-8 text-[11px] text-neutral-300 outline-none focus:border-blue-500/50"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onSearch();
+            }
+          }}
+        />
+        <i className="absolute top-1/2 left-2.5 icon-[ri--search-line] -translate-y-1/2 text-neutral-500" />
+      </div>
+      <button
+        title="Toggle Filters"
+        className={`flex cursor-pointer items-center justify-center rounded-lg border p-1.5 transition-all ${showFilters ? "border-blue-500/30 bg-blue-600/20 text-blue-400" : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-neutral-200"}`}
+        onClick={onToggleFilters}
+      >
+        <i className="icon-[ri--filter-3-line] h-3.5 w-3.5" />
+      </button>
+      <button
+        className="flex cursor-pointer items-center gap-1 rounded-lg border border-transparent bg-blue-600 px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-colors hover:bg-blue-500"
+        onClick={onSearch}
+      >
+        <i className="icon-[ri--search-2-line] h-3 w-3" />
+        Search
+      </button>
+    </div>
+  );
+}
+
+/** Shared filter chip row (Type / Orientation / Duration). */
+function FilterChipRow<T extends string>({
+  label,
+  options,
+  value,
+  variant = "solid",
+  onPick,
+}: {
+  label: string;
+  options: ReadonlyArray<readonly [T, string]>;
+  value: T;
+  variant?: "solid" | "outline";
+  onPick: (v: T) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
+        {label}
+      </span>
+      <div className="border-neutral-850 flex rounded-lg border bg-neutral-950 p-0.5">
+        {options.map(([val, optLabel]) => (
+          <button
+            key={val}
+            className={
+              variant === "solid"
+                ? `cursor-pointer rounded-md px-2.5 py-1 text-[9px] font-bold transition-all ${value === val ? "bg-blue-600 text-white" : "text-neutral-500 hover:text-neutral-300"}`
+                : `cursor-pointer rounded-md px-1.5 py-1 text-[9px] font-bold transition-all ${value === val ? "border border-blue-500/20 bg-blue-600/20 text-blue-400" : "border border-transparent text-neutral-500 hover:text-neutral-300"}`
+            }
+            onClick={() => onPick(val)}
+          >
+            {optLabel}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Shared "add as background / overlay" hover buttons. */
+function TimelineAddButtons({
+  onBackground,
+  onOverlay,
+}: {
+  onBackground: () => void;
+  onOverlay: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <button
+        title="Add as Background"
+        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-all hover:scale-110 hover:bg-blue-500"
+        onClick={onBackground}
+      >
+        <i className="icon-[ri--image-line] h-4 w-4" />
+      </button>
+      <button
+        title="Add as Overlay"
+        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 text-neutral-200 shadow-lg transition-all hover:scale-110 hover:bg-neutral-700"
+        onClick={onOverlay}
+      >
+        <i className="icon-[ri--image-add-line] h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+/** Shared loading / error / load-more blocks for stock tabs. */
+function StockLoading({ text }: { text: string }) {
+  return (
+    <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-700/50 bg-neutral-800/30 p-4">
+      <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+      <span className="text-xs font-medium text-neutral-400">{text}</span>
+    </div>
+  );
+}
+
+function StockError({ message }: { message: string }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl border border-red-900/30 bg-red-950/20 p-4">
+      <i className="mt-0.5 icon-[ri--error-warning-line] h-4.5 w-4.5 text-red-500" />
+      <div>
+        <p className="text-[10px] font-bold tracking-wide text-red-400 uppercase">
+          Search Error
+        </p>
+        <p className="mt-0.5 text-[9px] leading-relaxed text-red-300/80">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+function StockLoadMore({
+  show,
+  loading,
+  onLoad,
+}: {
+  show: boolean;
+  loading: boolean;
+  onLoad: () => void;
+}) {
+  if (!show) return null;
+  return (
+    <div className="mt-4 flex items-center justify-center border-t border-neutral-800 pt-4">
+      <Button variant="ghost" disabled={loading} onClick={onLoad}>
+        {loading ? (
+          <>
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-neutral-400 border-t-transparent" />
+            Loading More...
+          </>
+        ) : (
+          <>
+            <i className="icon-[ri--arrow-down-s-line] h-3.5 w-3.5" />
+            Load More
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+
 interface PexelsPhoto {
   id: number;
   width: number;
@@ -633,20 +804,10 @@ export const MediaLibraryPanel = () => {
                         </span>
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center gap-2 bg-neutral-950/80 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          title="Add as Background"
-                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-all hover:scale-110 hover:bg-blue-500"
-                          onClick={() => addAssetToTimeline(asset, "background")}
-                        >
-                          <i className="icon-[ri--image-line] h-4 w-4" />
-                        </button>
-                        <button
-                          title="Add as Overlay"
-                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 text-neutral-200 shadow-lg transition-all hover:scale-110 hover:bg-neutral-700"
-                          onClick={() => addAssetToTimeline(asset, "overlay")}
-                        >
-                          <i className="icon-[ri--image-add-line] h-4 w-4" />
-                        </button>
+                        <TimelineAddButtons
+                          onBackground={() => addAssetToTimeline(asset, "background")}
+                          onOverlay={() => addAssetToTimeline(asset, "overlay")}
+                        />
                       </div>
                     </div>
                   );
@@ -658,92 +819,49 @@ export const MediaLibraryPanel = () => {
 
         {st.activeSubTab === "pixabay" && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder={`Search ${st.pixabayMediaType}s on Pixabay...`}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 pl-8 text-[11px] text-neutral-300 outline-none focus:border-blue-500/50"
-                  value={st.pixabayQuery || ""}
-                  onChange={(e) => apply({ pixabayQuery: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      searchPixabay(st.pixabayQuery);
-                    }
-                  }}
-                />
-                <i className="absolute top-1/2 left-2.5 icon-[ri--search-line] -translate-y-1/2 text-neutral-500" />
-              </div>
-              <button
-                title="Toggle Filters"
-                className={`flex cursor-pointer items-center justify-center rounded-lg border p-1.5 transition-all ${st.showPixabayFilters ? "border-blue-500/30 bg-blue-600/20 text-blue-400" : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-neutral-200"}`}
-                onClick={() => apply({ showPixabayFilters: !st.showPixabayFilters })}
-              >
-                <i className="icon-[ri--filter-3-line] h-3.5 w-3.5" />
-              </button>
-              <button
-                className="flex cursor-pointer items-center gap-1 rounded-lg border border-transparent bg-blue-600 px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-colors hover:bg-blue-500"
-                onClick={() => searchPixabay(st.pixabayQuery)}
-              >
-                <i className="icon-[ri--search-2-line] h-3 w-3" />
-                Search
-              </button>
-            </div>
+            <StockSearchBar
+              query={st.pixabayQuery || ""}
+              placeholder={`Search ${st.pixabayMediaType}s on Pixabay...`}
+              showFilters={st.showPixabayFilters}
+              onQueryChange={(v) => apply({ pixabayQuery: v })}
+              onToggleFilters={() => apply({ showPixabayFilters: !st.showPixabayFilters })}
+              onSearch={() => searchPixabay(st.pixabayQuery)}
+            />
 
             {st.showPixabayFilters && (
               <div className="animate-tab-fade-in mt-1.5 mb-1.5 space-y-3 rounded-xl border border-neutral-800/80 bg-neutral-900/60 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
-                    Type
-                  </span>
-                  <div className="border-neutral-850 scrollbar-none flex overflow-x-auto rounded-lg border bg-neutral-950 p-0.5">
-                    {(
-                      [
-                        ["video", "Video"],
-                        ["photo", "Photo"],
-                        ["illustration", "Illust"],
-                        ["vector", "Vector"],
-                      ] as const
-                    ).map(([val, label]) => (
-                      <button
-                        key={val}
-                        className={`cursor-pointer rounded-md px-2.5 py-1 text-[9px] font-bold transition-all ${st.pixabayMediaType === val ? "bg-blue-600 text-white" : "text-neutral-500 hover:text-neutral-300"}`}
-                        onClick={() => {
-                          apply({ pixabayMediaType: val });
-                          searchPixabay(st.pixabayQuery);
-                        }}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
-                    Orientation
-                  </span>
-                  <div className="border-neutral-850 flex rounded-lg border bg-neutral-950 p-0.5">
-                    {(
-                      [
-                        ["all", "Any"],
-                        ["landscape", "Horiz"],
-                        ["portrait", "Vert"],
-                      ] as const
-                    ).map(([val, label]) => (
-                      <button
-                        key={val}
-                        className={`cursor-pointer rounded-md px-1.5 py-1 text-[9px] font-bold transition-all ${st.pixabayOrientation === val ? "border border-blue-500/20 bg-blue-600/20 text-blue-400" : "border border-transparent text-neutral-500 hover:text-neutral-300"}`}
-                        onClick={() => {
-                          apply({ pixabayOrientation: val });
-                          searchPixabay(st.pixabayQuery);
-                        }}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <FilterChipRow
+                  label="Type"
+                  value={st.pixabayMediaType}
+                  options={
+                    [
+                      ["video", "Video"],
+                      ["photo", "Photo"],
+                      ["illustration", "Illust"],
+                      ["vector", "Vector"],
+                    ] as const
+                  }
+                  onPick={(val) => {
+                    apply({ pixabayMediaType: val });
+                    searchPixabay(st.pixabayQuery);
+                  }}
+                />
+                <FilterChipRow
+                  label="Orientation"
+                  variant="outline"
+                  value={st.pixabayOrientation}
+                  options={
+                    [
+                      ["all", "Any"],
+                      ["landscape", "Horiz"],
+                      ["portrait", "Vert"],
+                    ] as const
+                  }
+                  onPick={(val) => {
+                    apply({ pixabayOrientation: val });
+                    searchPixabay(st.pixabayQuery);
+                  }}
+                />
                 {st.pixabayMediaType !== "video" && (
                   <div className="border-neutral-855 flex items-center justify-between rounded-lg border bg-neutral-950/40 p-1">
                     <div className="flex flex-col pl-1">
@@ -771,25 +889,10 @@ export const MediaLibraryPanel = () => {
             )}
 
             {st.isSearchingPixabay && st.pixabayItems.length === 0 && (
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-700/50 bg-neutral-800/30 p-4">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                <span className="text-xs font-medium text-neutral-400">Searching Pixabay...</span>
-              </div>
+              <StockLoading text="Searching Pixabay..." />
             )}
 
-            {st.pixabayError && (
-              <div className="flex items-start gap-2.5 rounded-xl border border-red-900/30 bg-red-950/20 p-4">
-                <i className="mt-0.5 icon-[ri--error-warning-line] h-4.5 w-4.5 text-red-500" />
-                <div>
-                  <p className="text-[10px] font-bold tracking-wide text-red-400 uppercase">
-                    Search Error
-                  </p>
-                  <p className="mt-0.5 text-[9px] leading-relaxed text-red-300/80">
-                    {st.pixabayError}
-                  </p>
-                </div>
-              </div>
-            )}
+            {st.pixabayError && <StockError message={st.pixabayError} />}
 
             {(!st.isSearchingPixabay || st.pixabayItems.length > 0) && !st.pixabayError && (
               <>
@@ -866,22 +969,10 @@ export const MediaLibraryPanel = () => {
                               </div>
                             ) : (
                               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
-                                    title="Add as Background"
-                                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-all hover:scale-110 hover:bg-blue-500"
-                                    onClick={() => handlePixabayAdd(item, "background")}
-                                  >
-                                    <i className="icon-[ri--image-line] h-4 w-4" />
-                                  </button>
-                                  <button
-                                    title="Add as Overlay"
-                                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 text-neutral-200 shadow-lg transition-all hover:scale-110 hover:bg-neutral-700"
-                                    onClick={() => handlePixabayAdd(item, "overlay")}
-                                  >
-                                    <i className="icon-[ri--image-add-line] h-4 w-4" />
-                                  </button>
-                                </div>
+                                <TimelineAddButtons
+                                  onBackground={() => handlePixabayAdd(item, "background")}
+                                  onOverlay={() => handlePixabayAdd(item, "overlay")}
+                                />
                                 <a
                                   href={item.pageURL || "https://pixabay.com"}
                                   target="_blank"
@@ -897,27 +988,11 @@ export const MediaLibraryPanel = () => {
                         );
                       })}
                     </div>
-                    {(st.hasMorePixabay || st.pixabayItems.length > st.pixabayVisibleCount) && (
-                      <div className="mt-4 flex items-center justify-center border-t border-neutral-800 pt-4">
-                        <Button
-                          variant="ghost"
-                          disabled={st.isSearchingPixabay}
-                          onClick={loadMorePixabay}
-                        >
-                          {st.isSearchingPixabay ? (
-                            <>
-                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-neutral-400 border-t-transparent" />
-                              Loading More...
-                            </>
-                          ) : (
-                            <>
-                              <i className="icon-[ri--arrow-down-s-line] h-3.5 w-3.5" />
-                              Load More
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
+                    <StockLoadMore
+                      show={st.hasMorePixabay || st.pixabayItems.length > st.pixabayVisibleCount}
+                      loading={st.isSearchingPixabay}
+                      onLoad={loadMorePixabay}
+                    />
                   </div>
                 )}
               </>
@@ -927,140 +1002,72 @@ export const MediaLibraryPanel = () => {
 
         {st.activeSubTab === "pexels" && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder={`Search ${st.pexelsMediaType}s on Pexels...`}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 pl-8 text-[11px] text-neutral-300 outline-none focus:border-blue-500/50"
-                  value={st.pexelsQuery || ""}
-                  onChange={(e) => apply({ pexelsQuery: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      searchPexels(st.pexelsQuery);
-                    }
-                  }}
-                />
-                <i className="absolute top-1/2 left-2.5 icon-[ri--search-line] -translate-y-1/2 text-neutral-500" />
-              </div>
-              <button
-                title="Toggle Filters"
-                className={`flex cursor-pointer items-center justify-center rounded-lg border p-1.5 transition-all ${st.showPexelsFilters ? "border-blue-500/30 bg-blue-600/20 text-blue-400" : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-neutral-200"}`}
-                onClick={() => apply({ showPexelsFilters: !st.showPexelsFilters })}
-              >
-                <i className="icon-[ri--filter-3-line] h-3.5 w-3.5" />
-              </button>
-              <button
-                className="flex cursor-pointer items-center gap-1 rounded-lg border border-transparent bg-blue-600 px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-colors hover:bg-blue-500"
-                onClick={() => searchPexels(st.pexelsQuery)}
-              >
-                <i className="icon-[ri--search-2-line] h-3 w-3" />
-                Search
-              </button>
-            </div>
+            <StockSearchBar
+              query={st.pexelsQuery || ""}
+              placeholder={`Search ${st.pexelsMediaType}s on Pexels...`}
+              showFilters={st.showPexelsFilters}
+              onQueryChange={(v) => apply({ pexelsQuery: v })}
+              onToggleFilters={() => apply({ showPexelsFilters: !st.showPexelsFilters })}
+              onSearch={() => searchPexels(st.pexelsQuery)}
+            />
 
             {st.showPexelsFilters && (
               <div className="animate-tab-fade-in mt-1.5 mb-1.5 space-y-3 rounded-xl border border-neutral-800/80 bg-neutral-900/60 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
-                    Type
-                  </span>
-                  <div className="border-neutral-850 flex rounded-lg border bg-neutral-950 p-0.5">
-                    <button
-                      className={`cursor-pointer rounded-md px-2.5 py-1 text-[9px] font-bold transition-all ${st.pexelsMediaType === "video" ? "bg-blue-600 text-white" : "text-neutral-500 hover:text-neutral-300"}`}
-                      onClick={() => {
-                        apply({ pexelsMediaType: "video" });
-                        searchPexels(st.pexelsQuery);
-                      }}
-                    >
-                      Video
-                    </button>
-                    <button
-                      className={`cursor-pointer rounded-md px-2.5 py-1 text-[9px] font-bold transition-all ${st.pexelsMediaType === "photo" ? "bg-blue-600 text-white" : "text-neutral-500 hover:text-neutral-300"}`}
-                      onClick={() => {
-                        apply({ pexelsMediaType: "photo" });
-                        searchPexels(st.pexelsQuery);
-                      }}
-                    >
-                      Photo
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
-                    Orientation
-                  </span>
-                  <div className="border-neutral-850 flex rounded-lg border bg-neutral-950 p-0.5">
-                    {(
+                <FilterChipRow
+                  label="Type"
+                  value={st.pexelsMediaType}
+                  options={
+                    [
+                      ["video", "Video"],
+                      ["photo", "Photo"],
+                    ] as const
+                  }
+                  onPick={(val) => {
+                    apply({ pexelsMediaType: val });
+                    searchPexels(st.pexelsQuery);
+                  }}
+                />
+                <FilterChipRow
+                  label="Orientation"
+                  variant="outline"
+                  value={st.pexelsOrientation}
+                  options={
+                    [
+                      ["all", "Any"],
+                      ["landscape", "Horiz"],
+                      ["portrait", "Vert"],
+                      ["square", "Sq"],
+                    ] as const
+                  }
+                  onPick={(val) => {
+                    apply({ pexelsOrientation: val });
+                    searchPexels(st.pexelsQuery);
+                  }}
+                />
+                {st.pexelsMediaType === "video" && (
+                  <FilterChipRow
+                    label="Duration"
+                    variant="outline"
+                    value={st.pexelsDuration as "all" | "short" | "medium" | "long"}
+                    options={
                       [
                         ["all", "Any"],
-                        ["landscape", "Horiz"],
-                        ["portrait", "Vert"],
-                        ["square", "Sq"],
+                        ["short", "< 15s"],
+                        ["medium", "15-30s"],
+                        ["long", "> 30s"],
                       ] as const
-                    ).map(([val, label]) => (
-                      <button
-                        key={val}
-                        className={`cursor-pointer rounded-md px-1.5 py-1 text-[9px] font-bold transition-all ${st.pexelsOrientation === val ? "border border-blue-500/20 bg-blue-600/20 text-blue-400" : "border border-transparent text-neutral-500 hover:text-neutral-300"}`}
-                        onClick={() => {
-                          apply({ pexelsOrientation: val });
-                          searchPexels(st.pexelsQuery);
-                        }}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {st.pexelsMediaType === "video" && (
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
-                      Duration
-                    </span>
-                    <div className="border-neutral-850 flex rounded-lg border bg-neutral-950 p-0.5">
-                      {(
-                        [
-                          ["all", "Any"],
-                          ["short", "< 15s"],
-                          ["medium", "15-30s"],
-                          ["long", "> 30s"],
-                        ] as const
-                      ).map(([val, label]) => (
-                        <button
-                          key={val}
-                          className={`cursor-pointer rounded-md px-1.5 py-1 text-[9px] font-bold transition-all ${st.pexelsDuration === val ? "border border-blue-500/20 bg-blue-600/20 text-blue-400" : "border border-transparent text-neutral-500 hover:text-neutral-300"}`}
-                          onClick={() => apply({ pexelsDuration: val })}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                    }
+                    onPick={(val) => apply({ pexelsDuration: val })}
+                  />
                 )}
               </div>
             )}
 
             {st.isSearchingPexels && st.pexelsPhotos.length === 0 && st.pexelsVideos.length === 0 && (
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-700/50 bg-neutral-800/30 p-4">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                <span className="text-xs font-medium text-neutral-400">{`Searching Pexels ${st.pexelsMediaType}s...`}</span>
-              </div>
+              <StockLoading text={`Searching Pexels ${st.pexelsMediaType}s...`} />
             )}
 
-            {st.pexelsError && (
-              <div className="flex items-start gap-2.5 rounded-xl border border-red-900/30 bg-red-950/20 p-4">
-                <i className="mt-0.5 icon-[ri--error-warning-line] h-4.5 w-4.5 text-red-500" />
-                <div>
-                  <p className="text-[10px] font-bold tracking-wide text-red-400 uppercase">
-                    Search Error
-                  </p>
-                  <p className="mt-0.5 text-[9px] leading-relaxed text-red-300/80">
-                    {st.pexelsError}
-                  </p>
-                </div>
-              </div>
-            )}
+            {st.pexelsError && <StockError message={st.pexelsError} />}
 
             {(pexelsItems.length > 0 || !st.isSearchingPexels) && !st.pexelsError && (
               <>
@@ -1120,22 +1127,10 @@ export const MediaLibraryPanel = () => {
                               </div>
                             ) : (
                               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
-                                    title="Add as Background"
-                                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-all hover:scale-110 hover:bg-blue-500"
-                                    onClick={() => handlePexelsAdd(item, "background")}
-                                  >
-                                    <i className="icon-[ri--image-line] h-4 w-4" />
-                                  </button>
-                                  <button
-                                    title="Add as Overlay"
-                                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 text-neutral-200 shadow-lg transition-all hover:scale-110 hover:bg-neutral-700"
-                                    onClick={() => handlePexelsAdd(item, "overlay")}
-                                  >
-                                    <i className="icon-[ri--image-add-line] h-4 w-4" />
-                                  </button>
-                                </div>
+                                <TimelineAddButtons
+                                  onBackground={() => handlePexelsAdd(item, "background")}
+                                  onOverlay={() => handlePexelsAdd(item, "overlay")}
+                                />
                                 <span className="pointer-events-auto flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[9px] font-semibold text-neutral-400">
                                   <i className="icon-[ri--external-link-line] h-2.5 w-2.5" />
                                   {`By ${artist || "Pexels"}`}
@@ -1146,27 +1141,11 @@ export const MediaLibraryPanel = () => {
                         );
                       })}
                     </div>
-                    {(st.hasMorePexels || pexelsItems.length > st.pexelsVisibleCount) && (
-                      <div className="mt-4 flex items-center justify-center border-t border-neutral-800 pt-4">
-                        <Button
-                          variant="ghost"
-                          disabled={st.isSearchingPexels}
-                          onClick={loadMorePexels}
-                        >
-                          {st.isSearchingPexels ? (
-                            <>
-                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-neutral-400 border-t-transparent" />
-                              Loading More...
-                            </>
-                          ) : (
-                            <>
-                              <i className="icon-[ri--arrow-down-s-line] h-3.5 w-3.5" />
-                              Load More
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
+                    <StockLoadMore
+                      show={st.hasMorePexels || pexelsItems.length > st.pexelsVisibleCount}
+                      loading={st.isSearchingPexels}
+                      onLoad={loadMorePexels}
+                    />
                   </div>
                 )}
               </>

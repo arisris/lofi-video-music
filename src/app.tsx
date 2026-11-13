@@ -43,7 +43,7 @@ const AppContent = () => {
     useEditorStore.getState().swapRoute(toEditorRoute(location));
   }, [location]);
 
-  // Global canvas drag listener (mirrors src_old/app.tsx): window-level move/up
+  // Global canvas drag listener: window-level move/up
   // so a drag survives even when the pointer leaves the canvas.
   useEffect(() => {
     const touchMoveOptions: AddEventListenerOptions = { passive: false };

@@ -2,7 +2,7 @@ import type { TimelineClip } from "../../shared/types/clip";
 import { useEditorStore } from "../../store/editor-store";
 
 /**
- * Syncs <video> elements to the timeline — mirrors src_old/lib/video-playback.ts.
+ * Syncs <video> elements to the timeline
  * Looping clips ping-pong two elements with a short crossfade at each loop
  * seam; the draw side (background definition) blends the pair the same way.
  * Video elements are stored in settings[elementsKey] by the media module.

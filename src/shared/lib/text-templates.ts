@@ -239,39 +239,3 @@ export const TEXT_TEMPLATES: TextTemplate[] = [
       "font-family: 'Playfair Display', serif; color: #fbbf24; -webkit-text-stroke: 0.5px #78350f; font-weight: bold; text-shadow: 0 0 5px rgba(251, 191, 36, 0.3);",
   },
 ];
-
-/**
- * Fallbacks for every style key a template is allowed to set.
- *
- * Applying a template has to replace the style, not layer onto whatever was
- * there before, or the same template renders differently depending on what it
- * followed. The old code merged only the keys the new template happened to
- * carry, so switching from a badge back to a plain style had no `bgColor` to
- * overwrite the badge's background with and the badge colour came along for
- * the ride. These defaults are what clears those leftovers.
- */
-const TEMPLATE_STYLE_BASE = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: 48,
-  fontWeight: "bold",
-  textColor: "#ffffff",
-  strokeColor: "#000000",
-  strokeWidth: 0,
-  shadowColor: "rgba(0,0,0,0.8)",
-  shadowBlur: 0,
-  shadowOffsetX: 0,
-  shadowOffsetY: 0,
-  bgColor: "transparent",
-  bgPadding: 10,
-  bgRadius: 8,
-} as const;
-
-/**
- * A template's complete style patch - every key it can touch, with the demo
- * copy removed. Text clips keep `content`; the lyrics layer has no content of
- * its own.
- */
-export const templateStyle = (template: TextTemplate) => {
-  const { content: _content, ...style } = template.settings;
-  return { ...TEMPLATE_STYLE_BASE, ...style };
-};

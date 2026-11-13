@@ -1,4 +1,4 @@
-// Background clip inspector — mirrors src_old/components/clip-settings/background.tsx:
+// Background clip inspector
 // Ken Burns, thumbnail-mode warning, video speed, then Transform +
 // Animations. Color/style/opacity controls live in the generic schema and only
 // apply when there is no media (solid/gradient color mode).

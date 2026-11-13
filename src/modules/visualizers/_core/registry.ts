@@ -18,8 +18,6 @@ export const getVisualizerDef = (id: string): VisualizerDef | undefined =>
 
 export const listVisualizerDefs = (): VisualizerDef[] => [...registry.values()];
 
-export const hasVisualizerDef = (id: string): boolean => registry.has(id);
-
 /**
  * Resolves a style id, falling back to the first registered definition.
  *

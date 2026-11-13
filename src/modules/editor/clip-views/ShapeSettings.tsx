@@ -1,4 +1,4 @@
-// Shape clip inspector — mirrors src_old/components/clip-settings/shape.tsx:
+// Shape clip inspector
 // shape type grid + conditional params, solid/gradient fill, dimensions,
 // stroke & shadow + opacity, then Transform + Animations (animations hidden
 // on the thumbnail route like the legacy app).

@@ -11,7 +11,7 @@ import { titleClip } from "./title/definition";
 import { vfxClipDefinitions } from "./vfx/definition";
 
 // Note: lyricsClip (./lyrics/definition) is NOT registered as a timeline
-// clip — production/src_old model: lyrics attach to the music clip and draw as
+// clip — production model: lyrics attach to the music clip and draw as
 // one global layer (render-loop). The definition is used directly for draw/bbox.
 
 export const clipRegistry = createRegistry<ClipDefinition>();

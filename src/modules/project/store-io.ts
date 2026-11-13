@@ -45,28 +45,7 @@ export async function exportProjectBundle(name?: string): Promise<{ blob: Blob; 
   // Pure read: derive both routes' live clips without writing snapshots back
   // to the store (export must not mutate editor state).
   const fresh = useEditorStore.getState();
-  // Build the project using the correct live + snapshot clips per route.
-  const project = serializeProject({
-    metaName: name ?? fresh.projectName ?? "Untitled Project",
-    output: {
-      aspectRatio: fresh.aspectRatio,
-      recordResolution: fresh.recordResolution,
-      recordFps: fresh.recordFps,
-    },
-    tracks: fresh.tracks,
-    video: {
-      clips: [],
-      selectedClipId: fresh.route === "/" ? fresh.selectedClipId : (fresh.videoSel ?? null),
-    },
-    thumb: {
-      clips: [],
-      selectedClipId: fresh.route === "/image" ? fresh.selectedClipId : (fresh.thumbSel ?? null),
-    },
-    mediaPool: fresh.mediaPool,
-    videoClipsLive: fresh.route === "/" ? fresh.clips : (fresh.videoClips ?? []),
-    thumbClipsLive: fresh.route === "/image" ? fresh.clips : (fresh.thumbClips ?? []),
-    lyricsSettings: fresh.lyricsSettings,
-  });
+  const project = buildProjectFromStore(name);
   const byId = new Map(fresh.mediaPool.map((m) => [m.id, m.url]));
   const audioOf = (syntheticId: string): string | undefined => {
     const clipId = syntheticId.startsWith("__clip:") ? syntheticId.slice("__clip:".length) : syntheticId;
@@ -143,7 +122,7 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
     if (ref && clipAudio.has(ref)) clip.settings.audioUrl = clipAudio.get(ref);
     return clip;
   };
-  // Lyrics normalization (production/src_old model): lines attach to the music
+  // Lyrics normalization (production model): lines attach to the music
   // clip (new flat `settings.lines`, or legacy nested `settings.lyrics.lines`
   // with a startOffset axis) — flatten to clip-relative. Leftover lyrics
   // TIMELINE clips (layer era) merge into the most-overlapping music clip then

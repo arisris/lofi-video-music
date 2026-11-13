@@ -1,5 +1,4 @@
-// Audio engine — adapted from src_old/lib/audio.ts to the new store
-// (clips/currentTime/playing, no separate bumpClips/isAudioInit).
+// Audio engine (clips/currentTime/playing, no separate bumpClips/isAudioInit).
 import { getTotalDuration, useEditorStore } from "../../store/editor-store";
 import { ensureAudioElement, runtime } from "../../shared/lib/runtime";
 import type { TimelineClip } from "../../shared/types/clip";
@@ -81,20 +80,9 @@ export function applyAudioSettings(clip: { settings: Record<string, unknown> }) 
   runtime.panner?.pan.setValueAtTime(s.pan, t);
 }
 
-function activeMusicClip() {
-  const { clips, currentTime } = useEditorStore.getState();
-  return clips.find(
-    (c) =>
-      c.type === "music" &&
-      (c.settings.enabled as boolean | undefined) !== false &&
-      currentTime >= c.start &&
-      currentTime <= c.start + c.duration,
-  );
-}
-
 /**
  * Clips to search for audio. On the /image route, music still comes from the
- * video route snapshot — mirrors src_old getClipsToSearch.
+ * video route snapshot.
  */
 export function clipsForAudio(): TimelineClip[] {
   const { clips, route, videoClips } = useEditorStore.getState();
@@ -142,7 +130,7 @@ function clearPendingSeek(el: HTMLAudioElement, handler: () => void) {
 }
 
 /**
- * Move the playhead + sync <audio> — adapts src_old seekGlobal.
+ * Move the playhead + sync <audio> — adapts the legacy seekGlobal.
  * Swaps src when the active clip changes, sets the offset, play/pause follows state.
  */
 export function seekTo(time: number) {
@@ -259,20 +247,6 @@ export function pauseAudio() {
   useEditorStore.getState().setPlaying(false);
 }
 
-export function syncAudioToPlayhead() {
-  // Called on seek/scrub: shift <audio> to follow the active clip.
-  const audioEl = runtime.audioEl;
-  if (!audioEl || audioEl.paused) return;
-  const st = useEditorStore.getState();
-  const clip = activeMusicClip();
-  if (!clip || !clip.settings.audioUrl) { audioEl.pause(); return; }
-  const startOffset = typeof clip.settings.startOffset === "number" ? clip.settings.startOffset : 0;
-  const target = st.currentTime - clip.start + startOffset;
-  if (Math.abs(audioEl.currentTime - target) > 0.4) {
-    try { audioEl.currentTime = Math.max(0, target); } catch { /* noop */ }
-  }
-}
-
 export function skipToNextTrack() {
   const { clips, currentTime, playing } = useEditorStore.getState();
   const musics = clips
@@ -313,7 +287,7 @@ export function skipToPrevTrack() {
   }
 }
 
-/** 0..1 level for the visualizer. See src_old/utils/helpers.ts getAudioReactivity. */
+/** 0..1 level for the visualizer. */
 export function getAudioLevel(kind: "bass" | "mid" | "treble" | "volume" = "volume"): number {
   if (!runtime.analyser || !runtime.dataArray) return 0;
   if (!useEditorStore.getState().playing) return 0;

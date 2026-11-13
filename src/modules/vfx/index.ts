@@ -9,16 +9,11 @@ import { smokeVfx } from "./smoke/definition";
 import { snowVfx } from "./snow/definition";
 import { vignetteVfx } from "./vignette/definition";
 
-// rain-gpu (WebGL shader) follows — see src_old/lib/vfx/rain-gpu.ts (180 lines)
-// + src_old/lib/webgl-renderer.ts (257 lines).
+// rain-gpu is the WebGL-shader variant of the canvas-2D rain effect.
 export const vfxRegistry = createRegistry<VfxDefinition>();
 
 for (const def of [rainVfx, rainGpuVfx, snowVfx, smokeVfx, firefliesVfx, flashVfx, filmGrainVfx, vignetteVfx]) {
   vfxRegistry.register(def);
-}
-
-export function getVfxDef(type: string): VfxDefinition | undefined {
-  return vfxRegistry.get(type);
 }
 
 /** Per-effect tab/palette icon (used by VfxPanel + timeline blocks). */

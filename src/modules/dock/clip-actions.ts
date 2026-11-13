@@ -5,8 +5,8 @@ import { useEditorStore } from "../../store/editor-store";
 export function addClipOfType(type: string, overrides: Record<string, unknown> = {}) {
   const def = getClipDef(type);
   const st = useEditorStore.getState();
-  // Mirrors src_old/lib/clip-factory.ts: music→track-1, others follow the
-  // selected track except track-1 (redirected to track-2).
+  // music→track-1, others follow the selected track except
+  // track-1 (redirected to track-2).
   const selected = st.selectedTrackId;
   const trackId =
     type === "music"

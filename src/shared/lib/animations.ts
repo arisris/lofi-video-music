@@ -21,8 +21,8 @@ export const applyClipAnimations = (
   clipType: string | null = null,
 ) => {
   // Thumbnail route skips animations for every clip except VFX —
-  // mirroring src_old/lib/animations.ts (overlay/glviz panels still
-  // show this section in /image, but the engine does not apply it).
+  // the overlay/glviz panels still show this section in /image,
+  // but the engine does not apply it.
   const isThumbnailMode = editorStore.getState().route === "/image";
   if (isThumbnailMode) {
     const vfxTypes = [

@@ -1,4 +1,4 @@
-// Canvas+audio recorder — adapted from src_old/lib/recorder.ts.
+// Canvas+audio recorder
 // No canvasSnaps/bumpClips. "clip" mode: start from the beginning of the active music
 // clip under the playhead and auto-stop at the end of that clip.
 import { getDesignSize, recordSize } from "../../shared/lib/canvas-space";
@@ -35,7 +35,7 @@ export const startRecording = (mode?: "timeline" | "clip") => {
     alert("Recording is not supported in your browser.");
     return;
   }
-  // Clip mode (mirrors src_old/lib/recorder.ts): start from the beginning of the active
+  // Clip mode: start from the beginning of the active
   // music clip under the playhead and stop automatically at the end of that clip.
   let startAt = 0;
   let targetEnd: number | null = null;

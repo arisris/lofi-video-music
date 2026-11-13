@@ -16,6 +16,7 @@ App code is `src/**/*.ts(x)`; the Worker is `worker/index.ts` (Pexels/Pixabay pr
 - `bunx tsc --noEmit` — app (`tsconfig.json`)
 - `bunx tsc --noEmit -p worker/tsconfig.json` — Worker
 - `bunx tsc --noEmit -p tsconfig.node.json` — `vite.config.ts`
+- `bun run validate:project <bundle.lofi.zip>` — validate an exported project bundle (schema + assets)
 
 Run all three typechecks before calling a change done. No npm, no lint — don't invent them.
 
@@ -39,7 +40,7 @@ Always finish in this order:
 
 `browser_close()` alone only releases the _current page_; every other tab stays open, so leftovers accumulate. Closing the last tab tears the browser down — if step 3 then errors with `Target.createTarget: Failed to open a new tab`, the browser is already gone, which is the desired end state.
 
-## Architecture (rewrite 2026-11 — see `src_old/` for the legacy reference, git-ignored)
+## Architecture (rewrite 2026-11; `src_old/` remains on disk as a git-ignored legacy reference, no longer cited from source)
 
 Entry point: `src/app.tsx` — React shell, hash router (wouter `useHashLocation`),
 route swap via `swapRoute` (per-route snapshot in the store).
@@ -48,16 +49,17 @@ route swap via `swapRoute` (per-route snapshot in the store).
   - `shared/types/clip.ts` — single domain types (`ClipType`, `TimelineClip`, `FieldSchema`, `ClipDefinition`, `DrawContext`)
   - `shared/ui/` — `Card`, `ChoiceGrid`, `FieldLabel`/`SectionTitle`, `FontSelector`, `InspectorRoot`, `RangeInput`, `SliderControl`, `TextInput`, `Button`, `SegmentedTabs`, `SettingRow`/`TogglePill`, `EmptyState`, `Select`, `TimeInput`, `ToggleControl`, `ScrubInput`, `ColorInput`, `SchemaFields` + barrel `index.ts`
   - `shared/hooks/useClipSettings.ts` — the only settings writer for a clip instance (immutable)
-  - `shared/lib/` — `cn`, `canvas-space` (+`recordSize`), `format`, `thumbnail`, `runtime` (browser refs), `video-playback`, `draw-bg`, `webgl-renderer`, `emoji-render`, `fonts`, `transitions`, `animations`, `text-templates`, `icon-cache`
+  - `shared/lib/` — `animations`, `canvas-space` (+`recordSize`), `canvas-transform`, `draw-bg`, `emoji-render`, `fonts`, `format`, `icon-cache`, `media-urls`, `runtime` (browser refs), `text-templates`, `thumbnail`, `transitions`, `video-playback`, `webgl-renderer`
 - `src/modules/clips/_core/` — `registry.ts` (generic `createRegistry`), `factory.ts`
-- `src/modules/clips/<type>/definition.{ts,tsx}` — 1 folder per clip (text, title, shape, lyrics, background, overlay, music, playlist, glviz); adding a clip = 1 folder + 1 line in `src/modules/clips/index.ts`
+- `src/modules/clips/<type>/definition.{ts,tsx}` — 1 folder per clip (text, title, shape, lyrics, background, overlay, music, playlist, glviz, vfx adapter); adding a clip = 1 folder + 1 line in `src/modules/clips/index.ts`
+- `src/modules/project/` — `schema.ts`, `serialize.ts`, `rehydrate.ts`, `bundle.ts`, `store-io.ts` (project export/import)
 - `src/modules/vfx/` — `_core/{types,base-particle}` + 1 folder per effect (rain, rain-gpu, snow, smoke, fireflies, flash, film-grain, vignette); `index.ts` registry
-- `src/modules/visualizers/` — `_core/{types,registry,engine}` + `defs/` (11 shaders), `index.ts`, `VisualizerSettings.tsx` (field → control adapter)
-- `src/modules/{lyrics,audio,media,recorder}/` — pure `lyrics.ts` + `LyricsEditor.tsx` (the Sync panel uses it); `audio-engine.ts` (WebAudio 3-band EQ); `media-helper.ts` (gifuct) — media panel UI lives in `panels/`; `recorder.ts` (MediaRecorder)
-- `src/modules/dock/` — `MediaDock.tsx` (left icon rail w-14 + tab content: 1:1 copy of `src_old/components/media-pool.tsx`) + `clip-actions.ts` (add clip/VFX layer)
-- `src/modules/panels/` — each dock tab's content, 1:1 markup from `src_old/components/`: `MediaLibraryPanel` (+ uploads/pexels/pixabay/emoji), `TextPanel`, `ShapePanel`, `VfxPanel`, `GlobalSettingsPanel` (global settings), `LyricsPanel` (wraps `LyricsEditor`)
-- `src/modules/editor/` — `InspectorPanel` (right inspector: PanelHeader/DisabledBanner/EmptyState à la `clips-panel.tsx` + `SchemaFields` + `TextShapePresets`), `clip-views/` (one inspector view per clip type, incl. `TextSettings.tsx` with the shared Typography/Stroke/Transform/Animation sections), `Timeline` (visual copy of `timeline/index.tsx`: Tracks header, ruler, track rows, bottom Add Music + zoom), `TransportBar` (`PlaybackControls` + record dropdown), `VideoPreview` (`canvas#renderCanvas` + recording pill), `Resizer`, `RecordSettingsModal`
-- `src/store/editor-store.ts` — single zustand store: clips/video+thumb snapshots, vfxLayers, mediaPool, recording
+- `src/modules/visualizers/` — `_core/{types,registry,engine,shader}` + `defs/` (10 shaders), `index.ts`, `VisualizerSettings.tsx` (field → control adapter)
+- `src/modules/{lyrics,audio,media,recorder}/` — pure `lyrics.ts` + `active-track.ts` + `SyncEditor.tsx` (the Lyrics panel uses it); `audio-engine.ts` (WebAudio 3-band EQ); `media-helper.ts` (gifuct) — media panel UI lives in `panels/`; `recorder.ts` (MediaRecorder)
+- `src/modules/dock/` — `MediaDock.tsx` (left icon rail w-14 + tab content) + `clip-actions.ts` (add clip/VFX layer)
+- `src/modules/panels/` — each dock tab's content: `MediaLibraryPanel` (+ uploads/pexels/pixabay/emoji, shared `StockSearchBar`/`FilterChipRow`/`TimelineAddButtons`/`StockLoadMore`), `TextPanel`, `ShapePanel`, `VfxPanel`, `GlobalSettingsPanel` (project export/import), `LyricsPanel` (music-target picker + `SyncEditor` tabs)
+- `src/modules/editor/` — `InspectorPanel` (right inspector: global-lyrics branch + per-type views via `SchemaFields`), `clip-views/` (one inspector view per clip type, incl. `TextSettings.tsx` with the shared Typography/Stroke/Transform/Animation sections), `Timeline` (Tracks header, ruler, track rows, bottom Add Music + zoom), `TransportBar` (playback controls + record dropdown), `VideoPreview` (canvas + recording pill), `Resizer`, `RecordSettingsModal`, `ClipContextMenu`, `canvas-drag`/`timeline-drag` (pointer + scrub interaction)
+- `src/store/editor-store.ts` — single zustand store: clips + per-route snapshots (`videoClips`/`thumbClips`), mediaPool, recording
 - `src/engine/render-loop.ts` — canvas loop: active clips then global VFX (persistent per-layer particle state)
 - `src/data/` — static JSON (emoji, chars)
 
@@ -67,7 +69,7 @@ route swap via `swapRoute` (per-route snapshot in the store).
 
 ## Gotchas
 
-- **State updates must be immutable.** Nested in-place mutations (e.g. `clip.settings.x = 5`) do not re-render. Use `useClipSettings().set`, `updateClipSettings`, `moveClip`/`trimClip`, or `updateVfxSettings` from `src/store/editor-store.ts`. VFX particle stash lives in the per-layer `VfxState` passed to `draw`, never on the clip.
+- **State updates must be immutable.** Nested in-place mutations (e.g. `clip.settings.x = 5`) do not re-render. Use `useClipSettings().set`, `updateClipSettings`, or `moveClip`/`trimClip` from `src/store/editor-store.ts`. VFX particle stash lives in the per-layer `VfxState` passed to `draw`, never on the clip.
 - **Add clip/VFX/visualizer**: 1 `definition` folder + register in `index.ts` + (if needed) a `FieldSchema` schema. The inspector picks it up automatically via `SchemaFields` / `VisualizerSettings`.
 - **Tailwind v4**: `@plugin` directive syntax in `src/tailwind.css`; Iconify icons via `@iconify/tailwind4`.
 - **No local env file**: `.env` is gitignored. API keys are Worker env vars, not Vite env vars.

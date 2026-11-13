@@ -8,6 +8,7 @@
     "deploy": "bun run build && wrangler deploy",
     "check:tailwind": "bun scripts/check-tailwind.ts",
     "fix:tailwind": "bun scripts/check-tailwind.ts --fix",
+    "validate:project": "bun scripts/validate-project.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "rm -rf node_modules && bun i"

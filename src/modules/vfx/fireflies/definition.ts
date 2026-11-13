@@ -2,7 +2,7 @@ import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 import { BaseParticle, finiteSetting } from "../_core/base-particle";
 
-// Adapted verbatim from src_old/lib/vfx/fireflies.ts (Firefly).
+// Wandering firefly particle.
 class Firefly extends BaseParticle {
   radius = 2;
   speed = 0.5;

@@ -1,5 +1,4 @@
-// Iconify icon cache → canvas images. Adapted from
-// src_old/lib/clips/shape-clip.ts (getIconDataAsync/getIconImage).
+// Iconify icon cache → canvas images.
 import { getIconData } from "../../../shared/lib/icon-cache";
 
 const iconDataCache: Record<string, unknown> = {};

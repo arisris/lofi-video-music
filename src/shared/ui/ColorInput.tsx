@@ -1,11 +1,11 @@
 // Combined color picker / hex text field / alpha scrubber.
-// Verbatim port of src_old/components/ui/color-input.tsx; `onChange` is an
+// `onChange` is an
 // alias of `onUpdate` for new callers.
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { ScrubInput } from "./ScrubInput";
 
 export interface ColorInputProps {
-  label: string;
+  label: ReactNode;
   value?: string;
   onUpdate?: (value: string) => void;
   /** onUpdate alias (new API). */
@@ -92,7 +92,7 @@ export function ColorInput({ label, value, onUpdate, onChange }: ColorInputProps
           className={`h-full flex-1 border-none bg-transparent px-2 font-mono text-neutral-300 outline-none ${
             (value ?? "").length > 15 ? "text-[9px]" : "text-[10px]"
           }`}
-          key={`${label}-${value ?? ""}`}
+          key={`color-${value ?? ""}`}
           defaultValue={value || "#000000"}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}

@@ -31,7 +31,6 @@ export const loadGoogleFont = (fontFamily: string) => {
   link.href = `https://fonts.googleapis.com/css2?family=${fontUrlName}:wght@100;300;400;500;700;900&display=swap`;
 
   link.onload = () => {
-    console.log(`Font loaded: ${cleanName}`);
     // Canvas re-renders every frame, so no explicit UI poke is needed here.
   };
 

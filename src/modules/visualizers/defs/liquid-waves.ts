@@ -5,6 +5,7 @@
 // moves with the track instead of as a single oscillator.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
+import { rainbowField, mainColorField, opacityField } from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -242,17 +243,8 @@ export const LiquidWavesVisualizer: VisualizerDef = {
       max: 3,
       step: 0.05,
     },
-    { kind: "toggle", key: "rainbow", label: "Rainbow Mode" },
-    { kind: "color", key: "color", label: "Main Color" },
-    {
-      kind: "slider",
-      key: "opacity",
-      label: "Opacity",
-      min: 0,
-      max: 1,
-      step: 0.01,
-      scale: 100,
-      unit: "%",
-    },
+    rainbowField(),
+    mainColorField(),
+    opacityField(),
   ],
 };

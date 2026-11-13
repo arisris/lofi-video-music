@@ -6,7 +6,7 @@ import {
 } from "../../../shared/lib/emoji-render";
 import { useEditorStore } from "../../../store/editor-store";
 
-// Playlist overlay — adapted from src_old/lib/clips/playlist-clip.ts.
+// Playlist overlay
 // Reads music clips from the new store (no enabled/global clipSettings).
 function musicClips() {
   const { clips, currentTime } = useEditorStore.getState();

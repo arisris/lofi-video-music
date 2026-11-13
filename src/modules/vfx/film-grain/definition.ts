@@ -1,7 +1,6 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 
-// Adapted from src_old/lib/vfx/film-grain.ts.
 // Simplified glitch slice-shear (no getOutputScale): design-space sampling.
 export const filmGrainVfx: VfxDefinition = {
   type: "filmgrain",

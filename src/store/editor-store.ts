@@ -17,7 +17,7 @@ export interface SnapLine {
   trackIdx?: number;
 }
 
-/** max(60, ceil(maxEnd)) — mirrors src_old getTotalDuration. */
+/** max(60, ceil(maxEnd)) */
 export function getTotalDuration(clips: TimelineClip[]): number {
   if (!clips || clips.length === 0) return 60;
   const maxEnd = clips.reduce((m, c) => Math.max(m, c.start + c.duration), 0);
@@ -130,7 +130,7 @@ interface EditorState {
   selectedTrackId: string;
   snapLines: SnapLine[];
   setSnapLines: (lines: SnapLine[]) => void;
-  /** Canvas drag/transform status (mirrors src_old interaction slice). */
+  /** Canvas drag/transform status. */
   isDragging: boolean;
   startDragX: number;
   startDragY: number;
@@ -189,7 +189,7 @@ interface EditorState {
   setRecordingTime: (label: string) => void;
   setRecordOptions: (resolution: RecordResolution, fps: number) => void;
   setTime: (t: number) => void;
-  /** Global lyric style (production/src_old model: one global layer
+  /** Global lyric style (production model: one global layer
    * following the active music). */
   lyricsSettings: Record<string, unknown>;
   updateLyricsSettings: (patch: Record<string, unknown>) => void;
@@ -201,7 +201,7 @@ const DEFAULT_TRACKS: TimelineTrack[] = [
   { id: "track-2", name: "Track 2" },
 ];
 
-/** Initial sidebar width follows the viewport (mirrors src_old layout slice). */
+/** Initial sidebar width follows the viewport. */
 export function defaultPanelWidth(kind: "left" | "right"): number {
   const min = kind === "left" ? 300 : 320;
   if (typeof window === "undefined") return min;
@@ -278,6 +278,7 @@ export const DEFAULT_LYRICS_SETTINGS: Record<string, unknown> = {
   lineTransitionIn: "fade",
   lineTransitionOut: "fade",
   lineTransitionDuration: 0.3,
+  lineTransitionEnabled: true,
   strokeColor: "#000000",
   strokeWidth: 0,
   shadowColor: "rgba(0,0,0,0.8)",
@@ -288,7 +289,12 @@ export const DEFAULT_LYRICS_SETTINGS: Record<string, unknown> = {
   bgPadding: 10,
   bgRadius: 8,
   lineGap: 8,
+  // Stack neighbour counts (used only in stack mode; single shows one line).
+  // `contextLines` stays as the legacy fallback for older projects.
   contextLines: 0,
+  contextBefore: 1,
+  contextAfter: 1,
+  karaokeMode: false,
   offsetSeconds: 0,
   fallbackLineDuration: 4,
   unstampedAutoAdvance: false,

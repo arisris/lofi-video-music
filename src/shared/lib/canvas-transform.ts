@@ -1,6 +1,5 @@
-// Canvas transform geometry — port of src_old/utils/helpers.ts
-// (transformPoint/inverseTransformPoint) + the transform-only part of
-// src_old/lib/render.ts drawWithTransform (no animation; each clip
+// Canvas transform geometry (transformPoint/inverseTransformPoint) +
+// the transform-only part of drawWithTransform (no animation; each clip
 // still handles its own animation via applyClipAnimations).
 import type { ClipBBox } from "../types/clip";
 
@@ -103,7 +102,7 @@ export function withClipTransform(
   ctx.restore();
 }
 
-/** Default transform values (mirrors src_old DEFAULT_TRANSFORMS). */
+/** Default transform values. */
 export const DEFAULT_TRANSFORM = {
   x: 0,
   y: 0,
