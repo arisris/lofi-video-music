@@ -4,7 +4,7 @@ import {
   type UniformValue,
 } from "../../../shared/lib/webgl-renderer";
 import type { VfxDefinition } from "../_core/types";
-import { advanceClipClock } from "../_core/prng";
+import { effectClock } from "../_core/prng";
 
 // GPU rain shader
 let rainProgram: WebGLProgram | null = null;
@@ -154,7 +154,7 @@ export const rainGpuVfx: VfxDefinition = {
 
     // Clip-clock driven (not wall-clock): pause freezes the rain, scrub moves
     // it, and the same time always renders the same frame.
-    state.animTime = advanceClipClock(state, time);
+    state.animTime = effectClock(state, time, false);
 
     const intensity =
       typeof settings.intensity === "number" ? settings.intensity : 200;

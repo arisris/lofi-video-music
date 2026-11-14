@@ -1,7 +1,7 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 import { finiteSetting } from "../_core/base-particle";
-import { advanceClipClock, clipSeed, mulberry32 } from "../_core/prng";
+import { clipSeed, effectClock, mulberry32 } from "../_core/prng";
 
 // Drifting snowball. Stateless: parameters derive from (clipSeed, index),
 // positions from the clip clock — same time always renders the same frame.
@@ -97,14 +97,15 @@ export const snowVfx: VfxDefinition = {
         ),
       ),
     );
-    const seed = clipSeed(state);
+    const seed = clipSeed(state, settings);
     const balls = ballsFor(state, seed, intensity);
     const audioReactive = settings.audioReactive === true;
     const audioLevel = audioReactive ? getAudioLevel("volume") : 0;
-    const clock = advanceClipClock(
+    const clock = effectClock(
       state,
       time,
-      audioReactive ? 0.4 + audioLevel * 1.6 : 1,
+      audioReactive,
+      0.4 + audioLevel * 1.6,
     );
     const speedMult = finiteSetting(settings, "speed", 1.0);
     const sizeMult = finiteSetting(settings, "size", 1.0);

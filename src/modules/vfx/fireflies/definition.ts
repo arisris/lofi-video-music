@@ -2,7 +2,7 @@ import { getAudioLevel } from "../../audio/audio-engine";
 import { hexToRGB } from "../../../shared/lib/format";
 import type { VfxDefinition } from "../_core/types";
 import { finiteSetting } from "../_core/base-particle";
-import { advanceClipClock, clipSeed, mulberry32 } from "../_core/prng";
+import { clipSeed, effectClock, mulberry32 } from "../_core/prng";
 
 // Wandering firefly. Stateless: each fly follows a seeded two-sine wander
 // path (smooth, never teleports) driven by the clip clock — same time always
@@ -106,11 +106,11 @@ export const firefliesVfx: VfxDefinition = {
         ),
       ),
     );
-    const seed = clipSeed(state);
+    const seed = clipSeed(state, settings);
     const flies = fliesFor(state, seed, intensity);
     const audioReactive = settings.audioReactive === true;
     const audioLevel = audioReactive ? getAudioLevel("volume") : 0;
-    const clock = advanceClipClock(state, time);
+    const clock = effectClock(state, time, false);
     const speedMult = finiteSetting(settings, "speed", 1.0);
     const sizeMult = finiteSetting(settings, "size", 1.0);
     const master = finiteSetting(settings, "opacity", 1);

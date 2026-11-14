@@ -1,7 +1,7 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 import { finiteSetting } from "../_core/base-particle";
-import { advanceClipClock, clipSeed, mulberry32 } from "../_core/prng";
+import { clipSeed, effectClock, mulberry32 } from "../_core/prng";
 
 // Falling rain-drop. Stateless: every parameter derives from (clipSeed,
 // index), every position from the clip clock — the same time always renders
@@ -93,16 +93,17 @@ export const rainVfx: VfxDefinition = {
         ),
       ),
     );
-    const seed = clipSeed(state);
+    const seed = clipSeed(state, settings);
     const drops = dropsFor(state, seed, intensity);
     const audioReactive = settings.audioReactive === true;
     const audioLevel = audioReactive ? getAudioLevel("volume") : 0;
     // Beat-reactive fall speed warps the clock, so scrubbing/pause stay
     // stable (positions are still a pure function of the clock).
-    const clock = advanceClipClock(
+    const clock = effectClock(
       state,
       time,
-      audioReactive ? 0.4 + audioLevel * 1.6 : 1,
+      audioReactive,
+      0.4 + audioLevel * 1.6,
     );
     const speedMult = finiteSetting(settings, "speed", 1.0);
     const sizeMult = finiteSetting(settings, "size", 1.0);

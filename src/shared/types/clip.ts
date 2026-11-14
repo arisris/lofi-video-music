@@ -1,6 +1,19 @@
 // Single domain type. No BBox/MediaItem duplicates.
 import type { JSX } from "react";
 
+export const VFX_TYPES = [
+  "rain",
+  "rain_gpu",
+  "snow",
+  "smoke",
+  "fireflies",
+  "flash",
+  "filmgrain",
+  "vignette",
+] as const;
+
+export type VfxType = (typeof VFX_TYPES)[number];
+
 export const CLIP_TYPES = [
   "text",
   "shape",
@@ -13,14 +26,7 @@ export const CLIP_TYPES = [
   "glviz",
   // Visual effects are timeline clips like any other clip
   //).
-  "rain",
-  "rain_gpu",
-  "snow",
-  "smoke",
-  "fireflies",
-  "flash",
-  "filmgrain",
-  "vignette",
+  ...VFX_TYPES,
 ] as const;
 
 export type ClipType = (typeof CLIP_TYPES)[number];

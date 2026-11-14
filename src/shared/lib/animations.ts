@@ -1,4 +1,5 @@
 import { useEditorStore as editorStore } from "../../store/editor-store";
+import { VFX_TYPES } from "../../shared/types/clip";
 import { runtime } from "./runtime";
 import {
   CLIP_TRANSITION_SECONDS,
@@ -25,17 +26,7 @@ export const applyClipAnimations = (
   // but the engine does not apply it.
   const isThumbnailMode = editorStore.getState().route === "/image";
   if (isThumbnailMode) {
-    const vfxTypes = [
-      "rain",
-      "rain_gpu",
-      "smoke",
-      "flash",
-      "snow",
-      "fireflies",
-      "filmgrain",
-      "vignette",
-    ];
-    if (!clipType || !vfxTypes.includes(clipType)) {
+    if (!clipType || !(VFX_TYPES as readonly string[]).includes(clipType)) {
       return;
     }
   }

@@ -29,48 +29,46 @@ export const flashVfx: VfxDefinition = {
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    if (typeof state.opacity !== "number") state.opacity = 0;
-    if (typeof state.cooldown !== "number") state.cooldown = 0;
-    if (typeof state.lastT !== "number") state.lastT = time;
-    // Frame-rate independent decay (k = elapsed 60fps-frames).
-    const k = Math.min(Math.max((time - (state.lastT as number)) * 60, 0), 3);
-    state.lastT = time;
-    if ((state.cooldown as number) > 0)
-      state.cooldown = (state.cooldown as number) - k;
+    // Fully scrub-stable: the flash is a pure function of the frame index.
+    // A trigger stores its frame + peak; brightness decays linearly from
+    // there, so seeking anywhere (back or forth) renders the exact frame.
+    const frame = frameOf(time);
+    const t0 = typeof state.t0 === "number" ? state.t0 : -1e9;
+    const peak = typeof state.peak === "number" ? state.peak : 0;
+    const coolUntil = typeof state.coolUntil === "number" ? state.coolUntil : 0;
+    const age = frame - t0;
+    const resting = age < 0 || peak - 0.04 * age <= 0;
 
+    const frequency =
+      typeof settings.frequency === "number" ? settings.frequency : 0.5;
     if (settings.audioReactive) {
       const bass = getAudioLevel("bass");
-      const threshold =
-        0.85 -
-        (typeof settings.frequency === "number" ? settings.frequency : 0.5) *
-          0.35;
-      if (
-        bass > threshold &&
-        (state.opacity as number) <= 0 &&
-        (state.cooldown as number) <= 0
-      ) {
-        state.opacity = 0.2 + hash01(frameOf(time) * 104729 + 7) * 0.3;
-        state.cooldown = 30;
+      const threshold = 0.85 - frequency * 0.35;
+      if (bass > threshold && resting && frame >= coolUntil) {
+        state.t0 = frame;
+        state.peak = 0.2 + hash01(frame * 104729 + 7) * 0.3;
+        state.coolUntil = frame + 30;
       }
     } else if (
-      // Deterministic trigger: the same frame always flashes, so scrub and
-      // export are stable. Rate matches ~60fps playback of the old random
-      // check (0.002 * frequency * 5 per frame).
-      hash01(frameOf(time) * 7919 + 13) <
-        0.01 *
-          (typeof settings.frequency === "number" ? settings.frequency : 0.5) &&
-      (state.opacity as number) <= 0
+      // Deterministic trigger: the same frame always flashes. Rate matches
+      // ~60fps playback of the old random check (0.01 * frequency / frame).
+      hash01(frame * 7919 + 13) < 0.01 * frequency &&
+      resting
     ) {
-      state.opacity = 0.2 + hash01(frameOf(time) * 104729 + 7) * 0.3;
+      state.t0 = frame;
+      state.peak = 0.2 + hash01(frame * 104729 + 7) * 0.3;
     }
 
-    if ((state.opacity as number) > 0) {
+    const ft0 = typeof state.t0 === "number" ? state.t0 : -1e9;
+    const fpeak = typeof state.peak === "number" ? state.peak : 0;
+    const fage = frame - ft0;
+    const brightness = fage < 0 ? 0 : Math.max(0, fpeak - 0.04 * fage);
+    if (brightness > 0) {
       ctx.save();
       const master = finiteSetting(settings, "opacity", 1);
-      ctx.fillStyle = `rgba(255, 255, 255, ${(state.opacity as number) * master})`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${brightness * master})`;
       ctx.fillRect(0, 0, w, h);
       ctx.restore();
-      state.opacity = (state.opacity as number) - 0.04 * k;
     }
   },
 };

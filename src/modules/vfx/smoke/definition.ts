@@ -1,7 +1,7 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
 import { finiteSetting } from "../_core/base-particle";
-import { advanceClipClock, clipSeed, mulberry32 } from "../_core/prng";
+import { clipSeed, effectClock, mulberry32 } from "../_core/prng";
 
 // Smoke puff. Stateless: each puff cycles with its own period, its age a pure
 // function of the clip clock — same time always renders the same frame.
@@ -83,11 +83,11 @@ export const smokeVfx: VfxDefinition = {
         ),
       ),
     );
-    const seed = clipSeed(state);
+    const seed = clipSeed(state, settings);
     const puffs = puffsFor(state, seed, intensity);
     const audioReactive = settings.audioReactive === true;
     const audioLevel = audioReactive ? getAudioLevel("bass") : 0;
-    const frames = advanceClipClock(state, time) * 60;
+    const frames = effectClock(state, time, false) * 60;
     const master = finiteSetting(settings, "opacity", 1);
     if (master <= 0) return;
     const riseGain = 1 + audioLevel * 1.5;

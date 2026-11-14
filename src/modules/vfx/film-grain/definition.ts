@@ -51,10 +51,7 @@ export const filmGrainVfx: VfxDefinition = {
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    if (typeof state.lastT !== "number") state.lastT = time;
-    // Frame-rate independent timers (k = elapsed 60fps-frames).
-    const k = Math.min(Math.max((time - (state.lastT as number)) * 60, 0), 3);
-    state.lastT = time;
+    const frame = frameOf(time);
     if (!state.noise) {
       const nSize = 128;
       const noise = document.createElement("canvas");
@@ -92,7 +89,6 @@ export const filmGrainVfx: VfxDefinition = {
       ctx.globalAlpha = grain * master;
       const nSize = 128;
       // Deterministic dither: same frame, same offset (stable scrub/export).
-      const frame = frameOf(time);
       const ox = Math.floor(hash01(frame * 2 + 1) * nSize);
       const oy = Math.floor(hash01(frame * 2 + 2) * nSize);
       for (let x = -ox; x < w; x += nSize) {
@@ -102,64 +98,56 @@ export const filmGrainVfx: VfxDefinition = {
       }
       ctx.restore();
     }
-    if (typeof state.active !== "number") state.active = 0;
-    if (typeof state.cooldown !== "number") state.cooldown = 0;
-    if ((state.cooldown as number) > 0)
-      state.cooldown = (state.cooldown as number) - k;
-    if ((state.active as number) > 0)
-      state.active = (state.active as number) - k;
-
-    let trigger = false;
+    // Glitch windows are pure functions of the frame index: a trigger stores
+    // its start frame + length, so seeking anywhere renders the exact frame.
+    const gt0 = typeof state.t0 === "number" ? state.t0 : -1e9;
+    const gdur = typeof state.dur === "number" ? state.dur : 0;
+    const gcool = typeof state.coolUntil === "number" ? state.coolUntil : 0;
+    const gactive = frame >= gt0 && frame < gt0 + gdur;
     // Deterministic triggers: same frame, same glitch (stable scrub/export).
-    const gframe = frameOf(time);
     if (settings.audioReactive) {
       const bass = getAudioLevel("bass");
-      if (
-        bass > 0.68 &&
-        (state.active as number) <= 0 &&
-        (state.cooldown as number) <= 0
-      ) {
-        state.active = 3 + Math.floor(hash01(gframe * 3 + 11) * 5);
-        state.cooldown = 12;
+      if (bass > 0.68 && !gactive && frame >= gcool) {
+        state.t0 = frame;
+        state.dur = 3 + Math.floor(hash01(frame * 3 + 11) * 5);
+        state.coolUntil = frame + 12;
       }
-      if ((state.active as number) > 0) trigger = true;
     } else {
       const freq =
         typeof settings.glitchFrequency === "number"
           ? settings.glitchFrequency
           : 0.3;
-      if (
-        hash01(gframe * 5 + 7) < 0.015 * freq &&
-        (state.active as number) <= 0 &&
-        (state.cooldown as number) <= 0
-      ) {
-        state.active = 4 + Math.floor(hash01(gframe * 7 + 3) * 6);
-        state.cooldown = 25;
+      if (hash01(frame * 5 + 7) < 0.015 * freq && !gactive && frame >= gcool) {
+        state.t0 = frame;
+        state.dur = 4 + Math.floor(hash01(frame * 7 + 3) * 6);
+        state.coolUntil = frame + 25;
       }
-      if ((state.active as number) > 0) trigger = true;
     }
+    const ht0 = typeof state.t0 === "number" ? state.t0 : -1e9;
+    const hdur = typeof state.dur === "number" ? state.dur : 0;
+    const trigger = frame >= ht0 && frame < ht0 + hdur;
     if (trigger && master > 0) {
       ctx.save();
       ctx.globalAlpha *= master;
-      const slices = 4 + Math.floor(hash01(gframe * 11 + 5) * 5);
+      const slices = 4 + Math.floor(hash01(frame * 11 + 5) * 5);
       for (let i = 0; i < slices; i++) {
-        const sy = hash01(gframe * 13 + i * 101) * h;
-        const sh = 5 + hash01(gframe * 17 + i * 103) * 50;
+        const sy = hash01(frame * 13 + i * 101) * h;
+        const sh = 5 + hash01(frame * 17 + i * 103) * 50;
         const offset =
-          (hash01(gframe * 19 + i * 107) - 0.5) *
+          (hash01(frame * 19 + i * 107) - 0.5) *
           25 *
           (typeof settings.glitchFrequency === "number"
             ? settings.glitchFrequency
             : 0.3);
         ctx.drawImage(ctx.canvas, 0, sy, w, sh, offset, sy, w, sh);
       }
-      if (hash01(gframe * 23 + 9) < 0.4) {
+      if (hash01(frame * 23 + 9) < 0.4) {
         ctx.fillStyle = "rgba(0, 255, 255, 0.06)";
         ctx.fillRect(
           0,
-          hash01(gframe * 29 + 1) * h,
+          hash01(frame * 29 + 1) * h,
           w,
-          2 + hash01(gframe * 31 + 2) * 15,
+          2 + hash01(frame * 31 + 2) * 15,
         );
       }
       ctx.restore();

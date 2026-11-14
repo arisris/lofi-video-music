@@ -3,8 +3,8 @@
 // Particle motion must be a pure function of clip time so pause, scrub, and
 // headless export render the same frame for the same time. Math.random() in a
 // per-frame update breaks that; these helpers don't. Per-clip variety comes
-// from a seed stored in VfxState (stable within a session), per-particle
-// variety from the particle index.
+// from a factory-persisted seed in clip settings (stable across sessions),
+// per-particle variety from the particle index.
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -17,7 +17,16 @@ export function mulberry32(seed: number): () => number {
 }
 
 /** Stable per-clip seed — allocated once, then reused every frame. */
-export function clipSeed(state: Record<string, unknown>): number {
+export function clipSeed(
+  state: Record<string, unknown>,
+  settings?: Record<string, unknown>,
+): number {
+  // Factory-persisted seed first: same project, same arrangement, every
+  // session and every export. Old clips fall back to a session seed.
+  const persisted = settings?.seed;
+  if (typeof persisted === "number" && Number.isFinite(persisted)) {
+    return persisted;
+  }
   if (typeof state.seed !== "number") {
     state.seed = (Math.random() * 0x7fffffff) | 0;
   }
@@ -37,6 +46,27 @@ export function hash01(n: number): number {
 export function frameOf(time: number): number {
   if (!Number.isFinite(time)) return 0;
   return Math.max(0, Math.floor(time * 60));
+}
+
+/**
+ * Effect clock for motion positions.
+ *
+ * Non-reactive effects use clip-local time directly: every seek lands on the
+ * exact frame, and the first render is correct even when the user jumps
+ * straight into the middle of a clip. Reactive rate-warping (beat-reactive
+ * speed) is inherently live, so it keeps an accumulated warped clock —
+ * pause freezes it, scrub-back holds it, scrub-forward fast-forwards it.
+ */
+export function effectClock(
+  state: Record<string, unknown>,
+  time: number,
+  audioReactive: boolean,
+  warpRate = 1,
+): number {
+  if (!audioReactive) {
+    return Number.isFinite(time) ? Math.max(0, time) : 0;
+  }
+  return advanceClipClock(state, time, warpRate);
 }
 
 /**
