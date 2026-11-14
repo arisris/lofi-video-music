@@ -1,5 +1,6 @@
 import type { TimelineClip } from "../../shared/types/clip";
 import { useEditorStore } from "../../store/editor-store";
+import { resolveVideoLoop } from "./video-loop";
 
 /**
  * Syncs <video> elements to the timeline
@@ -16,7 +17,10 @@ export function manageVideoPlayback(
 ): void {
   const vids = clip.settings[elementsKey];
   if (!Array.isArray(vids) || vids.length === 0) return;
-  if (vids.some((v) => !v || typeof (v as HTMLVideoElement).pause !== "function")) return;
+  if (
+    vids.some((v) => !v || typeof (v as HTMLVideoElement).pause !== "function")
+  )
+    return;
 
   const elements = vids as HTMLVideoElement[];
   const isActive =
@@ -36,16 +40,20 @@ export function manageVideoPlayback(
     }
     return;
   }
-  const speed = typeof clip.settings.speed === "number" ? clip.settings.speed : 1;
+  const speed =
+    typeof clip.settings.speed === "number" ? clip.settings.speed : 1;
   for (const v of elements) {
     if (v.playbackRate !== speed) v.playbackRate = speed;
   }
-  const duration = typeof clip.settings.videoDuration === "number"
-    ? clip.settings.videoDuration as number
-    : elements[0].duration || 0;
+  const duration =
+    typeof clip.settings.videoDuration === "number"
+      ? (clip.settings.videoDuration as number)
+      : elements[0].duration || 0;
   if (!duration) return;
   const localTime = globalTime - clip.start;
-  const shouldLoop = alwaysLoop ? true : (clip.settings.loop as boolean | undefined) !== false;
+  const shouldLoop = alwaysLoop
+    ? true
+    : (clip.settings.loop as boolean | undefined) !== false;
   if (shouldLoop) manageLoopingPlayback(elements, localTime, duration, speed);
   else manageNonLoopingPlayback(elements, localTime, duration, speed);
 }
@@ -57,21 +65,17 @@ function manageLoopingPlayback(
   duration: number,
   speed: number,
 ): void {
-  const crossfadeDur = Math.min(1.5, duration / 4);
-  const period = duration - crossfadeDur;
-  if (period <= 0 || vids.length < 2) {
+  const blend = resolveVideoLoop(localTime, speed, duration, vids.length);
+  if (!blend) {
     manageNonLoopingPlayback(vids, localTime, duration, speed);
     return;
   }
-  const virtualTime = Math.max(0, localTime * speed);
-  const loopIndex = Math.floor(virtualTime / period);
-  const loopTime = virtualTime % period;
+  const { period, loopIndex, loopTime, inCrossfade } = blend;
 
-  const primaryVid = vids[loopIndex % 2];
-  const secondaryVid = vids[(loopIndex + 1) % 2];
+  const primaryVid = vids[loopIndex % vids.length];
+  const secondaryVid = vids[(loopIndex + 1) % vids.length];
   if (!primaryVid || !secondaryVid) return;
 
-  const inCrossfade = loopTime < crossfadeDur && loopIndex > 0;
   const primaryTargetTime = loopTime;
   const secondaryTargetTime = inCrossfade ? loopTime + period : 0;
   const isPlaying = useEditorStore.getState().playing;

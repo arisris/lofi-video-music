@@ -1,7 +1,6 @@
 // Background clip inspector
-// Ken Burns, thumbnail-mode warning, video speed, then Transform +
-// Animations. Color/style/opacity controls live in the generic schema and only
-// apply when there is no media (solid/gradient color mode).
+// Ken Burns (images only), video loop/speed, opacity, color fill for
+// solid/gradient mode, then Transform + Animations.
 import { useEditorStore } from "../../../store/editor-store";
 import { useClipSettings } from "../../../shared/hooks/useClipSettings";
 import { Button } from "../../../shared/ui/Button";
@@ -10,8 +9,8 @@ import { ColorInput } from "../../../shared/ui/ColorInput";
 import { FieldLabel } from "../../../shared/ui/FieldLabel";
 import { InspectorRoot } from "../../../shared/ui/InspectorRoot";
 import { RangeInput } from "../../../shared/ui/RangeInput";
-import { ScrubInput } from "../../../shared/ui/ScrubInput";
 import { SelectControl } from "../../../shared/ui/Select";
+import { SettingRow, TogglePill } from "../../../shared/ui/SettingRow";
 import { AnimationSettings, TransformSettings } from "./TextSettings";
 
 const KEN_BURNS_OPTIONS = [
@@ -32,28 +31,55 @@ function videosOf(values: Record<string, unknown>): HTMLVideoElement[] {
 
 export function BackgroundSettingsView({ clipId }: { clipId: string }) {
   const { values, set } = useClipSettings(clipId);
+  const updateClip = useEditorStore((s) => s.updateClip);
   const isThumbnailMode = useEditorStore((s) => s.route) === "/image";
-  const mediaType = typeof values.mediaType === "string" ? values.mediaType : "none";
+  const mediaType =
+    typeof values.mediaType === "string" ? values.mediaType : "none";
   const speed = typeof values.speed === "number" ? values.speed : 1.0;
+  const opacity = typeof values.opacity === "number" ? values.opacity : 1;
+  const loop = values.loop !== false;
 
   const setSpeed = (val: number) => {
     videosOf(values).forEach((v) => {
       v.playbackRate = val;
     });
     set("speed", val);
+    if (loop === false && typeof values.videoDuration === "number") {
+      updateClip(clipId, { duration: values.videoDuration / val });
+    }
+  };
+
+  const toggleLoop = () => {
+    const next = !loop;
+    set("loop", next);
+    // Lock the timeline duration to the video length when loop is turned off.
+    if (next === false && typeof values.videoDuration === "number") {
+      updateClip(clipId, { duration: values.videoDuration / (speed || 1.0) });
+    }
   };
 
   return (
     <InspectorRoot>
-      {!isThumbnailMode && (
+      {!isThumbnailMode && mediaType !== "video" && (
         <Card title="Motion / Ken Burns Effect">
           <SelectControl
-            value={typeof values.currentEffect === "string" ? values.currentEffect : "none"}
+            value={
+              typeof values.currentEffect === "string"
+                ? values.currentEffect
+                : "none"
+            }
             options={KEN_BURNS_OPTIONS}
             onChange={(v) => set("currentEffect", v)}
             size="md"
           />
         </Card>
+      )}
+
+      {!isThumbnailMode && mediaType === "video" && (
+        <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 p-3 text-[10px] font-bold tracking-wider text-neutral-500 uppercase">
+          <i className="icon-[ri--information-line] h-4 w-4 shrink-0" />
+          Ken Burns applies to images only — videos play as-is
+        </div>
       )}
 
       {isThumbnailMode && mediaType === "image" && (
@@ -64,23 +90,54 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
       )}
 
       {mediaType === "video" && (
-        <Card title="Video Speed" action={<span className="font-mono text-[10px] text-blue-400">{`${speed.toFixed(2)}x`}</span>}>
-          <div className="flex items-center gap-3">
-            <RangeInput
-              value={speed}
-              min={0.25}
-              max={4.0}
-              step={0.05}
-              onChange={(v) => setSpeed(v)}
-              ariaLabel="Video Speed"
-              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-800"
-            />
-            <Button variant="mini" onClick={() => setSpeed(1.0)}>
-              Reset
-            </Button>
+        <Card title="Video" spacing="sm">
+          <SettingRow
+            title="Loop Video"
+            description={
+              loop
+                ? "Loops continuously"
+                : "Locks timeline clip to video length"
+            }
+            control={<TogglePill value={loop} onToggle={toggleLoop} />}
+          />
+          <div className="mt-4">
+            <label className="mb-1.5 flex justify-between text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+              <span>Video Speed</span>
+              <span className="font-mono text-[10px] text-blue-400">{`${speed.toFixed(2)}x`}</span>
+            </label>
+            <div className="flex items-center gap-3">
+              <RangeInput
+                value={speed}
+                min={0.25}
+                max={4.0}
+                step={0.05}
+                onChange={(v) => setSpeed(v)}
+                ariaLabel="Video Speed"
+                className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-800"
+              />
+              <Button variant="mini" onClick={() => setSpeed(1.0)}>
+                Reset
+              </Button>
+            </div>
           </div>
         </Card>
       )}
+
+      <Card title="Opacity" spacing="sm">
+        <label className="mb-2 flex justify-between text-xs text-neutral-400">
+          <span>Opacity</span>
+          <span className="text-neutral-500">{`${Math.round(opacity * 100)}%`}</span>
+        </label>
+        <RangeInput
+          value={opacity}
+          min={0}
+          max={1}
+          step={0.05}
+          onChange={(v) => set("opacity", v)}
+          ariaLabel="Opacity"
+          className="w-full"
+        />
+      </Card>
 
       {mediaType === "none" && (
         <Card title="Solid / Gradient Fill">
@@ -96,17 +153,6 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
             onChange={(v) => set("style", v)}
             size="sm"
           />
-          <div className="mt-3">
-            <FieldLabel>Opacity</FieldLabel>
-            <ScrubInput
-              label="O"
-              value={typeof values.opacity === "number" ? values.opacity : 1}
-              step={0.05}
-              min={0}
-              max={1}
-              onUpdate={(val) => set("opacity", val)}
-            />
-          </div>
         </Card>
       )}
 

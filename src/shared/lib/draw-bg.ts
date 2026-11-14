@@ -1,20 +1,20 @@
+export type BgMediaElement =
+  HTMLImageElement | HTMLVideoElement | HTMLCanvasElement;
 
 export const drawBackground = (
-  mediaEl: HTMLImageElement | HTMLVideoElement,
+  mediaEl: BgMediaElement,
   cw: number,
   ch: number,
   time: number,
   alpha: number,
-  xTransitionOffset: number,
-  scaleMult = 1.0,
   trackObj: Record<string, unknown> | null = null,
   ctx: CanvasRenderingContext2D,
 ) => {
   if (!mediaEl) return;
   if (!Number.isFinite(alpha)) return;
-  if (!Number.isFinite(scaleMult) || scaleMult <= 0) scaleMult = 1.0;
   ctx.save();
-  ctx.globalAlpha = alpha;
+  // Multiply so clip in/out transitions (applied by the caller) survive.
+  ctx.globalAlpha *= alpha;
 
   let scale = 1.0;
   let translateX = cw / 2;
@@ -28,7 +28,11 @@ export const drawBackground = (
     (trackObj as Record<string, unknown> | null)?.bgType;
   const isVideo = !!trackObj && bgKind === "video";
 
-  if (trackObj && (trackObj as Record<string, unknown>).currentEffect && !isVideo) {
+  if (
+    trackObj &&
+    (trackObj as Record<string, unknown>).currentEffect &&
+    !isVideo
+  ) {
     effect = (trackObj as Record<string, unknown>).currentEffect as string;
   }
 
@@ -57,21 +61,20 @@ export const drawBackground = (
     translateY += Math.cos(time * speed) * (ch * 0.05);
   }
 
-  scale *= scaleMult;
-  translateX += xTransitionOffset;
-
   if (trackObj) {
     translateX += (trackObj as Record<string, any>).bgOffsetX || 0;
     translateY += (trackObj as Record<string, any>).bgOffsetY || 0;
   }
 
   const isVideoEl = "videoWidth" in mediaEl;
+  const imgDims = mediaEl as Partial<HTMLImageElement>;
+  const canvasDims = mediaEl as Partial<HTMLCanvasElement>;
   const mediaWidth = isVideoEl
     ? (mediaEl as HTMLVideoElement).videoWidth
-    : (mediaEl as HTMLImageElement).naturalWidth;
+    : imgDims.naturalWidth || canvasDims.width || 0;
   const mediaHeight = isVideoEl
     ? (mediaEl as HTMLVideoElement).videoHeight
-    : (mediaEl as HTMLImageElement).naturalHeight;
+    : imgDims.naturalHeight || canvasDims.height || 0;
 
   if (!mediaWidth || !mediaHeight) {
     ctx.restore();
