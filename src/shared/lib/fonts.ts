@@ -32,6 +32,12 @@ export const loadGoogleFont = (fontFamily: string) => {
 
   link.onload = () => {
     // Canvas re-renders every frame, so no explicit UI poke is needed here.
+    try {
+      // Warm the canvas font cache so the first text frames use the real font.
+      void document.fonts?.load(`16px "${cleanName}"`).catch(() => {});
+    } catch {
+      /* noop */
+    }
   };
 
   document.head.appendChild(link);

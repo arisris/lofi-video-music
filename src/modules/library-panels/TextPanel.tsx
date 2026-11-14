@@ -5,7 +5,7 @@ import { TEXT_TEMPLATES, type TextTemplate } from "../../shared/lib/text-templat
 import { addClipOfType } from "../dock/clip-actions";
 
 const addTemplateText = (template: TextTemplate) => {
-  addClipOfType("text", { ...template.settings, content: "Tap to Edit" });
+  addClipOfType("text", { ...template.settings });
 };
 
 const addDefaultText = () => {

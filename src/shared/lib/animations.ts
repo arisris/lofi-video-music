@@ -85,8 +85,9 @@ export const applyClipAnimations = (
   if (offsetY !== 0) ctx.translate(0, offsetY * SLIDE_DISTANCE);
   if (scale !== 1) ctx.scale(scale, scale);
 
-  // 3. CONTINUOUS ANIMATIONS (Smooth 60fps using performance.now)
-  const time = performance.now() / 1000;
+  // 3. CONTINUOUS ANIMATIONS (deterministic: driven by clip localTime so
+  // pause, scrub, and headless export render the same frame for the same time).
+  const time = Number.isFinite(localTime) ? Math.max(0, localTime) : 0;
 
   // Calculate Audio Boost (if enabled)
   let audioBoost = 1.0;
@@ -106,9 +107,15 @@ export const applyClipAnimations = (
     const offsetY = Math.sin(time * Math.PI * 2 * 0.5) * 8 * audioBoost;
     ctx.translate(0, offsetY);
   } else if (effectType === "shake") {
-    const intensity = 3 * audioBoost;
-    const offsetX = (Math.random() - 0.5) * intensity;
-    const offsetY = (Math.random() - 0.5) * intensity;
+    // Deterministic pseudo-random from localTime (no Math.random: exports stay stable).
+    const fract = (v: number) => v - Math.floor(v);
+    const offsetX =
+      (fract(Math.sin(time * 127.1) * 43758.5453) - 0.5) * 2 * 3 * audioBoost;
+    const offsetY =
+      (fract(Math.sin(time * 311.7 + 17.3) * 12543.217) - 0.5) *
+      2 *
+      3 *
+      audioBoost;
     ctx.translate(offsetX, offsetY);
   } else if (effectType === "swing") {
     const rotation = Math.sin(time * Math.PI * 2 * 0.4) * 0.05 * audioBoost;

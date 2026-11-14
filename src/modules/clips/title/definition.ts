@@ -1,40 +1,48 @@
-import type { ClipDefinition } from "../../../shared/types/clip";
+import type { ClipDefinition, TimelineClip } from "../../../shared/types/clip";
 import { applyClipAnimations } from "../../../shared/lib/animations";
 import { DEFAULT_TRANSFORM } from "../../../shared/lib/canvas-transform";
-import { useEditorStore } from "../../../store/editor-store";
-import { clipsForAudio } from "../../audio/audio-engine";
 import { drawTextItem, getTextBoundingBox } from "../text/draw-text";
 
-// Legacy app mirror (global TitleClip): when autoTrackName is on, the drawn
-// text is the active music clip's name under the playhead; with no active music
-// nothing is drawn.
-/** Name of the active music clip under the playhead (null when none). */
-function activeMusicName(): string | null {
-  const st = useEditorStore.getState();
-  const t = st.currentTime;
-  const active = clipsForAudio().find(
+/** Active music clip name at a global time (pure: no store reads). */
+export function activeMusicNameIn(clips: TimelineClip[], globalTime: number): string | null {
+  const active = clips.find(
     (c) =>
       c.type === "music" &&
       (c.settings.enabled as boolean | undefined) !== false &&
-      t >= c.start &&
-      t <= c.start + c.duration,
+      globalTime >= c.start &&
+      globalTime <= c.start + c.duration,
   );
   if (!active) return null;
   const name = active.settings.name;
   return typeof name === "string" && name ? name : "Untitled Track";
 }
 
-/** Text to measure/draw: active track name when auto, else content. */
-function resolvedText(settings: Record<string, unknown>): string | null {
+/** Text to draw/measure: active track name when auto, else manual content. */
+export function resolveTitleText(
+  settings: Record<string, unknown>,
+  clips: TimelineClip[],
+  globalTime: number,
+): string | null {
   const auto = (settings.autoTrackName as boolean | undefined) !== false;
   if (!auto) return typeof settings.content === "string" ? settings.content : "";
-  return activeMusicName();
+  return activeMusicNameIn(clips, globalTime);
 }
 
-// Title uses the same text renderer with larger/bolder defaults.
-// Legacy app mirror (global TitleClip): when autoTrackName is on, the drawn
-// text is the active music clip's name under the playhead; with no active music
-// nothing is drawn.
+/** Merge resolved title text into settings so draw/bbox stay pure. */
+export function titleSettingsForFrame(
+  settings: Record<string, unknown>,
+  clips: TimelineClip[],
+  globalTime: number,
+): Record<string, unknown> | null {
+  const text = resolveTitleText(settings, clips, globalTime);
+  if (text === null || !text) return null;
+  return { ...settings, content: text };
+}
+
+// Title uses the text renderer with larger/bolder defaults.
+// When autoTrackName is on, the caller (render-loop / canvas hit-test)
+// resolves the active music name via titleSettingsForFrame; this definition
+// never touches the store so headless export stays pure.
 export const titleClip: ClipDefinition = {
   type: "title",
   name: "Title",
@@ -44,6 +52,8 @@ export const titleClip: ClipDefinition = {
     content: "Midnight Drive",
     autoTrackName: true,
     ...DEFAULT_TRANSFORM,
+    offsetY: -200,
+    opacity: 1,
     fontFamily: "sans-serif",
     fontWeight: "bold",
     fontSize: 96,
@@ -67,17 +77,22 @@ export const titleClip: ClipDefinition = {
     { key: "content", label: "Title", kind: "text" },
     { key: "fontSize", label: "Size", kind: "slider", min: 24, max: 220 },
     { key: "textColor", label: "Color", kind: "color" },
+    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
+    { key: "offsetY", label: "Base Y offset", kind: "slider", min: -500, max: 500, step: 1 },
   ],
   draw({ ctx, w, h, settings, localTime, duration }) {
-    const text = resolvedText(settings as Record<string, unknown>);
-    if (text === null || !text) return;
+    const text = typeof settings.content === "string" ? settings.content : "";
+    if (!text) return;
     ctx.save();
     applyClipAnimations(ctx, settings, localTime, duration, "title");
-    drawTextItem(ctx, w, h, { ...settings, content: text }, localTime, duration, -200);
+    const opacity = typeof settings.opacity === "number" ? settings.opacity : 1;
+    ctx.globalAlpha *= Math.max(0, Math.min(1, opacity));
+    drawTextItem(ctx, w, h, settings, localTime, duration, -200);
     ctx.restore();
   },
   getItemBoundingBox(ctx, w, h, settings) {
-    const text = resolvedText(settings as Record<string, unknown>) ?? "";
-    return getTextBoundingBox(ctx, w, h, { ...settings, content: text }, -200);
+    const text = typeof settings.content === "string" ? settings.content : "";
+    if (!text) return null;
+    return getTextBoundingBox(ctx, w, h, settings, -200);
   },
 };

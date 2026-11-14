@@ -12,6 +12,7 @@ import {
 import type { ClipBBox, TimelineClip } from "../../shared/types/clip";
 import { clipRegistry } from "../clips";
 import { lyricsClip } from "../clips/lyrics/definition";
+import { titleSettingsForFrame } from "../clips/title/definition";
 import { activeMusicLyrics } from "../lyrics/active-track";
 import { useEditorStore } from "../../store/editor-store";
 
@@ -99,15 +100,21 @@ export function getSelectedCanvasClip(time?: number): SelectedCanvasClip | null 
   const renderer = clipRegistry.get(clip.type);
   if (!renderer?.getItemBoundingBox || !runtime.ctx) return null;
   const { w, h } = getDesignSize();
+  let settings = clip.settings;
+  if (clip.type === "title") {
+    const resolved = titleSettingsForFrame(clip.settings, st.clips, now);
+    if (!resolved) return null;
+    settings = resolved;
+  }
   const bbox = renderer.getItemBoundingBox(
     runtime.ctx,
     w,
     h,
-    clip.settings,
+    settings,
     now - clip.start,
   );
   if (!bbox) return null;
-  return { clip, settings: clip.settings, bbox, localTime: now - clip.start, isGlobalLyrics: false };
+  return { clip, settings, bbox, localTime: now - clip.start, isGlobalLyrics: false };
 }
 
 /** Topmost clip at a canvas position (or null). */
@@ -124,16 +131,22 @@ export function findClipAtPos(pos: { x: number; y: number }): SelectedCanvasClip
     if (now < clip.start || now > clip.start + clip.duration) continue;
     const renderer = clipRegistry.get(clip.type);
     if (!renderer?.getItemBoundingBox) continue;
-    const bbox = renderer.getItemBoundingBox(ctx, w, h, clip.settings, now - clip.start);
+    let settings = clip.settings;
+    if (clip.type === "title") {
+      const resolved = titleSettingsForFrame(clip.settings, st.clips, now);
+      if (!resolved) continue;
+      settings = resolved;
+    }
+    const bbox = renderer.getItemBoundingBox(ctx, w, h, settings, now - clip.start);
     if (!bbox) continue;
-    const local = inverseTransformPoint(pos.x, pos.y, bbox, clip.settings);
+    const local = inverseTransformPoint(pos.x, pos.y, bbox, settings);
     if (
       local.x >= bbox.x &&
       local.x <= bbox.x + bbox.width &&
       local.y >= bbox.y &&
       local.y <= bbox.y + bbox.height
     ) {
-      return { clip, settings: clip.settings, bbox, localTime: now - clip.start, isGlobalLyrics: false };
+      return { clip, settings, bbox, localTime: now - clip.start, isGlobalLyrics: false };
     }
   }
   // Last: global lyrics layer (above background, below other clips is

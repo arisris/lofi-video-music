@@ -7,6 +7,7 @@ import type { TimelineClip } from "../shared/types/clip";
 import { withClipTransform } from "../shared/lib/canvas-transform";
 import { manageVideoPlayback } from "../shared/lib/video-playback";
 import { clipRegistry } from "../modules/clips";
+import { titleSettingsForFrame } from "../modules/clips/title/definition";
 import { lyricsClip } from "../modules/clips/lyrics/definition";
 import { drawCanvasOverlays } from "../modules/editor/canvas-drag";
 import { activeMusicLyrics } from "../modules/lyrics/active-track";
@@ -140,12 +141,20 @@ export function renderProjectFrame(
     const def = clipRegistry.get(clip.type);
     if (!def) continue;
     const localTime = time - clip.start;
+    // Title with autoTrackName resolves against the clip list (pure, no store).
+    // Unresolved (no active track / empty text) draws nothing.
+    let settings = clip.settings;
+    if (clip.type === "title") {
+      const resolved = titleSettingsForFrame(clip.settings, clips, time);
+      if (!resolved) continue;
+      settings = resolved;
+    }
     const drawOne = () =>
       def.draw({
         ctx,
         w,
         h,
-        settings: clip.settings,
+        settings,
         localTime,
         duration: clip.duration,
         clipId: clip.id,
@@ -153,9 +162,9 @@ export function renderProjectFrame(
     // Apply canvas position/rotation/scale around the clip bbox
     // (mirrors the old drawWithTransform; animation stays inside def.draw).
     const bbox = def.getItemBoundingBox
-      ? def.getItemBoundingBox(ctx, w, h, clip.settings, localTime)
+      ? def.getItemBoundingBox(ctx, w, h, settings, localTime)
       : null;
-    if (bbox) withClipTransform(ctx, clip.settings, bbox, drawOne);
+    if (bbox) withClipTransform(ctx, settings, bbox, drawOne);
     else {
       // A def may leak globalAlpha/composite/transform — contain it so the
       // next clip is not contaminated (only the transform is reset below).

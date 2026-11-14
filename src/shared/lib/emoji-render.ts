@@ -13,14 +13,40 @@ function getEmojiHex(emoji: string) {
 }
 
 /**
- * Parses a string into an array of text and emoji parts
+ * Parses a string into an array of text and emoji parts.
+ * Resets the shared global regex (it is stateful) and keeps ZWJ /
+ * variation-selector sequences together so compound emoji stay in one part.
  */
 export function parseEmojiText(text: string) {
   const parts = [];
+  EMOJI_REGEX.lastIndex = 0;
   let lastIndex = 0;
   let match;
 
   while ((match = EMOJI_REGEX.exec(text)) !== null) {
+    let end = EMOJI_REGEX.lastIndex;
+    // Absorb trailing VS16 + ZWJ-joined emoji (e.g. "👩‍💻", "❤️‍🔥").
+    while (end < text.length) {
+      const cp = text.codePointAt(end);
+      if (cp === 0xfe0f) {
+        end += 1;
+        continue;
+      }
+      if (cp === 0x200d && end + 1 < text.length) {
+        const nextStart = end + 1;
+        EMOJI_REGEX.lastIndex = nextStart;
+        const next = EMOJI_REGEX.exec(text);
+        if (next && next.index === nextStart) {
+          end = EMOJI_REGEX.lastIndex;
+          continue;
+        }
+        EMOJI_REGEX.lastIndex = end;
+        break;
+      }
+      break;
+    }
+    EMOJI_REGEX.lastIndex = end;
+    const emoji = text.substring(match.index, end);
     // Add text before emoji
     if (match.index > lastIndex) {
       parts.push({
@@ -31,10 +57,10 @@ export function parseEmojiText(text: string) {
     // Add emoji
     parts.push({
       type: "emoji",
-      content: match[0],
-      hex: getEmojiHex(match[0]),
+      content: emoji,
+      hex: getEmojiHex(emoji),
     });
-    lastIndex = EMOJI_REGEX.lastIndex;
+    lastIndex = end;
   }
 
   // Add remaining text

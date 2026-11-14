@@ -31,14 +31,37 @@ export function getTextBoundingBox(
   }
   ctx.restore();
   const padding = typeof item.bgPadding === "number" ? item.bgPadding : 0;
-  const width = maxWidth + padding * 2;
-  const height = lines.length * fontSize * lineHeight + padding * 2;
+  const strokePad = typeof item.strokeWidth === "number" ? item.strokeWidth : 0;
+  const wavyPad = item.textEffect === "wavy" && typeof item.wavyAmplitude === "number" ? Math.abs(item.wavyAmplitude) : 0;
+  const width = maxWidth + padding * 2 + strokePad * 2;
+  const height = lines.length * fontSize * lineHeight + padding * 2 + strokePad * 2 + wavyPad * 2;
+  const yBase = typeof item.offsetY === "number" ? item.offsetY : centerYOffset;
   return {
     x: w / 2 - width / 2,
-    y: h / 2 + centerYOffset - height / 2,
+    y: h / 2 + yBase - height / 2,
     width,
     height,
   };
+}
+
+/**
+ * Slice content for the typewriter effect without breaking emoji (code-point
+ * slice) or literal "\n" sequences (treated as one atomic newline unit).
+ */
+function typewriterSlice(content: string, charCount: number): string {
+  if (charCount <= 0) return "";
+  const units: string[] = [];
+  const cps = Array.from(content);
+  for (let i = 0; i < cps.length; i++) {
+    if (cps[i] === "\\" && cps[i + 1] === "n") {
+      units.push("\\n");
+      i++;
+    } else {
+      units.push(cps[i]);
+    }
+    if (units.length >= charCount) break;
+  }
+  return units.join("");
 }
 
 export function drawTextItem(
@@ -73,7 +96,8 @@ export function drawTextItem(
   const bgHeight = totalHeight + padding * 2;
 
   const centerX = w / 2;
-  const centerY = h / 2 + centerYOffset;
+  const yBase = typeof item.offsetY === "number" ? item.offsetY : centerYOffset;
+  const centerY = h / 2 + yBase;
   const bgX = centerX - bgWidth / 2;
   const bgY = centerY - bgHeight / 2;
 
@@ -81,15 +105,16 @@ export function drawTextItem(
   const shadowOX = typeof item.shadowOffsetX === "number" ? item.shadowOffsetX : 0;
   const shadowOY = typeof item.shadowOffsetY === "number" ? item.shadowOffsetY : 0;
   const hasShadow = shadowBlur > 0 || shadowOX !== 0 || shadowOY !== 0;
-  if (hasShadow) {
-    ctx.shadowColor = typeof item.shadowColor === "string" ? item.shadowColor : "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = shadowBlur;
-    ctx.shadowOffsetX = shadowOX;
-    ctx.shadowOffsetY = shadowOY;
-  }
+  const shadowColor = typeof item.shadowColor === "string" ? item.shadowColor : "rgba(0,0,0,0.8)";
 
   const bgColor = typeof item.bgColor === "string" ? item.bgColor : "transparent";
   if (bgColor && bgColor !== "transparent") {
+    // Background box stays crisp: no text shadow bleeds onto it.
+    ctx.save();
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
     ctx.fillStyle = bgColor;
     ctx.beginPath();
     if (ctx.roundRect) {
@@ -98,9 +123,15 @@ export function drawTextItem(
       ctx.rect(bgX, bgY, bgWidth, bgHeight);
     }
     ctx.fill();
+    ctx.restore();
   }
 
-  if (!hasShadow) {
+  if (hasShadow) {
+    ctx.shadowColor = shadowColor;
+    ctx.shadowBlur = shadowBlur;
+    ctx.shadowOffsetX = shadowOX;
+    ctx.shadowOffsetY = shadowOY;
+  } else {
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
@@ -116,11 +147,9 @@ export function drawTextItem(
       charCount = Math.min(charCount, Math.floor((duration - t) * speed));
     }
     charCount = Math.max(0, charCount);
-    // Code-point (not UTF-16) slice so emoji are never split mid-surrogate.
-    contentToDraw = Array.from(contentToDraw).slice(0, charCount).join("");
-    if (contentToDraw.endsWith("\\") && Array.from(content).slice(charCount, charCount + 1).join("") === "n") {
-      contentToDraw = contentToDraw.slice(0, -1);
-    }
+    // Atomic "\n" handling lives in typewriterSlice so a literal newline is
+    // never split mid-sequence while typing.
+    contentToDraw = typewriterSlice(contentToDraw, charCount);
   }
   const linesToDraw: string[] = contentToDraw.split(/\n|\\n/);
 
@@ -131,7 +160,8 @@ export function drawTextItem(
     else if (textAlign === "right") x = centerX + maxWidth / 2 - lineWidth;
     const y = bgY + padding + i * fontSize * lineHeight;
     if (item.textEffect === "wavy") {
-      const time = performance.now() / 1000;
+      // Deterministic: driven by clip localTime (pauses + exports are stable).
+      const time = Number.isFinite(localTime) ? Math.max(0, localTime) : 0;
       drawWavyEmojiText(
         ctx,
         lineText,

@@ -673,6 +673,43 @@ function TextContentEditor({ clipId }: { clipId: string }) {
   );
 }
 
+export function TextLayoutSettings({ clipId, binding }: { clipId?: string; binding?: SettingsBinding }) {
+  const clipBinding = useClipSettings(clipId ?? "");
+  const { values, set } = binding ?? clipBinding;
+  const num = (v: unknown, fb: number) => (typeof v === "number" ? v : fb);
+
+  return (
+    <div className="mt-6 border-t border-neutral-800/50 pt-4">
+      <SectionTitle>Layout &amp; Opacity</SectionTitle>
+      <div className="mb-3">
+        <FieldLabel>Base Y offset</FieldLabel>
+        <ScrubInput
+          label="BY"
+          value={num(values.offsetY, -100)}
+          min={-500}
+          max={500}
+          step={1}
+          onUpdate={(val) => set("offsetY", val)}
+        />
+        <p className="mt-1 text-[10px] leading-relaxed text-neutral-500">
+          Base vertical position before drag (X/Y). Use drag on canvas for fine placement.
+        </p>
+      </div>
+      <div className="mb-3">
+        <FieldLabel>Opacity</FieldLabel>
+        <ScrubInput
+          label="O"
+          value={num(values.opacity, 1)}
+          min={0}
+          max={1}
+          step={0.05}
+          onUpdate={(val) => set("opacity", Math.max(0, Math.min(1, val)))}
+        />
+      </div>
+    </div>
+  );
+}
+
 /** Text clip property panel — mirrors the legacy TextSettingsView. */
 export function TextSettingsView({ clipId }: { clipId: string }) {
   const isThumbnailMode = useEditorStore((s) => s.route) === "/image";
@@ -683,6 +720,7 @@ export function TextSettingsView({ clipId }: { clipId: string }) {
         <TypographySettings clipId={clipId} />
         <StrokeShadowSettings clipId={clipId} />
         <BackgroundBoxSettings clipId={clipId} />
+        <TextLayoutSettings clipId={clipId} />
         {!isThumbnailMode && <TextEffectsSettings clipId={clipId} />}
       </div>
       <TransformSettings clipId={clipId} />
@@ -715,6 +753,7 @@ export function TitleSettingsView({ clipId }: { clipId: string }) {
         <TypographySettings clipId={clipId} />
         <StrokeShadowSettings clipId={clipId} />
         <BackgroundBoxSettings clipId={clipId} />
+        <TextLayoutSettings clipId={clipId} />
         {!isThumbnailMode && <TextEffectsSettings clipId={clipId} />}
       </div>
       <TransformSettings clipId={clipId} />
