@@ -9,6 +9,8 @@ export interface VfxDrawArgs {
   h: number;
   settings: Record<string, unknown>;
   time: number;
+  /** Owning clip length in seconds (for In/Out transitions). */
+  duration: number;
   state: VfxState;
 }
 

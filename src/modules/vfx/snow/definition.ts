@@ -1,88 +1,51 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
-import { BaseParticle, finiteSetting } from "../_core/base-particle";
+import { finiteSetting } from "../_core/base-particle";
+import { advanceClipClock, clipSeed, mulberry32 } from "../_core/prng";
 
-// Drifting snowball particle.
-class Snowball extends BaseParticle {
-  radius = 3;
-  speed = 80;
-  opacity = 0.5;
-  swaySpeed = 1;
-  swayAmount = 8;
-  swayOffset = 0;
-  baseX = 0;
+// Drifting snowball. Stateless: parameters derive from (clipSeed, index),
+// positions from the clip clock — same time always renders the same frame.
+// The per-ball glow uses a cheap halo fill instead of shadowBlur (shadow
+// rendering at 400 balls killed the frame rate).
+interface SnowParams {
+  x0: number;
+  y0: number;
+  radius: number;
+  speed: number;
+  opacity: number;
+  swaySpeed: number;
+  swayAmount: number;
+  swayOffset: number;
+}
 
-  constructor(canvasWidth: number, canvasHeight: number) {
-    super(canvasWidth, canvasHeight);
-    this.reset();
+function makeSnow(seed: number, index: number): SnowParams {
+  const rng = mulberry32((seed ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0);
+  return {
+    x0: rng(),
+    y0: rng(),
+    radius: 2 + rng() * 4,
+    speed: 45 + rng() * 70,
+    opacity: 0.3 + rng() * 0.5,
+    swaySpeed: 0.4 + rng() * 1.2,
+    swayAmount: 4 + rng() * 10,
+    swayOffset: rng() * Math.PI * 2,
+  };
+}
+
+function ballsFor(
+  state: Record<string, unknown>,
+  seed: number,
+  intensity: number,
+): SnowParams[] {
+  let list = state.params as SnowParams[] | undefined;
+  if (!list || state.paramsSeed !== seed) {
+    list = [];
+    state.params = list;
+    state.paramsSeed = seed;
   }
-
-  reset() {
-    this.baseX = Math.random() * this.canvasWidth;
-    this.x = this.baseX;
-    this.y = -10 - Math.random() * 60;
-    this.radius = 2 + Math.random() * 4;
-    this.speed = 45 + Math.random() * 70;
-    this.opacity = 0.3 + Math.random() * 0.5;
-    this.swaySpeed = 0.4 + Math.random() * 1.2;
-    this.swayAmount = 4 + Math.random() * 10;
-    this.swayOffset = Math.random() * Math.PI * 2;
-    this.lastTime = undefined;
-  }
-
-  updateSnow(
-    w: number,
-    h: number,
-    settings: Record<string, unknown>,
-    time: number,
-    audioLevel = 0,
-  ) {
-    this.canvasWidth = w;
-    this.canvasHeight = h;
-    const dt = this.step(time);
-    const speedMultiplier = finiteSetting(settings, "speed", 1.0);
-    const activeSpeed =
-      this.speed *
-      speedMultiplier *
-      (settings.audioReactive ? 0.4 + audioLevel * 1.6 : 1.0);
-    this.y += activeSpeed * dt;
-    const sway =
-      Math.sin(time * this.swaySpeed + this.swayOffset) * this.swayAmount;
-    this.x =
-      (((this.baseX +
-        sway * (settings.audioReactive ? 1.0 + audioLevel * 2.0 : 1.0)) %
-        w) +
-        w) %
-      w;
-    if (this.y > this.canvasHeight + 10) this.reset();
-  }
-
-  drawSnow(
-    ctx: CanvasRenderingContext2D,
-    settings: Record<string, unknown>,
-    audioLevel = 0,
-  ) {
-    const sizeMultiplier = finiteSetting(settings, "size", 1.0);
-    const opacityMultiplier = finiteSetting(settings, "opacity", 0.8);
-    const r =
-      this.radius *
-      sizeMultiplier *
-      (settings.audioReactive ? 0.8 + audioLevel * 0.6 : 1.0);
-    const o = Math.min(
-      1.0,
-      this.opacity *
-        opacityMultiplier *
-        (settings.audioReactive ? 0.5 + audioLevel * 0.5 : 1.0),
-    );
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255, 255, 255, ${o})`;
-    ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-    ctx.shadowBlur = r * 0.5;
-    ctx.fill();
-    ctx.restore();
-  }
+  while (list.length < intensity) list.push(makeSnow(seed, list.length));
+  if (list.length > intensity) list.length = intensity;
+  return list;
 }
 
 export const snowVfx: VfxDefinition = {
@@ -125,28 +88,49 @@ export const snowVfx: VfxDefinition = {
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    const intensity =
-      typeof settings.intensity === "number" ? settings.intensity : 120;
-    if (
-      !state.balls ||
-      (state.balls as Snowball[]).length !== intensity ||
-      state.w !== w ||
-      state.h !== h
-    ) {
-      const next: Snowball[] = [];
-      for (let i = 0; i < intensity; i++) {
-        const b = new Snowball(w, h);
-        b.y = Math.random() * h;
-        next.push(b);
-      }
-      state.balls = next;
-      state.w = w;
-      state.h = h;
-    }
-    const audioLevel = settings.audioReactive ? getAudioLevel("volume") : 0;
-    for (const b of state.balls as Snowball[]) {
-      b.updateSnow(w, h, settings, time, audioLevel);
-      b.drawSnow(ctx, settings, audioLevel);
+    const intensity = Math.max(
+      0,
+      Math.min(
+        800,
+        Math.floor(
+          typeof settings.intensity === "number" ? settings.intensity : 120,
+        ),
+      ),
+    );
+    const seed = clipSeed(state);
+    const balls = ballsFor(state, seed, intensity);
+    const audioReactive = settings.audioReactive === true;
+    const audioLevel = audioReactive ? getAudioLevel("volume") : 0;
+    const clock = advanceClipClock(
+      state,
+      time,
+      audioReactive ? 0.4 + audioLevel * 1.6 : 1,
+    );
+    const speedMult = finiteSetting(settings, "speed", 1.0);
+    const sizeMult = finiteSetting(settings, "size", 1.0);
+    const opacityMult =
+      finiteSetting(settings, "opacity", 0.8) *
+      (audioReactive ? 0.5 + audioLevel * 0.5 : 1.0);
+    const swayGain = audioReactive ? 1.0 + audioLevel * 2.0 : 1.0;
+    const sizeGain = audioReactive ? 0.8 + audioLevel * 0.6 : 1.0;
+    const span = h + 80;
+    const tau = Math.PI * 2;
+    for (const b of balls) {
+      const y = -70 + ((b.y0 * span + clock * b.speed * speedMult) % span);
+      const sway =
+        Math.sin(clock * b.swaySpeed + b.swayOffset) * b.swayAmount * swayGain;
+      const x = (((b.x0 * w + sway) % w) + w) % w;
+      const r = b.radius * sizeMult * sizeGain;
+      const o = Math.min(1.0, b.opacity * opacityMult);
+      if (o <= 0 || r <= 0) continue;
+      ctx.beginPath();
+      ctx.arc(x, y, r * 2.2, 0, tau);
+      ctx.fillStyle = `rgba(255, 255, 255, ${o * 0.25})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, tau);
+      ctx.fillStyle = `rgba(255, 255, 255, ${o})`;
+      ctx.fill();
     }
   },
 };

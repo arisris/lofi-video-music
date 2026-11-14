@@ -1,60 +1,47 @@
 import { getAudioLevel } from "../../audio/audio-engine";
 import type { VfxDefinition } from "../_core/types";
-import { BaseParticle, finiteSetting } from "../_core/base-particle";
+import { finiteSetting } from "../_core/base-particle";
+import { advanceClipClock, clipSeed, mulberry32 } from "../_core/prng";
 
-// Falling rain-drop particle.
-class Drop extends BaseParticle {
-  length = 10;
-  speed = 800;
-  opacity = 0.2;
-  slant = 0;
+// Falling rain-drop. Stateless: every parameter derives from (clipSeed,
+// index), every position from the clip clock — the same time always renders
+// the same frame (pause/scrub/export stable). Changing intensity keeps the
+// existing drops' parameters, so the slider no longer pops.
+interface DropParams {
+  x0: number;
+  y0: number;
+  length: number;
+  speed: number;
+  opacity: number;
+  slant: number;
+}
 
-  constructor(canvasWidth: number, canvasHeight: number) {
-    super(canvasWidth, canvasHeight);
-    this.reset();
+function makeDrop(seed: number, index: number): DropParams {
+  const rng = mulberry32((seed ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0);
+  return {
+    x0: rng(),
+    y0: rng(),
+    length: 10 + rng() * 22,
+    speed: 600 + rng() * 500,
+    opacity: 0.12 + rng() * 0.38,
+    slant: (rng() - 0.5) * 70,
+  };
+}
+
+function dropsFor(
+  state: Record<string, unknown>,
+  seed: number,
+  intensity: number,
+): DropParams[] {
+  let list = state.params as DropParams[] | undefined;
+  if (!list || state.paramsSeed !== seed) {
+    list = [];
+    state.params = list;
+    state.paramsSeed = seed;
   }
-
-  reset() {
-    this.x = Math.random() * this.canvasWidth;
-    this.y = -20 - Math.random() * 100;
-    this.length = 10 + Math.random() * 22;
-    this.speed = 600 + Math.random() * 500;
-    this.opacity = 0.12 + Math.random() * 0.38;
-    this.slant = (Math.random() - 0.5) * 70;
-    this.lastTime = undefined;
-  }
-
-  update(
-    w: number,
-    h: number,
-    settings: Record<string, unknown>,
-    time?: number,
-  ) {
-    this.canvasWidth = w;
-    this.canvasHeight = h;
-    const dt = this.step(time);
-    const speedMultiplier = finiteSetting(settings, "speed", 1.0);
-    this.y += this.speed * speedMultiplier * dt;
-    this.x += this.slant * dt;
-    if (this.x < 0) this.x += w;
-    else if (this.x > w) this.x -= w;
-    if (this.y > this.canvasHeight) this.reset();
-  }
-
-  drawDrop(ctx: CanvasRenderingContext2D, settings: Record<string, unknown>) {
-    const sizeMultiplier = finiteSetting(settings, "size", 1.0);
-    const opacityMultiplier = finiteSetting(settings, "opacity", 1.0);
-    const length = this.length * sizeMultiplier;
-    const tiltX = (this.slant / Math.max(this.speed, 1)) * length;
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x - tiltX, this.y - length);
-    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1.0, this.opacity * opacityMultiplier)})`;
-    ctx.lineWidth = Math.max(0.5, 1 * sizeMultiplier);
-    ctx.stroke();
-    ctx.restore();
-  }
+  while (list.length < intensity) list.push(makeDrop(seed, list.length));
+  if (list.length > intensity) list.length = intensity;
+  return list;
 }
 
 export const rainVfx: VfxDefinition = {
@@ -97,44 +84,50 @@ export const rainVfx: VfxDefinition = {
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    const intensity =
-      typeof settings.intensity === "number" ? settings.intensity : 200;
-    const drops = state.drops as Drop[] | undefined;
-    if (
-      !drops ||
-      drops.length !== intensity ||
-      state.w !== w ||
-      state.h !== h
-    ) {
-      const next: Drop[] = [];
-      for (let i = 0; i < intensity; i++) {
-        const d = new Drop(w, h);
-        d.y = Math.random() * h;
-        next.push(d);
-      }
-      state.drops = next;
-      state.w = w;
-      state.h = h;
-    }
-    const audioLevel = settings.audioReactive ? getAudioLevel("volume") : 0;
-    const visible = settings.audioReactive
-      ? Math.floor((state.drops as Drop[]).length * (0.25 + audioLevel * 0.75))
-      : (state.drops as Drop[]).length;
-    const active = settings.audioReactive
-      ? {
-          ...settings,
-          speed:
-            (typeof settings.speed === "number" ? settings.speed : 1) *
-            (0.4 + audioLevel * 1.6),
-          opacity:
-            (typeof settings.opacity === "number" ? settings.opacity : 1) *
-            (0.3 + audioLevel * 0.7),
-        }
-      : settings;
-    const list = state.drops as Drop[];
+    const intensity = Math.max(
+      0,
+      Math.min(
+        1000,
+        Math.floor(
+          typeof settings.intensity === "number" ? settings.intensity : 200,
+        ),
+      ),
+    );
+    const seed = clipSeed(state);
+    const drops = dropsFor(state, seed, intensity);
+    const audioReactive = settings.audioReactive === true;
+    const audioLevel = audioReactive ? getAudioLevel("volume") : 0;
+    // Beat-reactive fall speed warps the clock, so scrubbing/pause stay
+    // stable (positions are still a pure function of the clock).
+    const clock = advanceClipClock(
+      state,
+      time,
+      audioReactive ? 0.4 + audioLevel * 1.6 : 1,
+    );
+    const speedMult = finiteSetting(settings, "speed", 1.0);
+    const sizeMult = finiteSetting(settings, "size", 1.0);
+    const opacityMult =
+      finiteSetting(settings, "opacity", 1.0) *
+      (audioReactive ? 0.3 + audioLevel * 0.7 : 1.0);
+    const visible = audioReactive
+      ? Math.floor(drops.length * (0.25 + audioLevel * 0.75))
+      : drops.length;
+    const span = h + 120;
+    const lineWidth = Math.max(0.5, sizeMult);
+    // No save/restore per drop: only strokeStyle/lineWidth change, and a
+    // fresh beginPath each iteration keeps strokes independent.
     for (let i = 0; i < visible; i++) {
-      list[i].update(w, h, active, time);
-      list[i].drawDrop(ctx, active);
+      const d = drops[i];
+      const y = -120 + ((d.y0 * span + clock * d.speed * speedMult) % span);
+      const x = (((d.x0 * w + d.slant * clock) % w) + w) % w;
+      const length = d.length * sizeMult;
+      const tiltX = (d.slant / Math.max(d.speed, 1)) * length;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - tiltX, y - length);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1.0, d.opacity * opacityMult)})`;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
     }
   },
 };

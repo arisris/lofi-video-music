@@ -23,8 +23,12 @@ export const vignetteVfx: VfxDefinition = {
   draw({ ctx, w, h, settings }) {
     const opacity =
       typeof settings.opacity === "number" ? settings.opacity : 0.4;
-    const color =
+    const rawColor =
       typeof settings.color === "string" ? settings.color : "#000000";
+    // Invalid colors fall back to black (hexToRGB would return blue).
+    const color = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(rawColor)
+      ? rawColor
+      : "#000000";
     const audioLevel = settings.audioReactive ? getAudioLevel("bass") : 0;
     const activeOpacity = Math.max(0, Math.min(1, opacity + audioLevel * 0.45));
     const maxRadius = Math.sqrt(w * w + h * h) / 2;

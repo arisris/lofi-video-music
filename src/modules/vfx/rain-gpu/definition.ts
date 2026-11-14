@@ -4,6 +4,7 @@ import {
   type UniformValue,
 } from "../../../shared/lib/webgl-renderer";
 import type { VfxDefinition } from "../_core/types";
+import { advanceClipClock } from "../_core/prng";
 
 // GPU rain shader
 let rainProgram: WebGLProgram | null = null;
@@ -130,7 +131,7 @@ export const rainGpuVfx: VfxDefinition = {
     },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
-  draw({ ctx, w, h, settings, state }) {
+  draw({ ctx, w, h, settings, time, state }) {
     if (!WebGLRenderer.isSupported()) {
       ctx.save();
       ctx.fillStyle = "rgba(239, 68, 68, 0.8)";
@@ -151,17 +152,9 @@ export const rainGpuVfx: VfxDefinition = {
     }
     if (!rainProgram) return;
 
-    const now = performance.now();
-    if (typeof state.animTime !== "number") {
-      state.animTime = 0;
-    } else {
-      const dt = Math.min(
-        (now - (typeof state.last === "number" ? state.last : now)) / 1000,
-        0.1,
-      );
-      state.animTime = (state.animTime as number) + dt;
-    }
-    state.last = now;
+    // Clip-clock driven (not wall-clock): pause freezes the rain, scrub moves
+    // it, and the same time always renders the same frame.
+    state.animTime = advanceClipClock(state, time);
 
     const intensity =
       typeof settings.intensity === "number" ? settings.intensity : 200;
