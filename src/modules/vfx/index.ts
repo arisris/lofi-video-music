@@ -10,20 +10,17 @@ import { snowVfx } from "./snow/definition";
 import { vignetteVfx } from "./vignette/definition";
 
 // rain-gpu is the WebGL-shader variant of the canvas-2D rain effect.
-export const vfxRegistry = createRegistry<VfxDefinition>();
+export const vfxRegistry = createRegistry<VfxDefinition>((e) => e.type);
 
-for (const def of [rainVfx, rainGpuVfx, snowVfx, smokeVfx, firefliesVfx, flashVfx, filmGrainVfx, vignetteVfx]) {
+for (const def of [
+  rainVfx,
+  rainGpuVfx,
+  snowVfx,
+  smokeVfx,
+  firefliesVfx,
+  flashVfx,
+  filmGrainVfx,
+  vignetteVfx,
+]) {
   vfxRegistry.register(def);
 }
-
-/** Per-effect tab/palette icon (used by VfxPanel + timeline blocks). */
-export const VFX_ICONS: Record<string, string> = {
-  rain: "icon-[ri--rainy-line]",
-  rain_gpu: "icon-[ri--rainy-line]",
-  snow: "icon-[ri--snowy-line]",
-  smoke: "icon-[ri--mist-line]",
-  fireflies: "icon-[ri--bug-line]",
-  flash: "icon-[ri--flashlight-line]",
-  filmgrain: "icon-[ri--film-line]",
-  vignette: "icon-[ri--circle-line]",
-};

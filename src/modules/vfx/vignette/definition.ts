@@ -6,19 +6,31 @@ import type { VfxDefinition } from "../_core/types";
 export const vignetteVfx: VfxDefinition = {
   type: "vignette",
   name: "Beat Vignette",
+  icon: "icon-[ri--circle-line]",
   defaultSettings: { opacity: 0.4, color: "#000000", audioReactive: false },
   schema: [
-    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
+    {
+      key: "opacity",
+      label: "Opacity",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
     { key: "color", label: "Color", kind: "color" },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings }) {
-    const opacity = typeof settings.opacity === "number" ? settings.opacity : 0.4;
-    const color = typeof settings.color === "string" ? settings.color : "#000000";
+    const opacity =
+      typeof settings.opacity === "number" ? settings.opacity : 0.4;
+    const color =
+      typeof settings.color === "string" ? settings.color : "#000000";
     const audioLevel = settings.audioReactive ? getAudioLevel("bass") : 0;
     const activeOpacity = Math.max(0, Math.min(1, opacity + audioLevel * 0.45));
     const maxRadius = Math.sqrt(w * w + h * h) / 2;
-    const outer = maxRadius * (settings.audioReactive ? Math.max(0.5, 1.1 - audioLevel * 0.45) : 1.0);
+    const outer =
+      maxRadius *
+      (settings.audioReactive ? Math.max(0.5, 1.1 - audioLevel * 0.45) : 1.0);
     const [r, g, b] = hexToRGB(color);
     const R = Math.round(r * 255);
     const G = Math.round(g * 255);

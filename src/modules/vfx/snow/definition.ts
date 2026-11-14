@@ -30,23 +30,50 @@ class Snowball extends BaseParticle {
     this.lastTime = undefined;
   }
 
-  updateSnow(w: number, h: number, settings: Record<string, unknown>, time: number, audioLevel = 0) {
+  updateSnow(
+    w: number,
+    h: number,
+    settings: Record<string, unknown>,
+    time: number,
+    audioLevel = 0,
+  ) {
     this.canvasWidth = w;
     this.canvasHeight = h;
     const dt = this.step(time);
     const speedMultiplier = finiteSetting(settings, "speed", 1.0);
-    const activeSpeed = this.speed * speedMultiplier * (settings.audioReactive ? 0.4 + audioLevel * 1.6 : 1.0);
+    const activeSpeed =
+      this.speed *
+      speedMultiplier *
+      (settings.audioReactive ? 0.4 + audioLevel * 1.6 : 1.0);
     this.y += activeSpeed * dt;
-    const sway = Math.sin(time * this.swaySpeed + this.swayOffset) * this.swayAmount;
-    this.x = (((this.baseX + sway * (settings.audioReactive ? 1.0 + audioLevel * 2.0 : 1.0)) % w) + w) % w;
+    const sway =
+      Math.sin(time * this.swaySpeed + this.swayOffset) * this.swayAmount;
+    this.x =
+      (((this.baseX +
+        sway * (settings.audioReactive ? 1.0 + audioLevel * 2.0 : 1.0)) %
+        w) +
+        w) %
+      w;
     if (this.y > this.canvasHeight + 10) this.reset();
   }
 
-  drawSnow(ctx: CanvasRenderingContext2D, settings: Record<string, unknown>, audioLevel = 0) {
+  drawSnow(
+    ctx: CanvasRenderingContext2D,
+    settings: Record<string, unknown>,
+    audioLevel = 0,
+  ) {
     const sizeMultiplier = finiteSetting(settings, "size", 1.0);
     const opacityMultiplier = finiteSetting(settings, "opacity", 0.8);
-    const r = this.radius * sizeMultiplier * (settings.audioReactive ? 0.8 + audioLevel * 0.6 : 1.0);
-    const o = Math.min(1.0, this.opacity * opacityMultiplier * (settings.audioReactive ? 0.5 + audioLevel * 0.5 : 1.0));
+    const r =
+      this.radius *
+      sizeMultiplier *
+      (settings.audioReactive ? 0.8 + audioLevel * 0.6 : 1.0);
+    const o = Math.min(
+      1.0,
+      this.opacity *
+        opacityMultiplier *
+        (settings.audioReactive ? 0.5 + audioLevel * 0.5 : 1.0),
+    );
     ctx.save();
     ctx.beginPath();
     ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
@@ -61,17 +88,51 @@ class Snowball extends BaseParticle {
 export const snowVfx: VfxDefinition = {
   type: "snow",
   name: "Snow",
-  defaultSettings: { intensity: 120, speed: 1, size: 1, opacity: 0.8, audioReactive: false },
+  icon: "icon-[ri--snowy-line]",
+  defaultSettings: {
+    intensity: 120,
+    speed: 1,
+    size: 1,
+    opacity: 0.8,
+    audioReactive: false,
+  },
   schema: [
-    { key: "intensity", label: "Intensity", kind: "slider", min: 0, max: 400, step: 10 },
-    { key: "speed", label: "Speed", kind: "slider", min: 0.1, max: 3, step: 0.1 },
+    {
+      key: "intensity",
+      label: "Intensity",
+      kind: "slider",
+      min: 0,
+      max: 400,
+      step: 10,
+    },
+    {
+      key: "speed",
+      label: "Speed",
+      kind: "slider",
+      min: 0.1,
+      max: 3,
+      step: 0.1,
+    },
     { key: "size", label: "Size", kind: "slider", min: 0.2, max: 3, step: 0.1 },
-    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
+    {
+      key: "opacity",
+      label: "Opacity",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    const intensity = typeof settings.intensity === "number" ? settings.intensity : 120;
-    if (!state.balls || (state.balls as Snowball[]).length !== intensity || state.w !== w || state.h !== h) {
+    const intensity =
+      typeof settings.intensity === "number" ? settings.intensity : 120;
+    if (
+      !state.balls ||
+      (state.balls as Snowball[]).length !== intensity ||
+      state.w !== w ||
+      state.h !== h
+    ) {
       const next: Snowball[] = [];
       for (let i = 0; i < intensity; i++) {
         const b = new Snowball(w, h);

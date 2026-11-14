@@ -5,11 +5,38 @@ import type { VfxDefinition } from "../_core/types";
 export const filmGrainVfx: VfxDefinition = {
   type: "filmgrain",
   name: "Film Grain & VHS",
-  defaultSettings: { grainIntensity: 0.15, scanlinesOpacity: 0.08, glitchFrequency: 0.3, audioReactive: false },
+  icon: "icon-[ri--film-line]",
+  defaultSettings: {
+    grainIntensity: 0.15,
+    scanlinesOpacity: 0.08,
+    glitchFrequency: 0.3,
+    audioReactive: false,
+  },
   schema: [
-    { key: "grainIntensity", label: "Grain", kind: "slider", min: 0, max: 1, step: 0.01 },
-    { key: "scanlinesOpacity", label: "Scanlines", kind: "slider", min: 0, max: 0.5, step: 0.01 },
-    { key: "glitchFrequency", label: "Glitch", kind: "slider", min: 0, max: 2, step: 0.1 },
+    {
+      key: "grainIntensity",
+      label: "Grain",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.01,
+    },
+    {
+      key: "scanlinesOpacity",
+      label: "Scanlines",
+      kind: "slider",
+      min: 0,
+      max: 0.5,
+      step: 0.01,
+    },
+    {
+      key: "glitchFrequency",
+      label: "Glitch",
+      kind: "slider",
+      min: 0,
+      max: 2,
+      step: 0.1,
+    },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
@@ -34,14 +61,20 @@ export const filmGrainVfx: VfxDefinition = {
       nCtx.putImageData(img, 0, 0);
       state.noise = noise;
     }
-    const scan = typeof settings.scanlinesOpacity === "number" ? settings.scanlinesOpacity : 0.08;
+    const scan =
+      typeof settings.scanlinesOpacity === "number"
+        ? settings.scanlinesOpacity
+        : 0.08;
     if (scan > 0) {
       ctx.save();
       ctx.fillStyle = `rgba(0, 0, 0, ${scan})`;
       for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1.5);
       ctx.restore();
     }
-    const grain = typeof settings.grainIntensity === "number" ? settings.grainIntensity : 0.15;
+    const grain =
+      typeof settings.grainIntensity === "number"
+        ? settings.grainIntensity
+        : 0.15;
     if (grain > 0) {
       ctx.save();
       ctx.globalAlpha = grain;
@@ -57,8 +90,10 @@ export const filmGrainVfx: VfxDefinition = {
     }
     if (typeof state.active !== "number") state.active = 0;
     if (typeof state.cooldown !== "number") state.cooldown = 0;
-    if ((state.cooldown as number) > 0) state.cooldown = (state.cooldown as number) - k;
-    if ((state.active as number) > 0) state.active = (state.active as number) - k;
+    if ((state.cooldown as number) > 0)
+      state.cooldown = (state.cooldown as number) - k;
+    if ((state.active as number) > 0)
+      state.active = (state.active as number) - k;
 
     let trigger = false;
     if (settings.audioReactive) {
@@ -69,8 +104,15 @@ export const filmGrainVfx: VfxDefinition = {
       }
       if (state.active !== 0) trigger = true;
     } else {
-      const freq = typeof settings.glitchFrequency === "number" ? settings.glitchFrequency : 0.3;
-      if (Math.random() < 0.015 * freq * k && state.active === 0 && state.cooldown === 0) {
+      const freq =
+        typeof settings.glitchFrequency === "number"
+          ? settings.glitchFrequency
+          : 0.3;
+      if (
+        Math.random() < 0.015 * freq * k &&
+        state.active === 0 &&
+        state.cooldown === 0
+      ) {
         state.active = 4 + Math.floor(Math.random() * 6);
         state.cooldown = 25;
       }
@@ -82,7 +124,12 @@ export const filmGrainVfx: VfxDefinition = {
       for (let i = 0; i < slices; i++) {
         const sy = Math.random() * h;
         const sh = 5 + Math.random() * 50;
-        const offset = (Math.random() - 0.5) * 25 * (typeof settings.glitchFrequency === "number" ? settings.glitchFrequency : 0.3);
+        const offset =
+          (Math.random() - 0.5) *
+          25 *
+          (typeof settings.glitchFrequency === "number"
+            ? settings.glitchFrequency
+            : 0.3);
         ctx.drawImage(ctx.canvas, 0, sy, w, sh, offset, sy, w, sh);
       }
       if (Math.random() < 0.4) {

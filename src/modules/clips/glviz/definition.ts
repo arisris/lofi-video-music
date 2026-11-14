@@ -7,22 +7,7 @@ import {
   resolveBBox,
   resolveVisualizerDef,
 } from "../../visualizers";
-import {
-  VisualizerSettings,
-  VisualizerVariantSelect,
-} from "../../visualizers/VisualizerSettings";
 import { useEditorStore } from "../../../store/editor-store";
-
-function GlvizSettingsView({ clipId }: { clipId: string }) {
-  const clip = useEditorStore((s) => s.clips.find((c) => c.id === clipId));
-  const variant = typeof clip?.settings.variant === "string" ? clip.settings.variant : "bars";
-  return (
-    <div className="space-y-3">
-      <VisualizerVariantSelect clipId={clipId} />
-      <VisualizerSettings clipId={clipId} variant={variant} />
-    </div>
-  );
-}
 
 export const glvizClip: ClipDefinition = {
   type: "glviz",
@@ -39,9 +24,9 @@ export const glvizClip: ClipDefinition = {
       listVisualizerDefs()[0]?.settings ?? { intensity: 60, color: "#22d3ee" }),
   },
   schema: [],
-  SettingsView: GlvizSettingsView,
   draw({ ctx, w, h, settings, localTime, duration }) {
-    const variant = typeof settings.variant === "string" ? settings.variant : "bars";
+    const variant =
+      typeof settings.variant === "string" ? settings.variant : "bars";
     const def = resolveVisualizerDef(variant);
     if (!def) return;
     const merged = { ...def.settings, ...settings };
@@ -54,7 +39,8 @@ export const glvizClip: ClipDefinition = {
     ctx.restore();
   },
   getItemBoundingBox(_ctx, w, h, settings) {
-    const variant = typeof settings.variant === "string" ? settings.variant : "bars";
+    const variant =
+      typeof settings.variant === "string" ? settings.variant : "bars";
     const def = resolveVisualizerDef(variant);
     if (!def) return null;
     return resolveBBox(def, w, h, settings);

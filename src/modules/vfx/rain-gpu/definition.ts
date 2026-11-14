@@ -1,5 +1,8 @@
 import { getAudioLevel } from "../../audio/audio-engine";
-import { WebGLRenderer, type UniformValue } from "../../../shared/lib/webgl-renderer";
+import {
+  WebGLRenderer,
+  type UniformValue,
+} from "../../../shared/lib/webgl-renderer";
 import type { VfxDefinition } from "../_core/types";
 
 // GPU rain shader
@@ -71,7 +74,14 @@ if (typeof window !== "undefined" && WebGLRenderer.isSupported()) {
     if (rainProgram) {
       WebGLRenderer.drawQuad(
         rainProgram,
-        { u_resolution: [1.0, 1.0], u_time: 0.0, u_intensity: 200.0, u_speed: 1.0, u_size: 1.0, u_opacity: 1.0 },
+        {
+          u_resolution: [1.0, 1.0],
+          u_time: 0.0,
+          u_intensity: 200.0,
+          u_speed: 1.0,
+          u_size: 1.0,
+          u_opacity: 1.0,
+        },
         1,
         1,
       );
@@ -84,12 +94,40 @@ if (typeof window !== "undefined" && WebGLRenderer.isSupported()) {
 export const rainGpuVfx: VfxDefinition = {
   type: "rain_gpu",
   name: "Rain (GPU)",
-  defaultSettings: { intensity: 200, speed: 1, size: 1, opacity: 1, audioReactive: false },
+  icon: "icon-[ri--rainy-line]",
+  defaultSettings: {
+    intensity: 200,
+    speed: 1,
+    size: 1,
+    opacity: 1,
+    audioReactive: false,
+  },
   schema: [
-    { key: "intensity", label: "Intensity", kind: "slider", min: 0, max: 600, step: 10 },
-    { key: "speed", label: "Speed", kind: "slider", min: 0.1, max: 3, step: 0.1 },
+    {
+      key: "intensity",
+      label: "Intensity",
+      kind: "slider",
+      min: 0,
+      max: 600,
+      step: 10,
+    },
+    {
+      key: "speed",
+      label: "Speed",
+      kind: "slider",
+      min: 0.1,
+      max: 3,
+      step: 0.1,
+    },
     { key: "size", label: "Size", kind: "slider", min: 0.2, max: 3, step: 0.1 },
-    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
+    {
+      key: "opacity",
+      label: "Opacity",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, state }) {
@@ -117,12 +155,16 @@ export const rainGpuVfx: VfxDefinition = {
     if (typeof state.animTime !== "number") {
       state.animTime = 0;
     } else {
-      const dt = Math.min((now - (typeof state.last === "number" ? state.last : now)) / 1000, 0.1);
+      const dt = Math.min(
+        (now - (typeof state.last === "number" ? state.last : now)) / 1000,
+        0.1,
+      );
       state.animTime = (state.animTime as number) + dt;
     }
     state.last = now;
 
-    const intensity = typeof settings.intensity === "number" ? settings.intensity : 200;
+    const intensity =
+      typeof settings.intensity === "number" ? settings.intensity : 200;
     const speed = typeof settings.speed === "number" ? settings.speed : 1;
     const size = typeof settings.size === "number" ? settings.size : 1;
     const opacity = typeof settings.opacity === "number" ? settings.opacity : 1;

@@ -1,14 +1,8 @@
 import { SchemaFields } from "../../shared/ui";
 import { useClipSettings } from "../../shared/hooks/useClipSettings";
 import { clipRegistry } from "../clips";
-import { TextSettingsView, TitleSettingsView } from "./clip-views/TextSettings";
-import { BackgroundSettingsView } from "./clip-views/BackgroundSettings";
-import { OverlaySettingsView } from "./clip-views/OverlaySettings";
-import { ShapeSettingsView } from "./clip-views/ShapeSettings";
-import { MusicSettingsView } from "./clip-views/MusicSettings";
-import { PlaylistSettingsView } from "./clip-views/PlaylistSettings";
 import { LyricsStyleSettings } from "./clip-views/LyricsSettings";
-import { GlvizSettingsView } from "./clip-views/GlvizSettings";
+import { getSettingsView } from "./clip-settings";
 import { useEditorStore } from "../../store/editor-store";
 
 function DefaultSettingsView({ clipId }: { clipId: string }) {
@@ -16,7 +10,9 @@ function DefaultSettingsView({ clipId }: { clipId: string }) {
   if (!clip) return null;
   const def = clipRegistry.get(clip.type);
   if (!def || def.schema.length === 0) return null;
-  return <SchemaFields schema={def.schema} values={clip.settings} onChange={set} />;
+  return (
+    <SchemaFields schema={def.schema} values={clip.settings} onChange={set} />
+  );
 }
 
 function PanelHeader({
@@ -51,7 +47,9 @@ function PanelHeader({
             title={enabled ? "Disable layer/clip" : "Enable layer/clip"}
             onClick={onToggle}
           >
-            <i className={`${enabled ? "icon-[ri--eye-line]" : "icon-[ri--eye-off-line]"} h-4 w-4`} />
+            <i
+              className={`${enabled ? "icon-[ri--eye-line]" : "icon-[ri--eye-off-line]"} h-4 w-4`}
+            />
           </button>
         )}
         {showDelete && onDelete && (
@@ -80,7 +78,9 @@ const EmptyState = () => (
     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-neutral-800 bg-neutral-950">
       <i className="icon-[ri--equalizer-line] h-8 w-8 text-neutral-600" />
     </div>
-    <h3 className="mb-1 text-sm font-bold text-neutral-400">No Clip Selected</h3>
+    <h3 className="mb-1 text-sm font-bold text-neutral-400">
+      No Clip Selected
+    </h3>
     <p className="max-w-xs text-xs leading-relaxed text-neutral-500">
       Select a clip from the timeline or the left Clips Library panel to view
       and edit its properties here.
@@ -88,9 +88,14 @@ const EmptyState = () => (
   </div>
 );
 
-function clipDisplayName(type: string, settings: Record<string, unknown>, fallback: string): string {
+function clipDisplayName(
+  type: string,
+  settings: Record<string, unknown>,
+  fallback: string,
+): string {
   const s = settings as Record<string, unknown>;
-  if (type === "text" && typeof s.content === "string") return `Text: "${s.content}"`;
+  if (type === "text" && typeof s.content === "string")
+    return `Text: "${s.content}"`;
   if (type === "background")
     return `Background: ${typeof s.fileName === "string" && s.fileName ? s.fileName : "Image/Video"}`;
   if (type === "overlay")
@@ -135,29 +140,15 @@ export function InspectorPanel() {
     return <EmptyState />;
   }
   const def = clipRegistry.get(clip.type);
-  const Custom = def?.SettingsView;
-  // 1:1 property panel of the legacy app.
-  // Text/title have dedicated views; everything else has one view per clip type.
-  const TypeView =
-    clip.type === "text"
-      ? TextSettingsView
-      : clip.type === "title"
-        ? TitleSettingsView
-        : clip.type === "background"
-          ? BackgroundSettingsView
-          : clip.type === "overlay"
-            ? OverlaySettingsView
-            : clip.type === "shape"
-              ? ShapeSettingsView
-              : clip.type === "music"
-                ? MusicSettingsView
-                : clip.type === "playlist"
-                    ? PlaylistSettingsView
-                    : clip.type === "glviz"
-                      ? GlvizSettingsView
-                      : null;
+  // Single wiring table (clip-settings.ts). Definitions stay pure `.ts`;
+  // def.SettingsView remains as a fallback for externally registered clips.
+  const TypeView = getSettingsView(clip.type) ?? def?.SettingsView ?? null;
   const enabled = (clip.settings.enabled as boolean | undefined) !== false;
-  const name = clipDisplayName(clip.type, clip.settings, def?.name ?? clip.type);
+  const name = clipDisplayName(
+    clip.type,
+    clip.settings,
+    def?.name ?? clip.type,
+  );
   const icon = def?.icon ?? "icon-[ri--movie-2-line]";
 
   return (
@@ -175,12 +166,12 @@ export function InspectorPanel() {
       <div className="custom-scrollbar flex-1 overflow-y-auto pr-1">
         {TypeView ? (
           <TypeView clipId={clip.id} />
-        ) : Custom ? (
-          <Custom clipId={clip.id} />
         ) : def && def.schema.length > 0 ? (
           <DefaultSettingsView clipId={clip.id} />
         ) : (
-          <div className="text-xs text-neutral-500 italic">Preparing clip settings...</div>
+          <div className="text-xs text-neutral-500 italic">
+            Preparing clip settings...
+          </div>
         )}
       </div>
     </div>

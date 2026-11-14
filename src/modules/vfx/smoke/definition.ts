@@ -36,10 +36,15 @@ class SmokeParticle extends BaseParticle {
     this.canvasHeight = h;
     this.life += k;
     this.y -= this.speed * (1 + audioLevel * 1.5) * k;
-    this.x += (this.drift + Math.sin(this.life * 0.02) * 0.3 + (Math.random() - 0.5) * audioLevel * 0.8) * k;
+    this.x +=
+      (this.drift +
+        Math.sin(this.life * 0.02) * 0.3 +
+        (Math.random() - 0.5) * audioLevel * 0.8) *
+      k;
     this.size += this.growth * (1 + audioLevel * 2.0) * k;
     if (this.life < 50) this.opacity = (this.life / 50) * this.maxOpacity;
-    else if (this.life > this.maxLife - 100) this.opacity = ((this.maxLife - this.life) / 100) * this.maxOpacity;
+    else if (this.life > this.maxLife - 100)
+      this.opacity = ((this.maxLife - this.life) / 100) * this.maxOpacity;
     else this.opacity = this.maxOpacity;
     if (this.life >= this.maxLife || this.y < -this.size) this.reset();
   }
@@ -48,7 +53,14 @@ class SmokeParticle extends BaseParticle {
     if (this.opacity <= 0) return;
     ctx.save();
     ctx.globalAlpha = Math.min(1.0, this.opacity * (1 + audioLevel * 1.5));
-    const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+    const grad = ctx.createRadialGradient(
+      this.x,
+      this.y,
+      0,
+      this.x,
+      this.y,
+      this.size,
+    );
     grad.addColorStop(0, "rgba(200, 210, 220, 1)");
     grad.addColorStop(1, "rgba(200, 210, 220, 0)");
     ctx.fillStyle = grad;
@@ -62,14 +74,28 @@ class SmokeParticle extends BaseParticle {
 export const smokeVfx: VfxDefinition = {
   type: "smoke",
   name: "Smoke",
+  icon: "icon-[ri--mist-line]",
   defaultSettings: { intensity: 40, audioReactive: false },
   schema: [
-    { key: "intensity", label: "Intensity", kind: "slider", min: 0, max: 150, step: 5 },
+    {
+      key: "intensity",
+      label: "Intensity",
+      kind: "slider",
+      min: 0,
+      max: 150,
+      step: 5,
+    },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    const intensity = typeof settings.intensity === "number" ? settings.intensity : 40;
-    if (!state.particles || (state.particles as SmokeParticle[]).length !== intensity || state.w !== w || state.h !== h) {
+    const intensity =
+      typeof settings.intensity === "number" ? settings.intensity : 40;
+    if (
+      !state.particles ||
+      (state.particles as SmokeParticle[]).length !== intensity ||
+      state.w !== w ||
+      state.h !== h
+    ) {
       const next: SmokeParticle[] = [];
       for (let i = 0; i < intensity; i++) next.push(new SmokeParticle(w, h));
       state.particles = next;

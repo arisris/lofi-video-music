@@ -23,7 +23,7 @@ function toClipDefinition(vfx: VfxDefinition): ClipDefinition {
   return {
     type: vfx.type as ClipDefinition["type"],
     name: vfx.name,
-    icon: "icon-[ri--magic-line]",
+    icon: vfx.icon,
     defaultDuration: 5,
     defaultSettings: { ...DEFAULT_TRANSFORM, ...vfx.defaultSettings },
     schema: vfx.schema,

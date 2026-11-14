@@ -5,9 +5,17 @@ import type { VfxDefinition } from "../_core/types";
 export const flashVfx: VfxDefinition = {
   type: "flash",
   name: "Lightning Flash",
+  icon: "icon-[ri--flashlight-line]",
   defaultSettings: { frequency: 0.5, audioReactive: false },
   schema: [
-    { key: "frequency", label: "Frequency", kind: "slider", min: 0, max: 1, step: 0.05 },
+    {
+      key: "frequency",
+      label: "Frequency",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
@@ -17,16 +25,31 @@ export const flashVfx: VfxDefinition = {
     // Frame-rate independent decay (k = elapsed 60fps-frames).
     const k = Math.min(Math.max((time - (state.lastT as number)) * 60, 0), 3);
     state.lastT = time;
-    if ((state.cooldown as number) > 0) state.cooldown = (state.cooldown as number) - k;
+    if ((state.cooldown as number) > 0)
+      state.cooldown = (state.cooldown as number) - k;
 
     if (settings.audioReactive) {
       const bass = getAudioLevel("bass");
-      const threshold = 0.85 - (typeof settings.frequency === "number" ? settings.frequency : 0.5) * 0.35;
-      if (bass > threshold && (state.opacity as number) <= 0 && state.cooldown === 0) {
+      const threshold =
+        0.85 -
+        (typeof settings.frequency === "number" ? settings.frequency : 0.5) *
+          0.35;
+      if (
+        bass > threshold &&
+        (state.opacity as number) <= 0 &&
+        state.cooldown === 0
+      ) {
         state.opacity = 0.2 + Math.random() * 0.3;
         state.cooldown = 30;
       }
-    } else if (Math.random() < 0.002 * (typeof settings.frequency === "number" ? settings.frequency : 0.5) * 5 * k && (state.opacity as number) <= 0) {
+    } else if (
+      Math.random() <
+        0.002 *
+          (typeof settings.frequency === "number" ? settings.frequency : 0.5) *
+          5 *
+          k &&
+      (state.opacity as number) <= 0
+    ) {
       state.opacity = 0.2 + Math.random() * 0.3;
     }
 

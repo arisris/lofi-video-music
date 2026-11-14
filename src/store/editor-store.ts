@@ -8,99 +8,33 @@ import type {
 } from "../shared/types/clip";
 import type { RecordResolution } from "../shared/lib/canvas-space";
 import type { MediaItem } from "../modules/media/media-helper";
-import { cloneClipSettings, getMediaUrls, revokeClipUrls } from "../shared/lib/media-urls";
+import {
+  cloneClipSettings,
+  getMediaUrls,
+  revokeClipUrls,
+} from "../shared/lib/media-urls";
+import {
+  HISTORY_LIMIT,
+  MERGE_WINDOW_MS,
+  reattachPoolMedia,
+  snapClips,
+  takeSnapshot,
+  type HistoryEntry,
+  type HistoryNode,
+} from "./history-utils";
+import {
+  DEFAULT_LYRICS_SETTINGS,
+  DEFAULT_TRACKS,
+  createDefaultThumbClips,
+  defaultPanelWidth,
+  getTotalDuration,
+} from "./project-defaults";
 
 export interface SnapLine {
   time: number;
   type: "start" | "end";
   isVideoSnap?: boolean;
   trackIdx?: number;
-}
-
-/** max(60, ceil(maxEnd)) */
-export function getTotalDuration(clips: TimelineClip[]): number {
-  if (!clips || clips.length === 0) return 60;
-  const maxEnd = clips.reduce((m, c) => Math.max(m, c.start + c.duration), 0);
-  return Math.max(60, Math.ceil(maxEnd));
-}
-
-/** One undo history entry: full clip state for both routes + selection.
- * Settings are shallow-copied (media-pool element references are shared,
- * so undo never disconnects an already-loaded image/video). */
-export interface HistoryEntry {
-  clips: TimelineClip[];
-  tracks: TimelineTrack[];
-  selectedClipId: string | null;
-  route: "/" | "/image";
-  videoClips: TimelineClip[] | null;
-  thumbClips: TimelineClip[] | null;
-  videoSel: string | null;
-  thumbSel: string | null;
-  lyricsSettings: Record<string, unknown>;
-}
-
-interface HistoryNode extends HistoryEntry {
-  mergeKey: string | null;
-  at: number;
-}
-
-const HISTORY_LIMIT = 50;
-/** Drag/slider churns dozens of writes per gesture — merge same-gesture writes. */
-const MERGE_WINDOW_MS = 1200;
-
-function snapClips(clips: TimelineClip[]): TimelineClip[] {
-  return clips.map((c) => {
-    const settings = cloneClipSettings(c.settings);
-    // Nested arrays (lyrics lines, keyframes) must not be shared with live
-    // state, otherwise in-place edits corrupt the undo snapshot.
-    if (Array.isArray(settings.lines)) {
-      settings.lines = (settings.lines as Array<Record<string, unknown>>).map((l) =>
-        l && typeof l === "object" ? { ...l } : l,
-      );
-    }
-    return { ...c, settings };
-  });
-}
-
-function takeSnapshot(s: EditorState): HistoryEntry {
-  return {
-    clips: snapClips(s.clips),
-    tracks: s.tracks.map((t) => ({ ...t })),
-    selectedClipId: s.selectedClipId,
-    route: s.route,
-    videoClips: s.videoClips ? snapClips(s.videoClips) : null,
-    thumbClips: s.thumbClips ? snapClips(s.thumbClips) : null,
-    videoSel: s.videoSel,
-    thumbSel: s.thumbSel,
-    lyricsSettings: { ...s.lyricsSettings },
-  };
-}
-
-/** Re-link media-pool references (safe if the pool changes mid-flight). */
-function reattachPoolMedia(
-  clips: TimelineClip[],
-  pool: MediaItem[],
-): TimelineClip[] {
-  return clips.map((c) => {
-    const mid = c.settings.mediaId;
-    if (typeof mid !== "string" || !mid) return c;
-    const hit = pool.find((m) => m.id === mid);
-    if (!hit) return c;
-    const next = { ...c, settings: { ...c.settings } };
-    if (hit.type === "video" && hit.elements) {
-      next.settings.mediaElements = hit.elements;
-      next.settings.mediaType = "video";
-    } else if (hit.type === "gif") {
-      const g = hit as MediaItem & { gifFrames?: unknown; gifDuration?: number };
-      if (g.gifFrames) next.settings.gifFrames = g.gifFrames;
-      if (typeof g.gifDuration === "number") next.settings.gifDuration = g.gifDuration;
-      next.settings.mediaType = "gif";
-    } else if (hit.type === "image" && hit.element) {
-      next.settings.mediaElement = hit.element;
-      next.settings.mediaType = "image";
-    }
-    return next;
-  });
 }
 
 interface EditorState {
@@ -196,110 +130,6 @@ interface EditorState {
   setPlaying: (p: boolean) => void;
 }
 
-const DEFAULT_TRACKS: TimelineTrack[] = [
-  { id: "track-1", name: "Track 1 (Music)" },
-  { id: "track-2", name: "Track 2" },
-];
-
-/** Initial sidebar width follows the viewport. */
-export function defaultPanelWidth(kind: "left" | "right"): number {
-  const min = kind === "left" ? 300 : 320;
-  if (typeof window === "undefined") return min;
-  return Math.max(min, Math.floor(window.innerWidth * 0.22));
-}
-
-const DEFAULT_THUMB_CLIPS: TimelineClip[] = [
-  {
-    id: "thumb-text-1",
-    type: "text",
-    start: 0,
-    duration: 60,
-    settings: {
-      content: "LOFI CHILL VIBES",
-      fontFamily: "sans-serif",
-      fontWeight: "bold",
-      fontSize: 70,
-      textColor: "#ffffff",
-      strokeColor: "#f43f5e",
-      strokeWidth: 6,
-      shadowColor: "#000000",
-      shadowBlur: 10,
-      shadowOffsetX: 4,
-      shadowOffsetY: 4,
-      bgColor: "transparent",
-      textEffect: "none",
-    },
-  },
-  {
-    id: "thumb-text-2",
-    type: "text",
-    start: 0,
-    duration: 60,
-    settings: {
-      content: "Late Night Study & Code",
-      fontFamily: "sans-serif",
-      fontWeight: "normal",
-      fontSize: 36,
-      textColor: "#ffffff",
-      strokeColor: "#0f172a",
-      strokeWidth: 4,
-      shadowColor: "#000000",
-      shadowBlur: 5,
-      shadowOffsetX: 2,
-      shadowOffsetY: 2,
-      bgColor: "rgba(15, 23, 42, 0.75)",
-      bgPadding: 10,
-      bgRadius: 10,
-      textEffect: "none",
-    },
-  },
-];
-
-export const DEFAULT_LYRICS_SETTINGS: Record<string, unknown> = {
-  enabled: true,
-  // Bottom-center anchor so the gizmo/box follows the text (as before).
-  originX: 0.5,
-  originY: 1,
-  x: 0,
-  y: 0,
-  scaleX: 1,
-  scaleY: 1,
-  rotation: 0,
-  fontFamily: "sans-serif",
-  fontSize: 48,
-  fontWeight: "bold",
-  lineHeight: 1.2,
-  textAlign: "center",
-  textColor: "#ffffff",
-  activeColor: "#ffffff",
-  inactiveColor: "#94a3b8",
-  inactiveOpacity: 0.45,
-  activeSizeBoost: 1,
-  lineTransitionIn: "fade",
-  lineTransitionOut: "fade",
-  lineTransitionDuration: 0.3,
-  lineTransitionEnabled: true,
-  strokeColor: "#000000",
-  strokeWidth: 0,
-  shadowColor: "rgba(0,0,0,0.8)",
-  shadowBlur: 8,
-  shadowOffsetX: 0,
-  shadowOffsetY: 0,
-  bgColor: "transparent",
-  bgPadding: 10,
-  bgRadius: 8,
-  lineGap: 8,
-  // Stack neighbour counts (used only in stack mode; single shows one line).
-  // `contextLines` stays as the legacy fallback for older projects.
-  contextLines: 0,
-  contextBefore: 1,
-  contextAfter: 1,
-  karaokeMode: false,
-  offsetSeconds: 0,
-  fallbackLineDuration: 4,
-  unstampedAutoAdvance: false,
-};
-
 export const useEditorStore = create<EditorState>((set, get) => ({
   clips: [],
   tracks: DEFAULT_TRACKS,
@@ -313,13 +143,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   thumbSel: null,
   swapRoute: (next) => {
     const s = get();
-    if (s.route === next && (next === "/" ? s.videoClips !== null : s.thumbClips !== null)) {
+    if (
+      s.route === next &&
+      (next === "/" ? s.videoClips !== null : s.thumbClips !== null)
+    ) {
       return;
     }
     // Save the old route's snapshot (except the first boot when the snapshot is still null).
-    if (s.route === "/" && (s.videoClips !== null || s.clips.length > 0 || s.selectedClipId)) {
+    if (
+      s.route === "/" &&
+      (s.videoClips !== null || s.clips.length > 0 || s.selectedClipId)
+    ) {
       set({ videoClips: snapClips(s.clips), videoSel: s.selectedClipId });
-    } else if (s.route === "/image" && (s.thumbClips !== null || s.clips.length > 0)) {
+    } else if (
+      s.route === "/image" &&
+      (s.thumbClips !== null || s.clips.length > 0)
+    ) {
       set({ thumbClips: snapClips(s.clips), thumbSel: s.selectedClipId });
     }
     if (next === "/") {
@@ -332,7 +171,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     } else {
       const cur = get();
       if (!cur.thumbClips) {
-        set({ thumbClips: DEFAULT_THUMB_CLIPS.map((c) => ({ ...c, settings: cloneClipSettings(c.settings) })) });
+        set({ thumbClips: createDefaultThumbClips() });
       }
       const fresh = get();
       set({
@@ -417,7 +256,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((s) => ({
       clips: s.clips.map((c) =>
         c.id === id
-          ? { ...c, start: Math.max(0, start), duration: Math.max(0.1, duration) }
+          ? {
+              ...c,
+              start: Math.max(0, start),
+              duration: Math.max(0.1, duration),
+            }
           : c,
       ),
     }));
@@ -430,9 +273,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         c.id === id
           ? {
               ...c,
-              start: patch.start !== undefined ? Math.max(0, patch.start) : c.start,
+              start:
+                patch.start !== undefined ? Math.max(0, patch.start) : c.start,
               duration:
-                patch.duration !== undefined ? Math.max(0.1, patch.duration) : c.duration,
+                patch.duration !== undefined
+                  ? Math.max(0.1, patch.duration)
+                  : c.duration,
               trackId: patch.trackId ?? c.trackId,
               settings: patch.settings ?? c.settings,
             }
@@ -474,14 +320,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const s = get();
     const now = Date.now();
     const top = s.past[s.past.length - 1];
-    if (mergeKey && top && top.mergeKey === mergeKey && now - top.at < MERGE_WINDOW_MS) {
+    if (
+      mergeKey &&
+      top &&
+      top.mergeKey === mergeKey &&
+      now - top.at < MERGE_WINDOW_MS
+    ) {
       // Same gesture: no new snapshot, but a prior undo must not keep a
       // redo path alive — any new write invalidates it.
       if (s.future.length > 0) set({ future: [] });
       return;
     }
     set({
-      past: [...s.past.slice(-(HISTORY_LIMIT - 1)), { ...takeSnapshot(s), mergeKey: mergeKey ?? null, at: now }],
+      past: [
+        ...s.past.slice(-(HISTORY_LIMIT - 1)),
+        { ...takeSnapshot(s), mergeKey: mergeKey ?? null, at: now },
+      ],
       future: [],
     });
   },
@@ -491,13 +345,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (!prev) return;
     set({
       past: s.past.slice(0, -1),
-      future: [...s.future, { ...takeSnapshot(s), mergeKey: null, at: Date.now() }],
+      future: [
+        ...s.future,
+        { ...takeSnapshot(s), mergeKey: null, at: Date.now() },
+      ],
       clips: reattachPoolMedia(prev.clips, s.mediaPool),
       tracks: prev.tracks,
       selectedClipId: prev.selectedClipId,
       route: prev.route,
-      videoClips: prev.videoClips ? reattachPoolMedia(prev.videoClips, s.mediaPool) : null,
-      thumbClips: prev.thumbClips ? reattachPoolMedia(prev.thumbClips, s.mediaPool) : null,
+      videoClips: prev.videoClips
+        ? reattachPoolMedia(prev.videoClips, s.mediaPool)
+        : null,
+      thumbClips: prev.thumbClips
+        ? reattachPoolMedia(prev.thumbClips, s.mediaPool)
+        : null,
       videoSel: prev.videoSel,
       thumbSel: prev.thumbSel,
       lyricsSettings: { ...prev.lyricsSettings },
@@ -510,13 +371,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (!next) return;
     set({
       future: s.future.slice(0, -1),
-      past: [...s.past.slice(-(HISTORY_LIMIT - 1)), { ...takeSnapshot(s), mergeKey: null, at: Date.now() }],
+      past: [
+        ...s.past.slice(-(HISTORY_LIMIT - 1)),
+        { ...takeSnapshot(s), mergeKey: null, at: Date.now() },
+      ],
       clips: reattachPoolMedia(next.clips, s.mediaPool),
       tracks: next.tracks,
       selectedClipId: next.selectedClipId,
       route: next.route,
-      videoClips: next.videoClips ? reattachPoolMedia(next.videoClips, s.mediaPool) : null,
-      thumbClips: next.thumbClips ? reattachPoolMedia(next.thumbClips, s.mediaPool) : null,
+      videoClips: next.videoClips
+        ? reattachPoolMedia(next.videoClips, s.mediaPool)
+        : null,
+      thumbClips: next.thumbClips
+        ? reattachPoolMedia(next.thumbClips, s.mediaPool)
+        : null,
       videoSel: next.videoSel,
       thumbSel: next.thumbSel,
       lyricsSettings: { ...next.lyricsSettings },
@@ -524,15 +392,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     });
   },
   clearHistory: () => set({ past: [], future: [] }),
-  addMediaItem: (item) =>
-    set((s) => ({ mediaPool: [item, ...s.mediaPool] })),
+  addMediaItem: (item) => set((s) => ({ mediaPool: [item, ...s.mediaPool] })),
   removeMediaItem: (id) =>
     set((s) => {
       const gone = s.mediaPool.find((m) => m.id === id);
       if (gone && gone.url.startsWith("blob:")) {
         const stillUsed =
           s.clips.some((c) => getMediaUrls(c).includes(gone.url)) ||
-          (s.videoClips ?? []).some((c) => getMediaUrls(c).includes(gone.url)) ||
+          (s.videoClips ?? []).some((c) =>
+            getMediaUrls(c).includes(gone.url),
+          ) ||
           (s.thumbClips ?? []).some((c) => getMediaUrls(c).includes(gone.url));
         if (!stillUsed) {
           try {
@@ -551,7 +420,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       recordStartTime: startedAt ?? s.recordStartTime,
     })),
   setRecordingTime: (label) => set({ recordingTime: label }),
-  setRecordOptions: (resolution, fps) => set({ recordResolution: resolution, recordFps: fps }),
+  setRecordOptions: (resolution, fps) =>
+    set({ recordResolution: resolution, recordFps: fps }),
   setTime: (t) =>
     set((s) => ({
       currentTime: Math.min(Math.max(0, t), getTotalDuration(s.clips)),
@@ -559,4 +429,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setPlaying: (p) => set({ playing: p }),
 }));
 
-export type { ClipType };
+// Backward-compatible re-exports: single import site for existing modules.
+export { DEFAULT_LYRICS_SETTINGS, defaultPanelWidth, getTotalDuration };
+export type { ClipType, HistoryEntry, HistoryNode };

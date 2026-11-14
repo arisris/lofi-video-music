@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useEditorStore } from "../../store/editor-store";
-import { MediaLibraryPanel } from "../panels/MediaLibraryPanel";
-import { TextPanel } from "../panels/TextPanel";
-import { LyricsPanel } from "../panels/LyricsPanel";
-import { VfxPanel } from "../panels/VfxPanel";
-import { GlobalSettingsPanel } from "../panels/GlobalSettingsPanel";
-import { ShapePanel } from "../panels/ShapePanel";
+import { MediaLibraryPanel } from "../library-panels/MediaLibraryPanel";
+import { TextPanel } from "../library-panels/TextPanel";
+import { LyricsPanel } from "../library-panels/LyricsPanel";
+import { VfxPanel } from "../library-panels/VfxPanel";
+import { GlobalSettingsPanel } from "../library-panels/GlobalSettingsPanel";
+import { ShapePanel } from "../library-panels/ShapePanel";
 
 interface LeftTab {
   id: string;

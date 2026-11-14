@@ -49,12 +49,7 @@ export interface TimelineTrack {
 }
 
 export type FieldKind =
-  | "text"
-  | "number"
-  | "slider"
-  | "color"
-  | "toggle"
-  | "select";
+  "text" | "number" | "slider" | "color" | "toggle" | "select";
 
 export interface FieldSchema {
   key: string;
@@ -110,5 +105,10 @@ export interface ClipDefinition {
     settings: Record<string, unknown>,
     localTime?: number,
   ) => ClipBBox | null;
+  /**
+   * Optional escape hatch for externally registered clips.
+   * First-party wiring lives in `modules/editor/clip-settings.ts` so
+   * definitions stay pure `.ts` (no React imports in the render path).
+   */
   SettingsView?: (props: { clipId: string }) => JSX.Element | null;
 }

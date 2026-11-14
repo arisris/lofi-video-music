@@ -15,6 +15,8 @@ export interface VfxDrawArgs {
 export interface VfxDefinition {
   type: string;
   name: string;
+  /** Iconify class, same convention as clips (used by library panel + timeline). */
+  icon: string;
   defaultSettings: Record<string, unknown>;
   schema: FieldSchema[];
   draw: (args: VfxDrawArgs) => void;

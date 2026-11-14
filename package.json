@@ -6,12 +6,16 @@
     "build": "vite build",
     "preview": "bun run build && vite preview",
     "deploy": "bun run build && wrangler deploy",
+    "typecheck": "bunx tsc --noEmit",
+    "typecheck:worker": "bunx tsc -p worker/tsconfig.json --noEmit",
+    "typecheck:node": "bunx tsc -p tsconfig.node.json --noEmit",
+    "typecheck:all": "bun run typecheck && bun run typecheck:worker && bun run typecheck:node",
     "check:tailwind": "bun scripts/check-tailwind.ts",
     "fix:tailwind": "bun scripts/check-tailwind.ts --fix",
     "validate:project": "bun scripts/validate-project.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "clean": "rm -rf node_modules && bun i"
+    "clean": "rm -rf node_modules && bun install"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.110",

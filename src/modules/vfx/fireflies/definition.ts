@@ -29,14 +29,22 @@ class Firefly extends BaseParticle {
     this.pulseOffset = Math.random() * Math.PI * 2;
   }
 
-  updateFly(w: number, h: number, settings: Record<string, unknown>, audioLevel = 0) {
+  updateFly(
+    w: number,
+    h: number,
+    settings: Record<string, unknown>,
+    audioLevel = 0,
+  ) {
     this.canvasWidth = w;
     this.canvasHeight = h;
     this.angleChange += (Math.random() - 0.5) * 0.02;
     this.angleChange = Math.max(-0.15, Math.min(0.15, this.angleChange));
     this.angle += this.angleChange;
     const speedMultiplier = finiteSetting(settings, "speed", 1.0);
-    const activeSpeed = this.speed * speedMultiplier * (settings.audioReactive ? 1.0 + audioLevel * 2.5 : 1.0);
+    const activeSpeed =
+      this.speed *
+      speedMultiplier *
+      (settings.audioReactive ? 1.0 + audioLevel * 2.5 : 1.0);
     this.x += Math.cos(this.angle) * activeSpeed;
     this.y += Math.sin(this.angle) * activeSpeed;
     if (this.x < -10) this.x = this.canvasWidth + 10;
@@ -45,12 +53,30 @@ class Firefly extends BaseParticle {
     if (this.y > this.canvasHeight + 10) this.y = -10;
   }
 
-  drawFly(ctx: CanvasRenderingContext2D, settings: Record<string, unknown>, time: number, audioLevel = 0) {
+  drawFly(
+    ctx: CanvasRenderingContext2D,
+    settings: Record<string, unknown>,
+    time: number,
+    audioLevel = 0,
+  ) {
     const sizeMultiplier = finiteSetting(settings, "size", 1.0);
-    const color = typeof settings.color === "string" ? settings.color : "#facc15";
+    const color =
+      typeof settings.color === "string" ? settings.color : "#facc15";
     const pulse = Math.sin(time * 3 + this.pulseOffset) * 0.2 + 0.8;
-    const r = this.radius * sizeMultiplier * pulse * (settings.audioReactive ? 0.8 + audioLevel * 1.0 : 1.0);
-    const o = Math.max(0.1, Math.min(1.0, this.opacity * pulse * (settings.audioReactive ? 0.4 + audioLevel * 0.6 : 1.0)));
+    const r =
+      this.radius *
+      sizeMultiplier *
+      pulse *
+      (settings.audioReactive ? 0.8 + audioLevel * 1.0 : 1.0);
+    const o = Math.max(
+      0.1,
+      Math.min(
+        1.0,
+        this.opacity *
+          pulse *
+          (settings.audioReactive ? 0.4 + audioLevel * 0.6 : 1.0),
+      ),
+    );
     ctx.save();
     ctx.beginPath();
     ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
@@ -66,17 +92,44 @@ class Firefly extends BaseParticle {
 export const firefliesVfx: VfxDefinition = {
   type: "fireflies",
   name: "Fireflies",
-  defaultSettings: { intensity: 50, speed: 1, size: 1, color: "#facc15", audioReactive: false },
+  icon: "icon-[ri--bug-line]",
+  defaultSettings: {
+    intensity: 50,
+    speed: 1,
+    size: 1,
+    color: "#facc15",
+    audioReactive: false,
+  },
   schema: [
-    { key: "intensity", label: "Intensity", kind: "slider", min: 0, max: 200, step: 5 },
-    { key: "speed", label: "Speed", kind: "slider", min: 0.1, max: 3, step: 0.1 },
+    {
+      key: "intensity",
+      label: "Intensity",
+      kind: "slider",
+      min: 0,
+      max: 200,
+      step: 5,
+    },
+    {
+      key: "speed",
+      label: "Speed",
+      kind: "slider",
+      min: 0.1,
+      max: 3,
+      step: 0.1,
+    },
     { key: "size", label: "Size", kind: "slider", min: 0.2, max: 3, step: 0.1 },
     { key: "color", label: "Color", kind: "color" },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    const intensity = typeof settings.intensity === "number" ? settings.intensity : 50;
-    if (!state.flies || (state.flies as Firefly[]).length !== intensity || state.w !== w || state.h !== h) {
+    const intensity =
+      typeof settings.intensity === "number" ? settings.intensity : 50;
+    if (
+      !state.flies ||
+      (state.flies as Firefly[]).length !== intensity ||
+      state.w !== w ||
+      state.h !== h
+    ) {
       const next: Firefly[] = [];
       for (let i = 0; i < intensity; i++) next.push(new Firefly(w, h));
       state.flies = next;

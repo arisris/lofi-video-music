@@ -9,7 +9,6 @@ import { RangeInput } from "../../shared/ui/RangeInput";
 import { getTotalDuration, useEditorStore } from "../../store/editor-store";
 import type { TimelineClip } from "../../shared/types/clip";
 import { getClipDef } from "../clips";
-import { VFX_ICONS } from "../vfx";
 import {
   beginClipDrag,
   beginPlayheadDrag,
@@ -20,14 +19,19 @@ import { ClipContextMenu } from "./ClipContextMenu";
 
 const TRACK_ROW_H = 48;
 
-function trackIdOf(c: TimelineClip, tracks: Array<{ id: string }>, secondId: string): string {
+function trackIdOf(
+  c: TimelineClip,
+  tracks: Array<{ id: string }>,
+  secondId: string,
+): string {
   if (c.trackId && tracks.some((t) => t.id === c.trackId)) return c.trackId;
   return c.type === "music" ? "track-1" : secondId;
 }
 
 function clipLabel(c: TimelineClip): string {
   const s = c.settings as Record<string, unknown>;
-  if (c.type === "music") return typeof s.name === "string" && s.name ? s.name : "Music";
+  if (c.type === "music")
+    return typeof s.name === "string" && s.name ? s.name : "Music";
   if (c.type === "background" || c.type === "overlay")
     return typeof s.fileName === "string" && s.fileName
       ? s.fileName
@@ -35,12 +39,20 @@ function clipLabel(c: TimelineClip): string {
         ? "Background"
         : "Overlay";
   if (c.type === "glviz")
-    return `Shader (${typeof s.style === "string" ? s.style : "bars"})`;
+    return `Shader (${typeof s.variant === "string" ? s.variant : "bars"})`;
   if (typeof s.content === "string" && s.content) return s.content;
   return getClipDef(c.type)?.name ?? c.type;
 }
 
-function ClipBlock({ clip, zoom, selected }: { clip: TimelineClip; zoom: number; selected: boolean }) {
+function ClipBlock({
+  clip,
+  zoom,
+  selected,
+}: {
+  clip: TimelineClip;
+  zoom: number;
+  selected: boolean;
+}) {
   const s = clip.settings as Record<string, unknown>;
   const isDurationLocked =
     clip.type === "overlay" && s.mediaType === "video" && s.loop === false;
@@ -56,14 +68,19 @@ function ClipBlock({ clip, zoom, selected }: { clip: TimelineClip; zoom: number;
   const isVideo =
     (clip.type === "background" && s.mediaType === "video") ||
     (clip.type === "overlay" && s.mediaType === "video");
-  const videoDuration = typeof s.videoDuration === "number" ? s.videoDuration : 0;
+  const videoDuration =
+    typeof s.videoDuration === "number" ? s.videoDuration : 0;
   const speed = typeof s.speed === "number" ? s.speed : 1.0;
   const visualLen = videoDuration / speed;
   const markers: number[] = [];
   if (isVideo && videoDuration > 0 && visualLen > 0.05) {
     if (s.loop !== false) {
       let count = 0;
-      for (let t = visualLen; t < clip.duration - 0.05 && count < 500; t += visualLen) {
+      for (
+        let t = visualLen;
+        t < clip.duration - 0.05 && count < 500;
+        t += visualLen
+      ) {
         markers.push(t);
         count++;
       }
@@ -73,7 +90,7 @@ function ClipBlock({ clip, zoom, selected }: { clip: TimelineClip; zoom: number;
   }
 
   const thumbnail = typeof s.thumbnail === "string" ? s.thumbnail : null;
-  const vfxIcon = VFX_ICONS[clip.type];
+  const defIcon = getClipDef(clip.type)?.icon;
   const icon =
     clip.type === "music"
       ? "icon-[ri--music-2-line] h-3 w-3 shrink-0 text-emerald-400"
@@ -81,14 +98,17 @@ function ClipBlock({ clip, zoom, selected }: { clip: TimelineClip; zoom: number;
         ? "icon-[ri--text-spacing] h-3 w-3 shrink-0 text-neutral-300"
         : clip.type === "glviz"
           ? "icon-[ri--shapes-line] h-3 w-3 shrink-0 text-neutral-300"
-          : vfxIcon
-            ? `${vfxIcon} h-3 w-3 shrink-0 text-violet-300`
+          : defIcon
+            ? `${defIcon} h-3 w-3 shrink-0 text-violet-300`
             : "icon-[ri--image-line] h-3 w-3 shrink-0 text-neutral-300";
 
   return (
     <div
       className={`absolute top-2 bottom-2 rounded border transition-colors ${clipClass}`}
-      style={{ left: `${clip.start * zoom}px`, width: `${Math.max(1, clip.duration * zoom)}px` }}
+      style={{
+        left: `${clip.start * zoom}px`,
+        width: `${Math.max(1, clip.duration * zoom)}px`,
+      }}
       onMouseDown={(e) => beginClipDrag(e, clip, "move")}
     >
       {markers.map((t, i) => (
@@ -111,12 +131,19 @@ function ClipBlock({ clip, zoom, selected }: { clip: TimelineClip; zoom: number;
         />
       )}
       <div className="pointer-events-none flex h-full w-full items-center gap-2 overflow-hidden px-2">
-        {(clip.type === "background" || clip.type === "overlay") && thumbnail ? (
-          <img src={thumbnail} alt="" className="h-4 w-4 shrink-0 rounded border border-neutral-600 object-cover" />
+        {(clip.type === "background" || clip.type === "overlay") &&
+        thumbnail ? (
+          <img
+            src={thumbnail}
+            alt=""
+            className="h-4 w-4 shrink-0 rounded border border-neutral-600 object-cover"
+          />
         ) : (
           <i className={icon} />
         )}
-        <span className="truncate text-[9px] font-medium text-white">{clipLabel(clip)}</span>
+        <span className="truncate text-[9px] font-medium text-white">
+          {clipLabel(clip)}
+        </span>
       </div>
     </div>
   );
@@ -136,7 +163,11 @@ export function Timeline() {
   const futureLen = useEditorStore((s) => s.future.length);
   const isRecording = useEditorStore((s) => s.isRecording);
 
-  const [menu, setMenu] = useState<{ x: number; y: number; clipId: string } | null>(null);
+  const [menu, setMenu] = useState<{
+    x: number;
+    y: number;
+    clipId: string;
+  } | null>(null);
   const tracksAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -194,7 +225,10 @@ export function Timeline() {
               const st = useEditorStore.getState();
               const id = `track-${Date.now()}`;
               useEditorStore.setState({
-                tracks: [...st.tracks, { id, name: `Track ${st.tracks.length + 1}` }],
+                tracks: [
+                  ...st.tracks,
+                  { id, name: `Track ${st.tracks.length + 1}` },
+                ],
               });
             }}
           >
@@ -205,18 +239,26 @@ export function Timeline() {
           className="relative flex-1 cursor-crosshair overflow-hidden"
           onMouseDown={(e) => beginPlayheadDrag(e, scrollLeft, zoom)}
         >
-          <div className="absolute top-0 flex h-full items-end" style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}>
+          <div
+            className="absolute top-0 flex h-full items-end"
+            style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}
+          >
             {rulerMajors.map((t) => (
               <div
                 key={`ruler-${t}`}
                 className="absolute flex h-3 flex-col justify-end border-l border-neutral-700 px-1 pb-1"
                 style={{ left: `${t * zoom}px` }}
               >
-                <span className="font-mono text-[8px] text-neutral-500">{formatTime(t)}</span>
+                <span className="font-mono text-[8px] text-neutral-500">
+                  {formatTime(t)}
+                </span>
               </div>
             ))}
           </div>
-          <div className="absolute top-0 flex h-full items-end" style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}>
+          <div
+            className="absolute top-0 flex h-full items-end"
+            style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}
+          >
             {rulerMinors.map((t) => (
               <div
                 key={`sub-${t}`}
@@ -232,7 +274,10 @@ export function Timeline() {
       <div ref={tracksAreaRef} className="flex flex-1 overflow-hidden">
         {/* Track headers */}
         <div className="relative z-10 w-32 shrink-0 overflow-hidden border-r border-neutral-800 bg-neutral-900">
-          <div className="absolute right-0 left-0" style={{ top: `${-scrollTop}px` }}>
+          <div
+            className="absolute right-0 left-0"
+            style={{ top: `${-scrollTop}px` }}
+          >
             {tracks.map((track, i) => {
               const isMusicTrack = track.id === "track-1" || i === 0;
               const isSelected = selectedTrackId === track.id;
@@ -251,7 +296,9 @@ export function Timeline() {
                 <div
                   key={track.id}
                   className={`group flex h-12 cursor-pointer items-center gap-2 border-b border-neutral-800/50 px-3 transition-colors ${borderClass}`}
-                  onClick={() => useEditorStore.setState({ selectedTrackId: track.id })}
+                  onClick={() =>
+                    useEditorStore.setState({ selectedTrackId: track.id })
+                  }
                 >
                   {isMusicTrack ? (
                     <i
@@ -264,16 +311,22 @@ export function Timeline() {
                       title={locked ? "Unlock Track" : "Lock Track"}
                       onClick={(e) => {
                         e.stopPropagation();
-                        const cur = useEditorStore.getState().tracks.map((t) =>
-                          t.id === track.id ? { ...t, locked: !t.locked } : t,
-                        );
+                        const cur = useEditorStore
+                          .getState()
+                          .tracks.map((t) =>
+                            t.id === track.id ? { ...t, locked: !t.locked } : t,
+                          );
                         useEditorStore.setState({ tracks: cur });
                       }}
                     >
-                      <i className={`${locked ? "icon-[ri--lock-fill]" : "icon-[ri--lock-unlock-line]"} h-3.5 w-3.5`} />
+                      <i
+                        className={`${locked ? "icon-[ri--lock-fill]" : "icon-[ri--lock-unlock-line]"} h-3.5 w-3.5`}
+                      />
                     </button>
                   )}
-                  <span className={`flex-1 truncate text-[10px] font-bold tracking-tighter uppercase ${textClass}`}>
+                  <span
+                    className={`flex-1 truncate text-[10px] font-bold tracking-tighter uppercase ${textClass}`}
+                  >
                     {track.name}
                   </span>
                   {i > 1 && (
@@ -286,19 +339,29 @@ export function Timeline() {
                         const hasClips = st.clips.some(
                           (c) => trackIdOf(c, st.tracks, secondId) === track.id,
                         );
-                        if (!hasClips || confirm(`Delete ${track.name} and all clips inside it?`)) {
+                        if (
+                          !hasClips ||
+                          confirm(
+                            `Delete ${track.name} and all clips inside it?`,
+                          )
+                        ) {
                           for (const c of st.clips) {
-                            if (trackIdOf(c, st.tracks, secondId) === track.id) {
+                            if (
+                              trackIdOf(c, st.tracks, secondId) === track.id
+                            ) {
                               revokeClipUrls(c, st);
                             }
                           }
                           useEditorStore.setState({
                             tracks: st.tracks.filter((t) => t.id !== track.id),
                             clips: st.clips.filter(
-                              (c) => trackIdOf(c, st.tracks, secondId) !== track.id,
+                              (c) =>
+                                trackIdOf(c, st.tracks, secondId) !== track.id,
                             ),
                             selectedTrackId:
-                              st.selectedTrackId === track.id ? tracks[0].id : st.selectedTrackId,
+                              st.selectedTrackId === track.id
+                                ? tracks[0].id
+                                : st.selectedTrackId,
                           });
                         }
                       }}
@@ -313,11 +376,21 @@ export function Timeline() {
         </div>
 
         {/* Clips area */}
-        <div id="timeline-content-area" className="relative flex-1 overflow-hidden bg-neutral-950/40">
+        <div
+          id="timeline-content-area"
+          className="relative flex-1 overflow-hidden bg-neutral-950/40"
+        >
           {/* Grid */}
-          <div className="pointer-events-none absolute inset-0" style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}>
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ left: `${-scrollLeft}px`, width: `${timelineWidth}px` }}
+          >
             {rulerMajors.map((t) => (
-              <div key={`grid-${t}`} className="absolute top-0 bottom-0 border-l border-neutral-800/40" style={{ left: `${t * zoom}px` }} />
+              <div
+                key={`grid-${t}`}
+                className="absolute top-0 bottom-0 border-l border-neutral-800/40"
+                style={{ left: `${t * zoom}px` }}
+              />
             ))}
           </div>
           {/* Snap lines */}
@@ -326,8 +399,8 @@ export function Timeline() {
               key={`snap-${idx}`}
               className={
                 line.isVideoSnap
-                  ? "absolute w-px bg-cyan-400/90 z-30 pointer-events-none shadow-[0_0_8px_rgba(34,211,238,0.6)]"
-                  : "absolute top-0 bottom-0 w-px bg-yellow-400/80 z-30 pointer-events-none shadow-[0_0_8px_rgba(250,204,21,0.5)]"
+                  ? "pointer-events-none absolute z-30 w-px bg-cyan-400/90 shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                  : "pointer-events-none absolute top-0 bottom-0 z-30 w-px bg-yellow-400/80 shadow-[0_0_8px_rgba(250,204,21,0.5)]"
               }
               style={
                 line.isVideoSnap
@@ -343,14 +416,19 @@ export function Timeline() {
           {/* Rows */}
           <div
             className="absolute left-0"
-            style={{ left: `${-scrollLeft}px`, top: `${-scrollTop}px`, width: `${timelineWidth}px` }}
+            style={{
+              left: `${-scrollLeft}px`,
+              top: `${-scrollTop}px`,
+              width: `${timelineWidth}px`,
+            }}
           >
             {tracks.map((track) => (
               <div
                 key={track.id}
                 className="relative h-12 border-b border-neutral-800/30"
                 onPointerDown={(e) => {
-                  if (e.target === e.currentTarget) seekFromClientX(e.clientX, e.currentTarget);
+                  if (e.target === e.currentTarget)
+                    seekFromClientX(e.clientX, e.currentTarget);
                 }}
                 onContextMenu={(e) => e.preventDefault()}
               >
@@ -368,7 +446,11 @@ export function Timeline() {
                       });
                     }}
                   >
-                    <ClipBlock clip={clip} zoom={zoom} selected={selectedClipId === clip.id} />
+                    <ClipBlock
+                      clip={clip}
+                      zoom={zoom}
+                      selected={selectedClipId === clip.id}
+                    />
                   </div>
                 ))}
               </div>
@@ -419,7 +501,9 @@ export function Timeline() {
                     const st = useEditorStore.getState();
                     const musics = st.clips.filter((c) => c.type === "music");
                     const start =
-                      musics.length > 0 ? Math.max(...musics.map((c) => c.start + c.duration)) : 0;
+                      musics.length > 0
+                        ? Math.max(...musics.map((c) => c.start + c.duration))
+                        : 0;
                     st.addClip({
                       id: `clip-music-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
                       type: "music",
@@ -476,7 +560,11 @@ export function Timeline() {
           <Button
             variant="iconGhost"
             title="Zoom out"
-            onClick={() => useEditorStore.setState({ timelineZoom: Math.max(0.1, zoom * 0.8) })}
+            onClick={() =>
+              useEditorStore.setState({
+                timelineZoom: Math.max(0.1, zoom * 0.8),
+              })
+            }
           >
             <i className="icon-[ri--zoom-out-line] h-3.5 w-3.5" />
           </Button>
@@ -492,7 +580,11 @@ export function Timeline() {
           <Button
             variant="iconGhost"
             title="Zoom in"
-            onClick={() => useEditorStore.setState({ timelineZoom: Math.min(50, zoom * 1.2) })}
+            onClick={() =>
+              useEditorStore.setState({
+                timelineZoom: Math.min(50, zoom * 1.2),
+              })
+            }
           >
             <i className="icon-[ri--zoom-in-line] h-3.5 w-3.5" />
           </Button>
@@ -501,7 +593,12 @@ export function Timeline() {
 
       {/* Context menu */}
       {menu && (
-        <ClipContextMenu x={menu.x} y={menu.y} clipId={menu.clipId} onClose={() => setMenu(null)} />
+        <ClipContextMenu
+          x={menu.x}
+          y={menu.y}
+          clipId={menu.clipId}
+          onClose={() => setMenu(null)}
+        />
       )}
     </div>
   );

@@ -24,7 +24,12 @@ class Drop extends BaseParticle {
     this.lastTime = undefined;
   }
 
-  update(w: number, h: number, settings: Record<string, unknown>, time?: number) {
+  update(
+    w: number,
+    h: number,
+    settings: Record<string, unknown>,
+    time?: number,
+  ) {
     this.canvasWidth = w;
     this.canvasHeight = h;
     const dt = this.step(time);
@@ -55,18 +60,52 @@ class Drop extends BaseParticle {
 export const rainVfx: VfxDefinition = {
   type: "rain",
   name: "Rain",
-  defaultSettings: { intensity: 200, speed: 1, size: 1, opacity: 1, audioReactive: false },
+  icon: "icon-[ri--rainy-line]",
+  defaultSettings: {
+    intensity: 200,
+    speed: 1,
+    size: 1,
+    opacity: 1,
+    audioReactive: false,
+  },
   schema: [
-    { key: "intensity", label: "Intensity", kind: "slider", min: 0, max: 600, step: 10 },
-    { key: "speed", label: "Speed", kind: "slider", min: 0.1, max: 3, step: 0.1 },
+    {
+      key: "intensity",
+      label: "Intensity",
+      kind: "slider",
+      min: 0,
+      max: 600,
+      step: 10,
+    },
+    {
+      key: "speed",
+      label: "Speed",
+      kind: "slider",
+      min: 0.1,
+      max: 3,
+      step: 0.1,
+    },
     { key: "size", label: "Size", kind: "slider", min: 0.2, max: 3, step: 0.1 },
-    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
+    {
+      key: "opacity",
+      label: "Opacity",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
     { key: "audioReactive", label: "Audio reactive", kind: "toggle" },
   ],
   draw({ ctx, w, h, settings, time, state }) {
-    const intensity = typeof settings.intensity === "number" ? settings.intensity : 200;
+    const intensity =
+      typeof settings.intensity === "number" ? settings.intensity : 200;
     const drops = state.drops as Drop[] | undefined;
-    if (!drops || drops.length !== intensity || state.w !== w || state.h !== h) {
+    if (
+      !drops ||
+      drops.length !== intensity ||
+      state.w !== w ||
+      state.h !== h
+    ) {
       const next: Drop[] = [];
       for (let i = 0; i < intensity; i++) {
         const d = new Drop(w, h);
@@ -84,8 +123,12 @@ export const rainVfx: VfxDefinition = {
     const active = settings.audioReactive
       ? {
           ...settings,
-          speed: (typeof settings.speed === "number" ? settings.speed : 1) * (0.4 + audioLevel * 1.6),
-          opacity: (typeof settings.opacity === "number" ? settings.opacity : 1) * (0.3 + audioLevel * 0.7),
+          speed:
+            (typeof settings.speed === "number" ? settings.speed : 1) *
+            (0.4 + audioLevel * 1.6),
+          opacity:
+            (typeof settings.opacity === "number" ? settings.opacity : 1) *
+            (0.3 + audioLevel * 0.7),
         }
       : settings;
     const list = state.drops as Drop[];

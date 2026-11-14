@@ -8,10 +8,6 @@ const app = createApp();
 app.get("/api/pexels/search", ...pexelsSearchApiHandlers);
 app.get("/api/pixabay/search", ...pixabaySearchApiHandlers);
 
-app.get("/api/transcribe", (c) => {
-  return c.json({ message: "Not yet implemented" });
-});
-
 app.notFound((c) => c.body(null, 404));
 app.onError((err, c) => {
   if (err instanceof HTTPException) {

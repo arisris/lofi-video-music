@@ -54,7 +54,7 @@ export type FieldSchema =
   | { kind: "image"; key: string; label: string; hint?: string };
 
 export interface VisualizerDef {
-  /** Stable id, persisted on the clip as `settings.style`. */
+  /** Stable id, persisted on the clip as `settings.variant`. */
   id: string;
   name: string;
   /** Iconify class, same convention as the other clip types. */

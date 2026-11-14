@@ -14,7 +14,7 @@ import { vfxClipDefinitions } from "./vfx/definition";
 // clip — production model: lyrics attach to the music clip and draw as
 // one global layer (render-loop). The definition is used directly for draw/bbox.
 
-export const clipRegistry = createRegistry<ClipDefinition>();
+export const clipRegistry = createRegistry<ClipDefinition>((e) => e.type);
 
 for (const def of [
   backgroundClip,
