@@ -10,6 +10,8 @@ export const VFX_TYPES = [
   "flash",
   "filmgrain",
   "vignette",
+  "confetti",
+  "fireworks",
 ] as const;
 
 export type VfxType = (typeof VFX_TYPES)[number];
