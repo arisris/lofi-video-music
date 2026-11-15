@@ -11,9 +11,7 @@ export default defineConfig({
         // Stable third-party chunk: cached long-term, keeps app code in index.
         manualChunks: (id) => {
           if (
-            /node_modules[\\/](react|react-dom|scheduler|zustand|wouter)[\\/]/.test(
-              id,
-            )
+            /node_modules[\\/](react|react-dom|scheduler|zustand)[\\/]/.test(id)
           )
             return "vendor";
         },

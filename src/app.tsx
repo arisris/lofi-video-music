@@ -1,6 +1,4 @@
 import { Suspense, lazy, useEffect, useState, type CSSProperties } from "react";
-import { Router, useLocation } from "wouter";
-import { useHashLocation } from "wouter/use-hash-location";
 import { VideoPreview } from "./modules/editor/VideoPreview";
 import { PlaybackControls } from "./modules/editor/TransportBar";
 import { Timeline } from "./modules/editor/Timeline";
@@ -14,16 +12,12 @@ const RecordSettingsModal = lazy(() =>
   })),
 );
 import { useEditorStore } from "./store/editor-store";
+import { useRouteHashSync } from "./store/route-hash";
 import {
   handleCanvasDragEnd,
   handleCanvasDragMove,
   type DragPointerEvent,
 } from "./modules/editor/canvas-drag";
-
-type EditorRoute = "/" | "/image";
-
-const toEditorRoute = (location: string): EditorRoute =>
-  location.startsWith("/image") ? "/image" : "/";
 
 const AppContent = () => {
   const mediaPoolWidth = useEditorStore((s) => s.mediaPoolWidth);
@@ -33,15 +27,13 @@ const AppContent = () => {
     (s) => s.showRecordSettingsModal,
   );
 
-  const [location] = useLocation();
+  useRouteHashSync();
 
   // Panel side being dragged — width transition disabled while dragging
   // so resize follows the pointer without lag (transition-all + drag = rubber-banding).
-  const [resizingSide, setResizingSide] = useState<"left" | "right" | null>(null);
-
-  useEffect(() => {
-    useEditorStore.getState().swapRoute(toEditorRoute(location));
-  }, [location]);
+  const [resizingSide, setResizingSide] = useState<"left" | "right" | null>(
+    null,
+  );
 
   // Global canvas drag listener: window-level move/up
   // so a drag survives even when the pointer leaves the canvas.
@@ -68,7 +60,13 @@ const AppContent = () => {
         {/* LEFT PANEL: Media Pool */}
         <aside
           className={`order-2 flex w-full flex-none flex-col border-b border-neutral-800 bg-neutral-900/20 md:order-1 md:h-full md:w-(--panel-w) md:border-r md:border-b-0 ${resizingSide === "left" ? "" : "transition-[width] duration-200"}`}
-          style={{ "--panel-w": leftPanelCollapsed ? "56px" : `${mediaPoolWidth || 300}px` } as CSSProperties}
+          style={
+            {
+              "--panel-w": leftPanelCollapsed
+                ? "56px"
+                : `${mediaPoolWidth || 300}px`,
+            } as CSSProperties
+          }
         >
           <MediaDock />
         </aside>
@@ -80,7 +78,9 @@ const AppContent = () => {
             onResize={(w) => {
               useEditorStore.setState({ mediaPoolWidth: w });
             }}
-            onDragStateChange={(dragging) => setResizingSide(dragging ? "left" : null)}
+            onDragStateChange={(dragging) =>
+              setResizingSide(dragging ? "left" : null)
+            }
           />
         )}
 
@@ -101,7 +101,9 @@ const AppContent = () => {
           onResize={(w) => {
             useEditorStore.setState({ inspectorWidth: w });
           }}
-          onDragStateChange={(dragging) => setResizingSide(dragging ? "right" : null)}
+          onDragStateChange={(dragging) =>
+            setResizingSide(dragging ? "right" : null)
+          }
         />
 
         {/* RIGHT PANEL: Inspector / Properties */}
@@ -126,8 +128,4 @@ const AppContent = () => {
   );
 };
 
-export const App = () => (
-  <Router hook={useHashLocation}>
-    <AppContent />
-  </Router>
-);
+export const App = () => <AppContent />;

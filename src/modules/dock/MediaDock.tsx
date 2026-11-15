@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { useLocation } from "wouter";
 import { useEditorStore } from "../../store/editor-store";
+import { navigateRoute, type EditorRoute } from "../../store/route-hash";
 import { MediaLibraryPanel } from "../library-panels/MediaLibraryPanel";
 import { TextPanel } from "../library-panels/TextPanel";
 import { LyricsPanel } from "../library-panels/LyricsPanel";
@@ -12,7 +12,7 @@ interface LeftTab {
   id: string;
   label: string;
   icon: string;
-  route?: string;
+  route?: EditorRoute;
 }
 
 const TAB_ICONS = {
@@ -31,7 +31,6 @@ export const MediaDock = () => {
   const leftPanelCollapsed = useEditorStore((s) => s.leftPanelCollapsed);
   const route = useEditorStore((s) => s.route);
   const isThumbnailMode = route === "/image";
-  const [, navigate] = useLocation();
 
   useEffect(() => {
     const state = useEditorStore.getState();
@@ -61,7 +60,7 @@ export const MediaDock = () => {
 
   const handleTabClick = (tab: LeftTab) => {
     if (tab.route) {
-      navigate(tab.route);
+      navigateRoute(tab.route);
       return;
     }
     const state = useEditorStore.getState();
