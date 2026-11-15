@@ -20,6 +20,13 @@ export function defaultPanelWidth(kind: "left" | "right"): number {
   return Math.max(min, Math.floor(window.innerWidth * 0.22));
 }
 
+/** Default timeline height in px (matches the old h-64). */
+export const DEFAULT_TIMELINE_HEIGHT = 256;
+
+export function defaultTimelineHeight(): number {
+  return DEFAULT_TIMELINE_HEIGHT;
+}
+
 const THUMB_CLIP_DEFAULTS: TimelineClip[] = [
   {
     id: "thumb-text-1",

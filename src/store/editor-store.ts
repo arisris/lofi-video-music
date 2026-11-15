@@ -24,9 +24,11 @@ import {
 } from "./history-utils";
 import {
   DEFAULT_LYRICS_SETTINGS,
+  DEFAULT_TIMELINE_HEIGHT,
   DEFAULT_TRACKS,
   createDefaultThumbClips,
   defaultPanelWidth,
+  defaultTimelineHeight,
   getTotalDuration,
 } from "./project-defaults";
 
@@ -57,6 +59,7 @@ interface EditorState {
   leftPanelCollapsed: boolean;
   mediaPoolWidth: number;
   inspectorWidth: number;
+  timelineHeight: number;
   aspectRatio: "16:9" | "9:16";
   timelineZoom: number;
   timelineScrollLeft: number;
@@ -200,6 +203,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   leftPanelCollapsed: false,
   mediaPoolWidth: defaultPanelWidth("left"),
   inspectorWidth: defaultPanelWidth("right"),
+  timelineHeight: defaultTimelineHeight(),
   aspectRatio: "16:9",
   timelineZoom: 4,
   timelineScrollLeft: 0,
@@ -430,5 +434,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 }));
 
 // Backward-compatible re-exports: single import site for existing modules.
-export { DEFAULT_LYRICS_SETTINGS, defaultPanelWidth, getTotalDuration };
+export {
+  DEFAULT_LYRICS_SETTINGS,
+  DEFAULT_TIMELINE_HEIGHT,
+  defaultPanelWidth,
+  defaultTimelineHeight,
+  getTotalDuration,
+};
 export type { ClipType, HistoryEntry, HistoryNode };

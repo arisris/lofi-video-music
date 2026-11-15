@@ -29,9 +29,9 @@ const AppContent = () => {
 
   useRouteHashSync();
 
-  // Panel side being dragged — width transition disabled while dragging
+  // Panel side being dragged — width/height transition disabled while dragging
   // so resize follows the pointer without lag (transition-all + drag = rubber-banding).
-  const [resizingSide, setResizingSide] = useState<"left" | "right" | null>(
+  const [resizingSide, setResizingSide] = useState<"left" | "right" | "timeline" | null>(
     null,
   );
 
@@ -89,7 +89,16 @@ const AppContent = () => {
           <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-black">
             <VideoPreview />
           </div>
-          <Timeline />
+          <Resizer
+            side="top"
+            onResize={(h) => {
+              useEditorStore.setState({ timelineHeight: h });
+            }}
+            onDragStateChange={(dragging) =>
+              setResizingSide(dragging ? "timeline" : null)
+            }
+          />
+          <Timeline resizing={resizingSide === "timeline"} />
           <div className="flex-none border-t border-neutral-800 bg-neutral-900 p-2">
             <PlaybackControls />
           </div>

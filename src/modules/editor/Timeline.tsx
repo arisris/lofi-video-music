@@ -149,7 +149,7 @@ function ClipBlock({
   );
 }
 
-export function Timeline() {
+export function Timeline({ resizing = false }: { resizing?: boolean }) {
   const clips = useEditorStore((s) => s.clips);
   const tracks = useEditorStore((s) => s.tracks);
   const selectedClipId = useEditorStore((s) => s.selectedClipId);
@@ -162,6 +162,7 @@ export function Timeline() {
   const pastLen = useEditorStore((s) => s.past.length);
   const futureLen = useEditorStore((s) => s.future.length);
   const isRecording = useEditorStore((s) => s.isRecording);
+  const timelineHeight = useEditorStore((s) => s.timelineHeight);
 
   const [menu, setMenu] = useState<{
     x: number;
@@ -211,7 +212,10 @@ export function Timeline() {
   };
 
   return (
-    <div className="flex h-64 flex-col overflow-hidden border-t border-neutral-800 bg-neutral-900 select-none">
+    <div
+      className={`flex flex-none flex-col overflow-hidden border-t border-neutral-800 bg-neutral-900 select-none ${resizing ? "" : "transition-[height] duration-200"}`}
+      style={{ height: `${timelineHeight || 256}px` }}
+    >
       {/* Header */}
       <div className="flex h-8 flex-none border-b border-neutral-800 bg-neutral-950/50">
         <div className="flex w-32 shrink-0 items-center justify-between border-r border-neutral-800 px-3">
