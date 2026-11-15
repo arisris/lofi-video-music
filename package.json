@@ -18,9 +18,7 @@
     "clean": "rm -rf node_modules && bun install"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.110",
     "@hono/zod-validator": "^0.9.1",
-    "ai": "^7.0.164",
     "fflate": "^0.8.3",
     "fix-webm-duration": "^1.0.6",
     "gifuct-js": "^2.1.2",
