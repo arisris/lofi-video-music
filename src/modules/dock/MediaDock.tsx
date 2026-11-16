@@ -39,7 +39,7 @@ export const MediaDock = () => {
     }
   }, []);
 
-  const tabs: LeftTab[] = [
+  const mainTabs: LeftTab[] = [
     { id: "library", label: "Media", icon: TAB_ICONS.library },
     { id: "shapes", label: "Shapes", icon: TAB_ICONS.shapes },
     { id: "text", label: "Text", icon: TAB_ICONS.text },
@@ -47,6 +47,10 @@ export const MediaDock = () => {
       ? []
       : [{ id: "lyrics", label: "Lyrics", icon: TAB_ICONS.lyrics }]),
     { id: "vfx", label: "VFX", icon: TAB_ICONS.vfx },
+  ];
+
+  // VS Code style: settings + route switch pinned to the rail bottom.
+  const bottomTabs: LeftTab[] = [
     { id: "settings", label: "Settings", icon: TAB_ICONS.settings },
     isThumbnailMode
       ? { id: "video", label: "Video", icon: TAB_ICONS.video, route: "/" }
@@ -91,31 +95,42 @@ export const MediaDock = () => {
     }
   })();
 
+  const renderTab = (tab: LeftTab) => {
+    const isActive =
+      !tab.route && activeLeftTab === tab.id && !leftPanelCollapsed;
+    const isRouteMatch = !!tab.route && route === tab.route;
+    return (
+      <button
+        key={tab.id}
+        title={tab.label}
+        aria-label={tab.label}
+        aria-pressed={isActive || isRouteMatch}
+        onClick={() => handleTabClick(tab)}
+        className={`flex h-10 w-10 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border text-[8px] font-bold tracking-tighter uppercase transition-all outline-none focus-visible:outline-2 focus-visible:outline-blue-500 ${
+          isActive || isRouteMatch
+            ? "border-blue-500/20 bg-blue-500/10 text-blue-400"
+            : tab.route
+              ? "border-purple-500/10 text-purple-400/80 hover:bg-purple-500/10 hover:text-purple-300"
+              : "border-transparent text-neutral-500 hover:bg-neutral-800/40 hover:text-neutral-300"
+        }`}
+      >
+        <i className={`${tab.icon} h-4.5 w-4.5`} />
+        <span>{tab.label}</span>
+      </button>
+    );
+  };
+
   return (
     <div className="flex h-full flex-row overflow-hidden">
-      <div className="flex w-14 flex-none flex-col items-center gap-3 border-r border-neutral-800 bg-neutral-950/80 py-4">
-        {tabs.map((tab) => {
-          const isActive =
-            !tab.route && activeLeftTab === tab.id && !leftPanelCollapsed;
-          const isRouteMatch = !!tab.route && route === tab.route;
-          return (
-            <button
-              key={tab.id}
-              title={tab.label}
-              onClick={() => handleTabClick(tab)}
-              className={`flex h-10 w-10 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border text-[8px] font-bold tracking-tighter uppercase transition-all ${
-                isActive || isRouteMatch
-                  ? "border-blue-500/20 bg-blue-500/10 text-blue-400"
-                  : tab.route
-                    ? "border-purple-500/10 text-purple-400/80 hover:bg-purple-500/10 hover:text-purple-300"
-                    : "border-transparent text-neutral-500 hover:bg-neutral-800/40 hover:text-neutral-300"
-              }`}
-            >
-              <i className={`${tab.icon} h-4.5 w-4.5`} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+      <div
+        role="toolbar"
+        aria-label="Library panels"
+        className="flex w-14 flex-none flex-col items-center gap-3 border-r border-neutral-800 bg-neutral-950/80 py-4"
+      >
+        {mainTabs.map(renderTab)}
+        <div className="mt-auto flex flex-col items-center gap-3">
+          {bottomTabs.map(renderTab)}
+        </div>
       </div>
 
       <div
