@@ -40,33 +40,6 @@ export function VideoPreview() {
   const recordResolution = useEditorStore((s) => s.recordResolution);
   const [menu, setMenu] = useState<{ x: number; y: number; clipId: string } | null>(null);
 
-  // Delete / Backspace removes the active preview clip (except while typing).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Delete" && e.key !== "Backspace") return;
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const t = e.target as HTMLElement | null;
-      if (
-        t &&
-        (t.tagName === "INPUT" ||
-          t.tagName === "TEXTAREA" ||
-          t.tagName === "SELECT" ||
-          t.isContentEditable)
-      )
-        return;
-      const st = useEditorStore.getState();
-      const id = st.selectedClipId;
-      if (!id || id === "lyrics") return;
-      if (!st.clips.some((c) => c.id === id)) return;
-      if (st.isRecording) return;
-      e.preventDefault();
-      if (menu) setMenu(null);
-      st.removeClip(id);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [menu]);
-
   // Close the menu once its clip is gone (e.g. deleted via shortcut/undo).
   useEffect(() => {
     if (!menu) return;

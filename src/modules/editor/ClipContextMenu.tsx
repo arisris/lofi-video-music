@@ -21,11 +21,16 @@ export function ClipContextMenu({
       const el = document.getElementById("clip-context-menu");
       if (!el || !el.contains(e.target as Node)) onClose();
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     window.addEventListener("mousedown", close);
     window.addEventListener("wheel", close, { passive: true });
+    window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("mousedown", close);
       window.removeEventListener("wheel", close);
+      window.removeEventListener("keydown", onKey);
     };
   }, [onClose]);
 

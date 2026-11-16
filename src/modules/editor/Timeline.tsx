@@ -223,7 +223,8 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
             Tracks
           </span>
           <button
-            className="flex cursor-pointer items-center justify-center rounded p-0.5 text-green-500 transition-colors hover:bg-neutral-800/80 hover:text-white"
+            aria-label="Add track"
+            className="flex cursor-pointer items-center justify-center rounded p-0.5 text-green-500 transition-colors outline-none hover:bg-neutral-800/80 hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500"
             title="Add Track"
             onClick={() => {
               const st = useEditorStore.getState();
@@ -311,7 +312,8 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                     />
                   ) : (
                     <button
-                      className={`p-1 transition-colors ${locked ? "text-yellow-500" : "text-neutral-600 hover:text-neutral-400"}`}
+                      aria-label={locked ? "Unlock track" : "Lock track"}
+                      className={`p-1 transition-colors outline-none focus-visible:outline-2 focus-visible:outline-blue-500 ${locked ? "text-yellow-500" : "text-neutral-600 hover:text-neutral-400"}`}
                       title={locked ? "Unlock Track" : "Lock Track"}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -335,7 +337,8 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                   </span>
                   {i > 1 && (
                     <button
-                      className="p-1 text-neutral-600 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
+                      aria-label={`Delete ${track.name}`}
+                      className="p-1 text-neutral-600 opacity-0 transition-opacity outline-none group-hover:opacity-100 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:opacity-100"
                       title="Delete Track (And its clips)"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -545,7 +548,8 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
         </div>
         <div className="flex items-center gap-3">
           <button
-            className="p-1 text-neutral-500 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            aria-label="Undo (Ctrl+Z)"
+            className="p-1 text-neutral-500 transition-colors outline-none hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-30"
             title="Undo (Ctrl+Z)"
             disabled={isRecording || pastLen === 0}
             onClick={() => useEditorStore.getState().undo()}
@@ -553,7 +557,8 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
             <i className="icon-[ri--arrow-go-back-line] h-3.5 w-3.5" />
           </button>
           <button
-            className="p-1 text-neutral-500 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            aria-label="Redo (Ctrl+Shift+Z)"
+            className="p-1 text-neutral-500 transition-colors outline-none hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-30"
             title="Redo (Ctrl+Shift+Z)"
             disabled={isRecording || futureLen === 0}
             onClick={() => useEditorStore.getState().redo()}
@@ -564,6 +569,7 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
           <Button
             variant="iconGhost"
             title="Zoom out"
+            ariaLabel="Zoom out"
             onClick={() =>
               useEditorStore.setState({
                 timelineZoom: Math.max(0.1, zoom * 0.8),
@@ -584,6 +590,7 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
           <Button
             variant="iconGhost"
             title="Zoom in"
+            ariaLabel="Zoom in"
             onClick={() =>
               useEditorStore.setState({
                 timelineZoom: Math.min(50, zoom * 1.2),

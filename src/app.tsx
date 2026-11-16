@@ -5,6 +5,8 @@ import { Timeline } from "./modules/editor/Timeline";
 import { Resizer } from "./modules/editor/Resizer";
 import { MediaDock } from "./modules/dock/MediaDock";
 import { InspectorPanel } from "./modules/editor/InspectorPanel";
+import { ShortcutsHelpModal } from "./modules/editor/ShortcutsHelpModal";
+import { useGlobalShortcuts } from "./modules/editor/use-global-shortcuts";
 // RecordSettingsModal loads on demand (record flow only) so it stays out of the main chunk.
 const RecordSettingsModal = lazy(() =>
   import("./modules/editor/RecordSettingsModal").then((m) => ({
@@ -26,8 +28,10 @@ const AppContent = () => {
   const showRecordSettingsModal = useEditorStore(
     (s) => s.showRecordSettingsModal,
   );
+  const showShortcutsHelp = useEditorStore((s) => s.showShortcutsHelp);
 
   useRouteHashSync();
+  useGlobalShortcuts();
 
   // Panel side being dragged — width/height transition disabled while dragging
   // so resize follows the pointer without lag (transition-all + drag = rubber-banding).
@@ -133,6 +137,9 @@ const AppContent = () => {
           <RecordSettingsModal />
         </Suspense>
       )}
+
+      {/* Shortcut Help Modal */}
+      {showShortcutsHelp && <ShortcutsHelpModal />}
     </div>
   );
 };

@@ -51,29 +51,16 @@ export function PlaybackControls() {
     return () => window.removeEventListener("click", closeMenu);
   }, []);
 
-  // Global undo/redo (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y), except while typing.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      const key = e.key.toLowerCase();
-      if (key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        useEditorStore.getState().undo();
-      } else if (key === "y" || (key === "z" && e.shiftKey)) {
-        e.preventDefault();
-        useEditorStore.getState().redo();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  // Global undo/redo lives in use-global-shortcuts (single keydown handler).
 
   const musicClips = clipsForAudio().filter((c) => c.type === "music");
 
   return (
-    <div className="flex w-full items-center justify-between gap-2 md:gap-4">
+    <div
+      role="toolbar"
+      aria-label="Playback controls"
+      className="flex w-full items-center justify-between gap-2 md:gap-4"
+    >
       {/* Left: Aspect Ratio Switcher */}
       <div className="flex w-auto items-center gap-3 md:w-1/3">
         <div className="flex items-center gap-1 rounded-lg border border-neutral-800 bg-neutral-950 p-0.5">
@@ -81,7 +68,9 @@ export function PlaybackControls() {
             <button
               key={item.ratio}
               title={item.ratio}
-              className={`flex h-7 cursor-pointer items-center justify-center gap-1 rounded px-2.5 text-[10px] font-bold transition ${aspectRatio === item.ratio ? "bg-blue-600 text-white shadow-sm" : "text-neutral-500 hover:text-neutral-300"}`}
+              aria-label={`Aspect ratio ${item.ratio}`}
+              aria-pressed={aspectRatio === item.ratio}
+              className={`flex h-7 cursor-pointer items-center justify-center gap-1 rounded px-2.5 text-[10px] font-bold transition outline-none focus-visible:outline-2 focus-visible:outline-blue-500 ${aspectRatio === item.ratio ? "bg-blue-600 text-white shadow-sm" : "text-neutral-500 hover:text-neutral-300"}`}
               onClick={() => selectAspectRatio(item.ratio as "16:9" | "9:16")}
             >
               <i className={`${item.icon} h-3.5 w-3.5`} />
@@ -95,7 +84,9 @@ export function PlaybackControls() {
       <div className="flex flex-1 items-center justify-center gap-4">
         {/* Skip Prev */}
         <button
-          className="text-neutral-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          aria-label="Previous track"
+          title="Previous track"
+          className="text-neutral-400 transition outline-none hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-30"
           disabled={isRecording || musicClips.length === 0}
           onClick={() => skipToPrevTrack()}
         >
@@ -104,7 +95,9 @@ export function PlaybackControls() {
 
         {/* Play / Pause */}
         <button
-          className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full shadow-md transition ${isRecording ? "cursor-not-allowed bg-neutral-800 text-neutral-500 opacity-30" : playing ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white"}`}
+          aria-label={playing ? "Pause (Space)" : "Play (Space)"}
+          title={playing ? "Pause (Space)" : "Play (Space)"}
+          className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full shadow-md transition outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${isRecording ? "cursor-not-allowed bg-neutral-800 text-neutral-500 opacity-30" : playing ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white"}`}
           disabled={isRecording}
           onClick={() => (playing ? pauseAudio() : playAudio())}
         >
@@ -115,7 +108,9 @@ export function PlaybackControls() {
 
         {/* Skip Next */}
         <button
-          className="text-neutral-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          aria-label="Next track"
+          title="Next track"
+          className="text-neutral-400 transition outline-none hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500"
           disabled={isRecording || musicClips.length === 0}
           onClick={() => skipToNextTrack()}
         >
@@ -125,6 +120,18 @@ export function PlaybackControls() {
 
       {/* Right: Recording */}
       <div className="relative flex w-auto items-center justify-end gap-1.5 md:w-1/3 md:gap-2">
+        <button
+          type="button"
+          aria-label="Keyboard shortcuts"
+          title="Keyboard shortcuts (?)"
+          onClick={(e) => {
+            e.stopPropagation();
+            useEditorStore.setState({ showShortcutsHelp: true });
+          }}
+          className="flex h-8 w-8 items-center justify-center rounded text-neutral-500 transition outline-none hover:bg-neutral-800 hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500"
+        >
+          <i className="icon-[ri--keyboard-line] h-4 w-4" />
+        </button>
         {(() => {
           const showDropdown =
             showRecordMenu && !isRecording && musicClips.length >= 2;
@@ -212,7 +219,8 @@ export function PlaybackControls() {
           return (
             <button
               title={hasMultipleMusic ? "Record video options" : "Record video"}
-              className={`flex h-8 cursor-pointer items-center gap-1.5 rounded px-2 text-[10px] font-bold tracking-wider uppercase transition md:px-3 ${isRecording ? "border border-red-500/50 bg-red-500/20 text-red-500" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white"}`}
+              aria-label={isRecording ? "Stop recording" : "Record video"}
+              className={`flex h-8 cursor-pointer items-center gap-1.5 rounded px-2 text-[10px] font-bold tracking-wider uppercase transition outline-none focus-visible:outline-2 focus-visible:outline-blue-500 md:px-3 ${isRecording ? "border border-red-500/50 bg-red-500/20 text-red-500" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white"}`}
               onClick={(e) => {
                 e.stopPropagation();
                 if (isRecording) {

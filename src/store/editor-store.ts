@@ -86,6 +86,7 @@ interface EditorState {
   staticSnapTargetsY: CanvasSnapTarget[] | null;
   showRecordSettingsModal: boolean;
   showRecordMenu: boolean;
+  showShortcutsHelp: boolean;
   pendingRecordMode: "timeline" | "clip";
   canvasCursor: string | null;
 
@@ -229,6 +230,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   staticSnapTargetsY: null,
   showRecordSettingsModal: false,
   showRecordMenu: false,
+  showShortcutsHelp: false,
   pendingRecordMode: "timeline" as "timeline" | "clip",
   canvasCursor: null as string | null,
 

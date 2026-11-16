@@ -29,6 +29,7 @@ export function Button({
   onClick,
   disabled,
   title,
+  ariaLabel,
   className = "",
   style,
 }: {
@@ -39,6 +40,7 @@ export function Button({
   onClick?: () => void;
   disabled?: boolean;
   title?: string;
+  ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -53,10 +55,11 @@ export function Button({
   return (
     <button
       title={title}
+      aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
       style={style}
-      className={`${BASE} ${VARIANTS[variant]} ${sizing} ${className}`}
+      className={`${BASE} ${VARIANTS[variant]} ${sizing} ${className} outline-none focus-visible:outline-2 focus-visible:outline-blue-500`}
     >
       {children}
     </button>
