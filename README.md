@@ -72,7 +72,7 @@ cleared on restart); changing a key drops the cache.
 
 ## Contributing
 
-Setup notes, commands, and architecture conventions live in `AGENTS.md`.
+Want to hack on it? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
