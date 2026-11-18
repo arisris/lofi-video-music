@@ -7,8 +7,6 @@
     "preview": "bun run build && vite preview",
     "deploy": "bun run build",
     "typecheck": "bunx tsc --noEmit",
-    "typecheck:node": "bunx tsc -p tsconfig.node.json --noEmit",
-    "typecheck:all": "bun run typecheck && bun run typecheck:node",
     "check:tailwind": "bun scripts/check-tailwind.ts",
     "fix:tailwind": "bun scripts/check-tailwind.ts --fix",
     "validate:project": "bun scripts/validate-project.ts",

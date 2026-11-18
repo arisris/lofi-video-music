@@ -14,9 +14,9 @@ directly from the browser with user keys from Settings (`src/modules/media/stock
 ## Commands
 
 - `bun install` / `bun run dev` / `bun run build` / `bun run preview` / `bun run deploy` / `bun run clean`
-- `bunx tsc --noEmit` — app; `-p tsconfig.node.json` — `vite.config.ts`
+- `bunx tsc --noEmit` — app + `vite.config.ts`
 
-Run both typechecks before finishing. No npm, no lint.
+Run the typecheck before finishing. No npm, no lint.
 
 ## Dev server
 

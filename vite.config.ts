@@ -16,10 +16,5 @@ export default defineConfig({
         },
       },
     },
-  },
-  server: {
-    watch: {
-      ignored: ["**/.playwright-mcp/**", "**/.wu/**", "**/dist/**"],
-    },
-  },
+  }
 });
