@@ -46,25 +46,29 @@ bun run dev
 Open the printed URL (default `http://localhost:5173/`).
 
 ```bash
-bun run build     # production build
+bun run build     # production build (static `dist/`, host anywhere)
 bun run preview   # build, then serve it locally
-bun run deploy    # build, then deploy to Cloudflare
+bun run deploy    # alias for build — deploy `dist/` to any static host
 ```
 
 ## Stock search setup
 
-In-app Pexels/Pixabay search goes through a small Cloudflare Worker proxy with response caching. Set these as Worker env vars (never in a local `.env`):
+In-app Pexels/Pixabay search calls the provider APIs directly from the
+browser with your own free keys. Open Settings (gear tab, bottom of the left
+rail) → Stock API Keys, paste each key, and Test it:
 
-- `PEXELS_API_KEY`
-- `PIXABAY_API_KEY`
+- Pexels: https://www.pexels.com/api/
+- Pixabay: https://pixabay.com/api/docs/
 
-Without keys, uploads and emoji still work; only stock search is unavailable.
+Keys are stored in `localStorage` (this browser only) and never leave the
+device except on direct provider requests. Without keys, uploads and emoji
+still work; only stock search shows a missing-key notice.
 
 ## Requirements
 
 - [Bun](https://bun.com) v1.4.x
 - Modern browser with Canvas, WebGL, and `MediaRecorder`
-- Cloudflare account + stock API keys (only for Pexels/Pixabay search)
+- Pexels/Pixabay API keys (free, only for stock search — paste in Settings)
 
 ## Contributing
 

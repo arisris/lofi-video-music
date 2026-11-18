@@ -17,6 +17,22 @@ import { useEditorStore } from "../../store/editor-store";
 import { addClipOfType } from "../dock/clip-actions";
 import { getDesignSize } from "../../shared/lib/canvas-space";
 import { buildPresetKeyframes } from "../../shared/lib/motion-keyframes";
+import {
+  MISSING_PEXELS_KEY_MESSAGE,
+  MISSING_PIXABAY_KEY_MESSAGE,
+  STOCK_KEYS_EVENT,
+  getPexelsKey,
+  getPixabayKey,
+} from "../media/stock/api-keys";
+import {
+  searchPexelsDirect,
+  type PexelsPhoto,
+  type PexelsVideo,
+} from "../media/stock/pexels-client";
+import {
+  searchPixabayDirect,
+  type PixabayItem,
+} from "../media/stock/pixabay-client";
 import emojisData from "../../data/animated-emojis.json";
 
 type SubTab = "uploads" | "pixabay" | "pexels" | "emoji";
@@ -41,23 +57,33 @@ const EMOJI_CATEGORIES: Array<{ id: string; label: string }> = [
   { id: "Flags", label: "Flags" },
 ];
 
-const stockRequest = (url: string, params: Record<string, unknown>): Promise<any> =>
-  fetch(`${url}?${new URLSearchParams(params as Record<string, string>).toString()}`).then(
-    async (res) => {
-      if (!res.ok) {
-        // Surface the standardized backend error ({ error }) when present.
-        let detail = "";
-        try {
-          const body = (await res.json()) as { error?: unknown };
-          if (typeof body.error === "string" && body.error) detail = `: ${body.error}`;
-        } catch {
-          /* non-JSON error body — keep the generic message */
-        }
-        throw new Error(`Stock API ${url} failed (${res.status})${detail}`);
-      }
-      return res.json();
-    },
+const MISSING_KEY_ERRORS = new Set([
+  MISSING_PEXELS_KEY_MESSAGE,
+  MISSING_PIXABAY_KEY_MESSAGE,
+]);
+
+/** Empty-state shown when the provider API key is missing, with a shortcut to Settings. */
+function MissingKeyNotice({ message }: { message: string }) {
+  const openSettings = () => {
+    useEditorStore.setState({
+      activeLeftTab: "settings",
+      leftPanelCollapsed: false,
+    });
+  };
+  return (
+    <div className="flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
+      <i className="icon-[ri--key-2-line] h-8 w-8 text-neutral-700" />
+      <p className="text-xs font-medium text-neutral-500">{message}</p>
+      <button
+        className="flex cursor-pointer items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white transition-colors hover:bg-blue-500"
+        onClick={openSettings}
+      >
+        <i className="icon-[ri--settings-3-line] h-3 w-3" />
+        Open Settings
+      </button>
+    </div>
   );
+}
 
 /** Shared stock-tab search header (Pixabay + Pexels). */
 function StockSearchBar({
@@ -130,7 +156,7 @@ function FilterChipRow<T extends string>({
       <span className="text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
         {label}
       </span>
-      <div className="border-neutral-850 flex rounded-lg border bg-neutral-950 p-0.5">
+      <div className="flex rounded-lg border border-neutral-850 bg-neutral-950 p-0.5">
         {options.map(([val, optLabel]) => (
           <button
             key={val}
@@ -195,7 +221,9 @@ function StockError({ message }: { message: string }) {
         <p className="text-[10px] font-bold tracking-wide text-red-400 uppercase">
           Search Error
         </p>
-        <p className="mt-0.5 text-[9px] leading-relaxed text-red-300/80">{message}</p>
+        <p className="mt-0.5 text-[9px] leading-relaxed text-red-300/80">
+          {message}
+        </p>
       </div>
     </div>
   );
@@ -308,44 +336,6 @@ function LibraryMediaCard({
   );
 }
 
-interface PexelsPhoto {
-  id: number;
-  width: number;
-  height: number;
-  photographer: string;
-  photographer_url: string;
-  src: Record<string, string>;
-}
-interface PexelsVideoFile {
-  width: number;
-  height: number;
-  link: string;
-  file_type: string;
-  quality?: string;
-}
-interface PexelsVideo {
-  id: number;
-  width: number;
-  height: number;
-  duration: number;
-  image: string;
-  video_files: PexelsVideoFile[];
-  user?: { name: string; url: string };
-}
-interface PixabayItem {
-  id: number;
-  user: string;
-  duration: number;
-  videos: Record<string, { url: string; width: number; height: number; thumbnail?: string }>;
-  largeImageURL: string;
-  imageWidth: number;
-  imageHeight: number;
-  previewURL: string;
-  previewWidth: number;
-  previewHeight: number;
-  webformatURL: string;
-  pageURL: string;
-}
 interface EmojiItem {
   tag: string;
   codepoint: string;
@@ -459,6 +449,14 @@ export const MediaLibraryPanel = () => {
 
   const searchPexels = (query: string, resetPage = true) => {
     if (!query || !query.trim()) return;
+    const key = getPexelsKey();
+    if (!key) {
+      apply({
+        pexelsError: MISSING_PEXELS_KEY_MESSAGE,
+        isSearchingPexels: false,
+      });
+      return;
+    }
     if (resetPage) {
       apply({
         pexelsCurrentPage: 1,
@@ -471,28 +469,38 @@ export const MediaLibraryPanel = () => {
     }
     const state = stRef.current;
     apply({ isSearchingPexels: true, pexelsError: null });
-    stockRequest("/api/pexels/search", {
+    searchPexelsDirect({
+      key,
       query: query.trim(),
       type: state.pexelsMediaType,
-      orientation: state.pexelsOrientation === "all" ? "" : state.pexelsOrientation,
+      orientation: state.pexelsOrientation,
       page: state.pexelsCurrentPage,
       per_page: 50,
     })
       .then((data) => {
         const newPhotos = data.photos || [];
         const newVideos = data.videos || [];
-        const newItems = stRef.current.pexelsMediaType === "photo" ? newPhotos : newVideos;
+        const newItems =
+          stRef.current.pexelsMediaType === "photo" ? newPhotos : newVideos;
         apply({ hasMorePexels: newItems.length >= 50 });
         if (stRef.current.pexelsMediaType === "photo") {
-          apply({ pexelsPhotos: stRef.current.pexelsPhotos.concat(newPhotos), pexelsVideos: [] });
+          apply({
+            pexelsPhotos: stRef.current.pexelsPhotos.concat(newPhotos),
+            pexelsVideos: [],
+          });
         } else {
-          apply({ pexelsVideos: stRef.current.pexelsVideos.concat(newVideos), pexelsPhotos: [] });
+          apply({
+            pexelsVideos: stRef.current.pexelsVideos.concat(newVideos),
+            pexelsPhotos: [],
+          });
         }
         apply({ isSearchingPexels: false });
       })
       .catch((err) => {
         apply({
-          pexelsError: (err as { message?: string }).message || "Failed to fetch from Pexels",
+          pexelsError:
+            (err as { message?: string }).message ||
+            "Failed to fetch from Pexels",
           isSearchingPexels: false,
         });
       });
@@ -508,7 +516,8 @@ export const MediaLibraryPanel = () => {
       const vids = items as PexelsVideo[];
       items = vids.filter((v) => {
         if (stRef.current.pexelsDuration === "short") return v.duration <= 15;
-        if (stRef.current.pexelsDuration === "medium") return v.duration > 15 && v.duration <= 30;
+        if (stRef.current.pexelsDuration === "medium")
+          return v.duration > 15 && v.duration <= 30;
         if (stRef.current.pexelsDuration === "long") return v.duration > 30;
         return true;
       });
@@ -525,6 +534,14 @@ export const MediaLibraryPanel = () => {
 
   const searchPixabay = (query: string, resetPage = true) => {
     if (!query || !query.trim()) return;
+    const key = getPixabayKey();
+    if (!key) {
+      apply({
+        pixabayError: MISSING_PIXABAY_KEY_MESSAGE,
+        isSearchingPixabay: false,
+      });
+      return;
+    }
     if (resetPage) {
       apply({
         pixabayCurrentPage: 1,
@@ -535,22 +552,31 @@ export const MediaLibraryPanel = () => {
     }
     const state = stRef.current;
     apply({ isSearchingPixabay: true, pixabayError: null });
-    stockRequest("/api/pixabay/search", {
+    searchPixabayDirect({
+      key,
       query: query.trim(),
       type: state.pixabayMediaType,
-      orientation: state.pixabayOrientation === "all" ? "" : state.pixabayOrientation,
-      colors: state.pixabayMediaType !== "video" && state.pixabayTransparentOnly ? "transparent" : "",
+      orientation: state.pixabayOrientation,
+      colors:
+        state.pixabayMediaType !== "video" && state.pixabayTransparentOnly
+          ? "transparent"
+          : "",
       page: state.pixabayCurrentPage,
       per_page: 55,
     })
       .then((data) => {
         const hits = data.hits || [];
         apply({ hasMorePixabay: hits.length >= 55 });
-        apply({ pixabayItems: stRef.current.pixabayItems.concat(hits), isSearchingPixabay: false });
+        apply({
+          pixabayItems: stRef.current.pixabayItems.concat(hits),
+          isSearchingPixabay: false,
+        });
       })
       .catch((err) => {
         apply({
-          pixabayError: (err as { message?: string }).message || "Failed to fetch from Pixabay",
+          pixabayError:
+            (err as { message?: string }).message ||
+            "Failed to fetch from Pixabay",
           isSearchingPixabay: false,
         });
       });
@@ -574,9 +600,7 @@ export const MediaLibraryPanel = () => {
       // opaque procedural preset — every point is tweakable in the panel.
       const { w, h } = getDesignSize();
       const wander =
-        asset.type === "video"
-          ? []
-          : buildPresetKeyframes("random", 60, w, h);
+        asset.type === "video" ? [] : buildPresetKeyframes("random", 60, w, h);
       addClipOfType("background", {
         mediaId: asset.id,
         mediaType: asset.type,
@@ -617,55 +641,66 @@ export const MediaLibraryPanel = () => {
       return;
     }
     apply({ loadingAssetId: asset.id });
-    processMediaUrl(asset.url, asset.type, asset.name, asset.source || "stock", (processed) => {
-      (processed as MediaItem).id = asset.id;
-      useEditorStore.setState((s) => ({ mediaPool: [...s.mediaPool, processed] }));
-      apply({ loadingAssetId: null });
-      addAssetToTimeline(processed, asType);
-      forceUpdate();
-      // Persist provider downloads in IndexedDB for cross-session reuse.
-      // Best effort: on failure the item stays usable for this session only.
-      if (
-        (asset.source === "pexels" || asset.source === "pixabay") &&
-        processed.url.startsWith("blob:")
-      ) {
-        void (async () => {
-          try {
-            const blob = await (await fetch(processed.url)).blob();
-            if (!blob || blob.size === 0) throw new Error("empty bytes");
-            await putDownload({
-              id: asset.id,
-              name: asset.name,
-              type: processed.type,
-              source: asset.source as string,
-              mime: blob.type,
-              blob,
-              thumbnail: processed.thumbnail,
-              duration: processed.duration,
-              width: processed.width ?? 0,
-              height: processed.height ?? 0,
-              remoteUrl: asset.url,
-              createdAt: Date.now(),
-            });
-            useEditorStore.setState((s) => ({
-              mediaPool: s.mediaPool.map((m) =>
-                m.id === asset.id ? { ...m, persisted: true } : m,
-              ),
-            }));
-            refreshStorage();
-            forceUpdate();
-          } catch {
-            apply({
-              downloadWarning:
-                "Could not save the download locally (storage full or blocked). It remains available for this session only.",
-            });
-          }
-        })();
-      }
-    });
+    processMediaUrl(
+      asset.url,
+      asset.type,
+      asset.name,
+      asset.source || "stock",
+      (processed) => {
+        (processed as MediaItem).id = asset.id;
+        useEditorStore.setState((s) => ({
+          mediaPool: [...s.mediaPool, processed],
+        }));
+        apply({ loadingAssetId: null });
+        addAssetToTimeline(processed, asType);
+        forceUpdate();
+        // Persist provider downloads in IndexedDB for cross-session reuse.
+        // Best effort: on failure the item stays usable for this session only.
+        if (
+          (asset.source === "pexels" || asset.source === "pixabay") &&
+          processed.url.startsWith("blob:")
+        ) {
+          void (async () => {
+            try {
+              const blob = await (await fetch(processed.url)).blob();
+              if (!blob || blob.size === 0) throw new Error("empty bytes");
+              await putDownload({
+                id: asset.id,
+                name: asset.name,
+                type: processed.type,
+                source: asset.source as string,
+                mime: blob.type,
+                blob,
+                thumbnail: processed.thumbnail,
+                duration: processed.duration,
+                width: processed.width ?? 0,
+                height: processed.height ?? 0,
+                remoteUrl: asset.url,
+                createdAt: Date.now(),
+              });
+              useEditorStore.setState((s) => ({
+                mediaPool: s.mediaPool.map((m) =>
+                  m.id === asset.id ? { ...m, persisted: true } : m,
+                ),
+              }));
+              refreshStorage();
+              forceUpdate();
+            } catch {
+              apply({
+                downloadWarning:
+                  "Could not save the download locally (storage full or blocked). It remains available for this session only.",
+              });
+            }
+          })();
+        }
+      },
+    );
   };
 
-  const handlePexelsAdd = (media: PexelsPhoto | PexelsVideo, asType: string) => {
+  const handlePexelsAdd = (
+    media: PexelsPhoto | PexelsVideo,
+    asType: string,
+  ) => {
     if (stRef.current.pexelsMediaType === "photo") {
       const photo = media as PexelsPhoto;
       handleAssetAdd(
@@ -686,7 +721,10 @@ export const MediaLibraryPanel = () => {
       const vid = media as PexelsVideo;
       const files = vid.video_files || [];
       let bestFile =
-        files.find((f) => f.width >= 960 && f.width <= 1280 && f.file_type === "video/mp4") ||
+        files.find(
+          (f) =>
+            f.width >= 960 && f.width <= 1280 && f.file_type === "video/mp4",
+        ) ||
         files.find((f) => f.quality === "sd" && f.file_type === "video/mp4") ||
         files.find((f) => f.file_type === "video/mp4") ||
         files[0];
@@ -711,7 +749,12 @@ export const MediaLibraryPanel = () => {
   const handlePixabayAdd = (item: PixabayItem, asType: string) => {
     if (stRef.current.pixabayMediaType === "video") {
       const videos = item.videos || {};
-      const bestVid = videos.medium || videos.small || videos.large || videos.tiny || ({} as PixabayItem["videos"][string]);
+      const bestVid =
+        videos.medium ||
+        videos.small ||
+        videos.large ||
+        videos.tiny ||
+        ({} as PixabayItem["videos"][string]);
       handleAssetAdd(
         {
           id: `pixabay-video-${item.id}`,
@@ -801,9 +844,12 @@ export const MediaLibraryPanel = () => {
       });
       files.forEach((file) => {
         processMediaFile(file, (asset: MediaItem) => {
-          useEditorStore.setState((s) => ({ mediaPool: [...s.mediaPool, asset] }));
+          useEditorStore.setState((s) => ({
+            mediaPool: [...s.mediaPool, asset],
+          }));
           apply({ activeUploadsCount: stRef.current.activeUploadsCount - 1 });
-          if (stRef.current.activeUploadsCount === 0) apply({ totalUploadsCount: 0 });
+          if (stRef.current.activeUploadsCount === 0)
+            apply({ totalUploadsCount: 0 });
           forceUpdate();
         });
       });
@@ -818,7 +864,9 @@ export const MediaLibraryPanel = () => {
         useEditorStore.setState((s) => {
           const ids = new Set(s.mediaPool.map((m) => m.id));
           const fresh = items.filter((m) => !ids.has(m.id));
-          return fresh.length > 0 ? { mediaPool: [...s.mediaPool, ...fresh] } : s;
+          return fresh.length > 0
+            ? { mediaPool: [...s.mediaPool, ...fresh] }
+            : s;
         });
       }
       apply({ downloadsReady: true });
@@ -839,7 +887,29 @@ export const MediaLibraryPanel = () => {
     ) {
       searchPixabay(stRef.current.pixabayQuery);
     }
+    // A key saved in Settings while this panel is mounted clears the
+    // missing-key notice and retries the current tab's search.
+    const onStockKeysChanged = () => {
+      const s = stRef.current;
+      if (
+        s.activeSubTab === "pexels" &&
+        s.pexelsError === MISSING_PEXELS_KEY_MESSAGE &&
+        getPexelsKey()
+      ) {
+        searchPexels(s.pexelsQuery);
+      } else if (
+        s.activeSubTab === "pixabay" &&
+        s.pixabayError === MISSING_PIXABAY_KEY_MESSAGE &&
+        getPixabayKey()
+      ) {
+        searchPixabay(s.pixabayQuery);
+      } else {
+        forceUpdate();
+      }
+    };
+    window.addEventListener(STOCK_KEYS_EVENT, onStockKeysChanged);
     return () => {
+      window.removeEventListener(STOCK_KEYS_EVENT, onStockKeysChanged);
       if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -848,25 +918,34 @@ export const MediaLibraryPanel = () => {
   const st = stRef.current;
   useEditorStore((s) => s.selectedClipId);
   const pool = useEditorStore((s) => s.mediaPool);
-  const localFiles = pool.filter((m) => m.source === "upload" && m.type !== "audio");
+  const localFiles = pool.filter(
+    (m) => m.source === "upload" && m.type !== "audio",
+  );
   // Provider downloads (persisted across sessions via IndexedDB, or
   // session-only when the local save failed).
   const downloads = pool.filter(
-    (m) => (m.source === "pexels" || m.source === "pixabay") && m.type !== "audio",
+    (m) =>
+      (m.source === "pexels" || m.source === "pixabay") && m.type !== "audio",
   );
 
-  const emojis = emojisData as { categories: Array<{ id: string; items: EmojiItem[] }> };
+  const emojis = emojisData as {
+    categories: Array<{ id: string; items: EmojiItem[] }>;
+  };
   let filteredEmojis: EmojiItem[] = [];
   {
     const cats = emojis.categories || [];
     if (st.emojiCategory === "all") {
       filteredEmojis = cats.flatMap((cat) => cat.items || []);
     } else {
-      filteredEmojis = (cats.find((c) => c.id === st.emojiCategory)?.items || []).slice();
+      filteredEmojis = (
+        cats.find((c) => c.id === st.emojiCategory)?.items || []
+      ).slice();
     }
     if (st.emojiQuery.trim()) {
       const q = st.emojiQuery.toLowerCase().trim();
-      filteredEmojis = filteredEmojis.filter((em) => em.tag.toLowerCase().includes(q));
+      filteredEmojis = filteredEmojis.filter((em) =>
+        em.tag.toLowerCase().includes(q),
+      );
     }
   }
   const visibleEmojis = filteredEmojis.slice(0, st.emojiVisibleCount);
@@ -878,7 +957,8 @@ export const MediaLibraryPanel = () => {
   if (isVideoPexels && st.pexelsDuration !== "all") {
     pexelsItems = (pexelsItems as PexelsVideo[]).filter((v) => {
       if (st.pexelsDuration === "short") return v.duration <= 15;
-      if (st.pexelsDuration === "medium") return v.duration > 15 && v.duration <= 30;
+      if (st.pexelsDuration === "medium")
+        return v.duration > 15 && v.duration <= 30;
       if (st.pexelsDuration === "long") return v.duration > 30;
       return true;
     });
@@ -887,9 +967,7 @@ export const MediaLibraryPanel = () => {
   const visiblePixabay = st.pixabayItems.slice(0, st.pixabayVisibleCount);
   const isVideoPixabay = st.pixabayMediaType === "video";
   const storagePercent =
-    st.storageBytes != null &&
-    st.storageQuota != null &&
-    st.storageQuota > 0
+    st.storageBytes != null && st.storageQuota != null && st.storageQuota > 0
       ? Math.min(100, (st.storageBytes / st.storageQuota) * 100)
       : null;
 
@@ -916,9 +994,7 @@ export const MediaLibraryPanel = () => {
         {st.activeSubTab === "uploads" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <SectionTitle className="">
-                Local Files
-            </SectionTitle>
+              <SectionTitle className="">Local Files</SectionTitle>
               <button
                 className="flex cursor-pointer items-center gap-1 rounded-md bg-blue-600 px-2 py-1 text-[9px] font-bold text-white transition-colors hover:bg-blue-500"
                 onClick={triggerUpload}
@@ -932,7 +1008,8 @@ export const MediaLibraryPanel = () => {
               <div className="flex items-center justify-center gap-2.5 rounded-xl border border-blue-900/20 bg-blue-950/10 p-3">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
                 <span className="text-[10px] font-semibold text-blue-400">
-                  Processing media ({st.totalUploadsCount - st.activeUploadsCount}/
+                  Processing media (
+                  {st.totalUploadsCount - st.activeUploadsCount}/
                   {st.totalUploadsCount})...
                 </span>
               </div>
@@ -971,7 +1048,7 @@ export const MediaLibraryPanel = () => {
 
             {st.downloadWarning && (
               <div className="flex items-start gap-2 rounded-xl border border-amber-900/40 bg-amber-950/20 p-3">
-                <i className="icon-[ri--alert-line] mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                <i className="mt-0.5 icon-[ri--alert-line] h-4 w-4 shrink-0 text-amber-400" />
                 <p className="flex-1 text-[10px] leading-relaxed text-amber-200/90">
                   {st.downloadWarning}
                 </p>
@@ -989,8 +1066,8 @@ export const MediaLibraryPanel = () => {
               <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
                 <i className="icon-[ri--download-cloud-2-line] h-8 w-8 text-neutral-700" />
                 <p className="text-xs font-medium text-neutral-500">
-                  No downloads yet. Add photos or videos from Pixabay or Pexels and they
-                  will be saved here for every session.
+                  No downloads yet. Add photos or videos from Pixabay or Pexels
+                  and they will be saved here for every session.
                 </p>
               </div>
             )}
@@ -1018,7 +1095,9 @@ export const MediaLibraryPanel = () => {
               placeholder={`Search ${st.pixabayMediaType}s on Pixabay...`}
               showFilters={st.showPixabayFilters}
               onQueryChange={(v) => apply({ pixabayQuery: v })}
-              onToggleFilters={() => apply({ showPixabayFilters: !st.showPixabayFilters })}
+              onToggleFilters={() =>
+                apply({ showPixabayFilters: !st.showPixabayFilters })
+              }
               onSearch={() => searchPixabay(st.pixabayQuery)}
             />
 
@@ -1069,7 +1148,9 @@ export const MediaLibraryPanel = () => {
                     <button
                       className={`relative h-4 w-8 rounded-full transition-colors ${st.pixabayTransparentOnly ? "bg-blue-600" : "bg-neutral-850"}`}
                       onClick={() => {
-                        apply({ pixabayTransparentOnly: !st.pixabayTransparentOnly });
+                        apply({
+                          pixabayTransparentOnly: !st.pixabayTransparentOnly,
+                        });
                         searchPixabay(st.pixabayQuery);
                       }}
                     >
@@ -1086,111 +1167,129 @@ export const MediaLibraryPanel = () => {
               <StockLoading text="Searching Pixabay..." />
             )}
 
-            {st.pixabayError && <StockError message={st.pixabayError} />}
+            {st.pixabayError &&
+              (MISSING_KEY_ERRORS.has(st.pixabayError) ? (
+                <MissingKeyNotice message={st.pixabayError} />
+              ) : (
+                <StockError message={st.pixabayError} />
+              ))}
 
-            {(!st.isSearchingPixabay || st.pixabayItems.length > 0) && !st.pixabayError && (
-              <>
-                {st.pixabayItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
-                    <i className="icon-[ri--image-line] h-8 w-8 text-neutral-700" />
-                    <p className="text-xs font-medium text-neutral-500">{`No items found on Pixabay for "${st.pixabayQuery}".`}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 items-start gap-3">
-                      {visiblePixabay.map((item) => {
-                        const assetId = isVideoPixabay
-                          ? `pixabay-video-${item.id}`
-                          : `pixabay-image-${item.id}`;
-                        const isLoading = st.loadingAssetId === assetId;
-                        let thumbnail = "";
-                        let width = 1;
-                        let height = 1;
-                        if (isVideoPixabay) {
-                          const videos = item.videos || {};
-                          const bestVid = videos.small || videos.tiny || videos.medium || ({} as PixabayItem["videos"][string]);
-                          thumbnail = bestVid.thumbnail || "";
-                          width = bestVid.width || 16;
-                          height = bestVid.height || 9;
-                        } else {
-                          thumbnail = item.previewURL || item.webformatURL || "";
-                          width = item.previewWidth || 1;
-                          height = item.previewHeight || 1;
-                        }
-                        return (
-                          <div
-                            key={item.id}
-                            className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950"
-                            style={{ aspectRatio: `${width} / ${height}` }}
-                          >
-                            {thumbnail ? (
-                              <img
-                                src={thumbnail}
-                                className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-300 group-hover:scale-105"
-                              />
-                            ) : (
-                              <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-neutral-900">
-                                <i
-                                  className={
-                                    isVideoPixabay
-                                      ? "icon-[ri--film-line] h-6 w-6 text-neutral-700"
-                                      : "icon-[ri--image-line] h-6 w-6 text-neutral-700"
-                                  }
-                                />
-                              </div>
-                            )}
-                            {isVideoPixabay && (
-                              <span className="absolute top-2 right-2 z-10 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] font-bold text-neutral-300">
-                                {`${Math.round(item.duration)}s`}
-                              </span>
-                            )}
-                            {isVideoPixabay && !isLoading && (
-                              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity group-hover:opacity-0">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm">
-                                  <i className="icon-[ri--play-fill] h-4.5 w-4.5 text-neutral-200" />
-                                </div>
-                              </div>
-                            )}
-                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex min-h-10 flex-col justify-end bg-linear-to-t from-black/80 via-black/40 to-transparent p-2">
-                              <span className="truncate pr-1 text-[9px] font-bold text-neutral-200">{`By ${item.user || "Pixabay"}`}</span>
-                            </div>
-                            {isLoading ? (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-neutral-950/80">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                <span className="text-[8px] font-bold tracking-wider text-neutral-400 uppercase">
-                                  Importing...
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                <TimelineAddButtons
-                                  onBackground={() => handlePixabayAdd(item, "background")}
-                                  onOverlay={() => handlePixabayAdd(item, "overlay")}
-                                />
-                                <a
-                                  href={item.pageURL || "https://pixabay.com"}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="pointer-events-auto flex cursor-pointer items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[9px] font-semibold text-neutral-400 transition-colors hover:text-blue-400"
-                                >
-                                  <i className="icon-[ri--external-link-line] h-2.5 w-2.5" />
-                                  View on Pixabay
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+            {(!st.isSearchingPixabay || st.pixabayItems.length > 0) &&
+              !st.pixabayError && (
+                <>
+                  {st.pixabayItems.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
+                      <i className="icon-[ri--image-line] h-8 w-8 text-neutral-700" />
+                      <p className="text-xs font-medium text-neutral-500">{`No items found on Pixabay for "${st.pixabayQuery}".`}</p>
                     </div>
-                    <StockLoadMore
-                      show={st.hasMorePixabay || st.pixabayItems.length > st.pixabayVisibleCount}
-                      loading={st.isSearchingPixabay}
-                      onLoad={loadMorePixabay}
-                    />
-                  </div>
-                )}
-              </>
-            )}
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 items-start gap-3">
+                        {visiblePixabay.map((item) => {
+                          const assetId = isVideoPixabay
+                            ? `pixabay-video-${item.id}`
+                            : `pixabay-image-${item.id}`;
+                          const isLoading = st.loadingAssetId === assetId;
+                          let thumbnail = "";
+                          let width = 1;
+                          let height = 1;
+                          if (isVideoPixabay) {
+                            const videos = item.videos || {};
+                            const bestVid =
+                              videos.small ||
+                              videos.tiny ||
+                              videos.medium ||
+                              ({} as PixabayItem["videos"][string]);
+                            thumbnail = bestVid.thumbnail || "";
+                            width = bestVid.width || 16;
+                            height = bestVid.height || 9;
+                          } else {
+                            thumbnail =
+                              item.previewURL || item.webformatURL || "";
+                            width = item.previewWidth || 1;
+                            height = item.previewHeight || 1;
+                          }
+                          return (
+                            <div
+                              key={item.id}
+                              className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950"
+                              style={{ aspectRatio: `${width} / ${height}` }}
+                            >
+                              {thumbnail ? (
+                                <img
+                                  src={thumbnail}
+                                  className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-300 group-hover:scale-105"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-neutral-900">
+                                  <i
+                                    className={
+                                      isVideoPixabay
+                                        ? "icon-[ri--film-line] h-6 w-6 text-neutral-700"
+                                        : "icon-[ri--image-line] h-6 w-6 text-neutral-700"
+                                    }
+                                  />
+                                </div>
+                              )}
+                              {isVideoPixabay && (
+                                <span className="absolute top-2 right-2 z-10 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] font-bold text-neutral-300">
+                                  {`${Math.round(item.duration)}s`}
+                                </span>
+                              )}
+                              {isVideoPixabay && !isLoading && (
+                                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity group-hover:opacity-0">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm">
+                                    <i className="icon-[ri--play-fill] h-4.5 w-4.5 text-neutral-200" />
+                                  </div>
+                                </div>
+                              )}
+                              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex min-h-10 flex-col justify-end bg-linear-to-t from-black/80 via-black/40 to-transparent p-2">
+                                <span className="truncate pr-1 text-[9px] font-bold text-neutral-200">{`By ${item.user || "Pixabay"}`}</span>
+                              </div>
+                              {isLoading ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-neutral-950/80">
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                                  <span className="text-[8px] font-bold tracking-wider text-neutral-400 uppercase">
+                                    Importing...
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <TimelineAddButtons
+                                    onBackground={() =>
+                                      handlePixabayAdd(item, "background")
+                                    }
+                                    onOverlay={() =>
+                                      handlePixabayAdd(item, "overlay")
+                                    }
+                                  />
+                                  <a
+                                    href={item.pageURL || "https://pixabay.com"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="pointer-events-auto flex cursor-pointer items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[9px] font-semibold text-neutral-400 transition-colors hover:text-blue-400"
+                                  >
+                                    <i className="icon-[ri--external-link-line] h-2.5 w-2.5" />
+                                    View on Pixabay
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <StockLoadMore
+                        show={
+                          st.hasMorePixabay ||
+                          st.pixabayItems.length > st.pixabayVisibleCount
+                        }
+                        loading={st.isSearchingPixabay}
+                        onLoad={loadMorePixabay}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
           </div>
         )}
 
@@ -1201,7 +1300,9 @@ export const MediaLibraryPanel = () => {
               placeholder={`Search ${st.pexelsMediaType}s on Pexels...`}
               showFilters={st.showPexelsFilters}
               onQueryChange={(v) => apply({ pexelsQuery: v })}
-              onToggleFilters={() => apply({ showPexelsFilters: !st.showPexelsFilters })}
+              onToggleFilters={() =>
+                apply({ showPexelsFilters: !st.showPexelsFilters })
+              }
               onSearch={() => searchPexels(st.pexelsQuery)}
             />
 
@@ -1242,7 +1343,9 @@ export const MediaLibraryPanel = () => {
                   <FilterChipRow
                     label="Duration"
                     variant="outline"
-                    value={st.pexelsDuration as "all" | "short" | "medium" | "long"}
+                    value={
+                      st.pexelsDuration as "all" | "short" | "medium" | "long"
+                    }
                     options={
                       [
                         ["all", "Any"],
@@ -1257,93 +1360,113 @@ export const MediaLibraryPanel = () => {
               </div>
             )}
 
-            {st.isSearchingPexels && st.pexelsPhotos.length === 0 && st.pexelsVideos.length === 0 && (
-              <StockLoading text={`Searching Pexels ${st.pexelsMediaType}s...`} />
-            )}
+            {st.isSearchingPexels &&
+              st.pexelsPhotos.length === 0 &&
+              st.pexelsVideos.length === 0 && (
+                <StockLoading
+                  text={`Searching Pexels ${st.pexelsMediaType}s...`}
+                />
+              )}
 
-            {st.pexelsError && <StockError message={st.pexelsError} />}
+            {st.pexelsError &&
+              (MISSING_KEY_ERRORS.has(st.pexelsError) ? (
+                <MissingKeyNotice message={st.pexelsError} />
+              ) : (
+                <StockError message={st.pexelsError} />
+              ))}
 
-            {(pexelsItems.length > 0 || !st.isSearchingPexels) && !st.pexelsError && (
-              <>
-                {pexelsItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
-                    <i
-                      className={
-                        isVideoPexels
-                          ? "icon-[ri--video-chat-line] h-8 w-8 text-neutral-700"
-                          : "icon-[ri--image-line] h-8 w-8 text-neutral-700"
-                      }
-                    />
-                    <p className="text-xs font-medium text-neutral-500">{`No ${st.pexelsMediaType}s found for "${st.pexelsQuery}" with current filters.`}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 items-start gap-3">
-                      {visiblePexels.map((item) => {
-                        const assetId = isVideoPexels ? `pexels-${item.id}` : `pexels-photo-${item.id}`;
-                        const isLoading = st.loadingAssetId === assetId;
-                        const thumbnail = isVideoPexels
-                          ? (item as PexelsVideo).image
-                          : (item as PexelsPhoto).src.medium || (item as PexelsPhoto).src.small;
-                        const artist = isVideoPexels
-                          ? (item as PexelsVideo).user?.name
-                          : (item as PexelsPhoto).photographer;
-                        const width = item.width || 1;
-                        const height = item.height || 1;
-                        return (
-                          <div
-                            key={assetId}
-                            className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950"
-                            style={{ aspectRatio: `${width} / ${height}` }}
-                          >
-                            <img
-                              src={thumbnail}
-                              className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-300 group-hover:scale-105"
-                            />
-                            {isVideoPexels && (
-                              <span className="absolute top-2 right-2 z-10 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] font-bold text-neutral-300">
-                                {`${Math.round((item as PexelsVideo).duration)}s`}
-                              </span>
-                            )}
-                            {isVideoPexels && !isLoading && (
-                              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity group-hover:opacity-0">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm">
-                                  <i className="icon-[ri--play-fill] h-4.5 w-4.5 text-neutral-200" />
-                                </div>
-                              </div>
-                            )}
-                            {isLoading ? (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-neutral-950/80">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                <span className="text-[8px] font-bold tracking-wider text-neutral-400 uppercase">
-                                  Importing...
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                <TimelineAddButtons
-                                  onBackground={() => handlePexelsAdd(item, "background")}
-                                  onOverlay={() => handlePexelsAdd(item, "overlay")}
-                                />
-                                <span className="pointer-events-auto flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[9px] font-semibold text-neutral-400">
-                                  <i className="icon-[ri--external-link-line] h-2.5 w-2.5" />
-                                  {`By ${artist || "Pexels"}`}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+            {(pexelsItems.length > 0 || !st.isSearchingPexels) &&
+              !st.pexelsError && (
+                <>
+                  {pexelsItems.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
+                      <i
+                        className={
+                          isVideoPexels
+                            ? "icon-[ri--video-chat-line] h-8 w-8 text-neutral-700"
+                            : "icon-[ri--image-line] h-8 w-8 text-neutral-700"
+                        }
+                      />
+                      <p className="text-xs font-medium text-neutral-500">{`No ${st.pexelsMediaType}s found for "${st.pexelsQuery}" with current filters.`}</p>
                     </div>
-                    <StockLoadMore
-                      show={st.hasMorePexels || pexelsItems.length > st.pexelsVisibleCount}
-                      loading={st.isSearchingPexels}
-                      onLoad={loadMorePexels}
-                    />
-                  </div>
-                )}
-              </>
-            )}
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 items-start gap-3">
+                        {visiblePexels.map((item) => {
+                          const assetId = isVideoPexels
+                            ? `pexels-${item.id}`
+                            : `pexels-photo-${item.id}`;
+                          const isLoading = st.loadingAssetId === assetId;
+                          const thumbnail = isVideoPexels
+                            ? (item as PexelsVideo).image
+                            : (item as PexelsPhoto).src.medium ||
+                              (item as PexelsPhoto).src.small;
+                          const artist = isVideoPexels
+                            ? (item as PexelsVideo).user?.name
+                            : (item as PexelsPhoto).photographer;
+                          const width = item.width || 1;
+                          const height = item.height || 1;
+                          return (
+                            <div
+                              key={assetId}
+                              className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950"
+                              style={{ aspectRatio: `${width} / ${height}` }}
+                            >
+                              <img
+                                src={thumbnail}
+                                className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-300 group-hover:scale-105"
+                              />
+                              {isVideoPexels && (
+                                <span className="absolute top-2 right-2 z-10 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] font-bold text-neutral-300">
+                                  {`${Math.round((item as PexelsVideo).duration)}s`}
+                                </span>
+                              )}
+                              {isVideoPexels && !isLoading && (
+                                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity group-hover:opacity-0">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm">
+                                    <i className="icon-[ri--play-fill] h-4.5 w-4.5 text-neutral-200" />
+                                  </div>
+                                </div>
+                              )}
+                              {isLoading ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-neutral-950/80">
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                                  <span className="text-[8px] font-bold tracking-wider text-neutral-400 uppercase">
+                                    Importing...
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <TimelineAddButtons
+                                    onBackground={() =>
+                                      handlePexelsAdd(item, "background")
+                                    }
+                                    onOverlay={() =>
+                                      handlePexelsAdd(item, "overlay")
+                                    }
+                                  />
+                                  <span className="pointer-events-auto flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[9px] font-semibold text-neutral-400">
+                                    <i className="icon-[ri--external-link-line] h-2.5 w-2.5" />
+                                    {`By ${artist || "Pexels"}`}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <StockLoadMore
+                        show={
+                          st.hasMorePexels ||
+                          pexelsItems.length > st.pexelsVisibleCount
+                        }
+                        loading={st.isSearchingPexels}
+                        onLoad={loadMorePexels}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
           </div>
         )}
 
@@ -1356,7 +1479,9 @@ export const MediaLibraryPanel = () => {
                   placeholder="Search animated emojis..."
                   className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 pl-8 text-[11px] text-neutral-300 outline-none focus:border-blue-500/50"
                   value={st.emojiQuery || ""}
-                  onChange={(e) => apply({ emojiQuery: e.target.value, emojiVisibleCount: 24 })}
+                  onChange={(e) =>
+                    apply({ emojiQuery: e.target.value, emojiVisibleCount: 24 })
+                  }
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.preventDefault();
                   }}
@@ -1372,7 +1497,9 @@ export const MediaLibraryPanel = () => {
                   <button
                     key={cat.id}
                     className={`shrink-0 cursor-pointer snap-start rounded-full px-2.5 py-1 text-[9px] font-bold tracking-wider uppercase transition-all ${isSel ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20" : "hover:bg-neutral-750 border border-transparent bg-neutral-800 text-neutral-400 hover:text-neutral-200"}`}
-                    onClick={() => apply({ emojiCategory: cat.id, emojiVisibleCount: 24 })}
+                    onClick={() =>
+                      apply({ emojiCategory: cat.id, emojiVisibleCount: 24 })
+                    }
                   >
                     {cat.label}
                   </button>
@@ -1391,14 +1518,17 @@ export const MediaLibraryPanel = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
                   {visibleEmojis.map((emoji) => {
-                    const isLoading = st.loadingAssetId === `emoji-${emoji.codepoint}`;
-                    const isHovered = st.hoveredEmojiCodepoint === emoji.codepoint;
+                    const isLoading =
+                      st.loadingAssetId === `emoji-${emoji.codepoint}`;
+                    const isHovered =
+                      st.hoveredEmojiCodepoint === emoji.codepoint;
                     return (
                       <div
                         key={emoji.codepoint}
                         className="group relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950/40 p-2.5 transition-all hover:border-blue-500/50 hover:bg-neutral-900/50"
                         onMouseEnter={() => {
-                          if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                          if (hoverTimeoutRef.current)
+                            clearTimeout(hoverTimeoutRef.current);
                           hoverScheduledRef.current = emoji.codepoint;
                           hoverTimeoutRef.current = setTimeout(() => {
                             if (hoverScheduledRef.current === emoji.codepoint) {
@@ -1452,7 +1582,9 @@ export const MediaLibraryPanel = () => {
                   <div className="mt-1 flex items-center justify-center border-t border-neutral-800 pt-3">
                     <Button
                       variant="ghost"
-                      onClick={() => apply({ emojiVisibleCount: st.emojiVisibleCount + 24 })}
+                      onClick={() =>
+                        apply({ emojiVisibleCount: st.emojiVisibleCount + 24 })
+                      }
                     >
                       <i className="icon-[ri--arrow-down-s-line] h-3.5 w-3.5" />
                       Load More

@@ -6,16 +6,17 @@ Write in English: code, comments, JSDoc, commits, docs, UI strings. Never commit
 
 ## Stack
 
-Bun · Vite 8 · React + Tailwind.
+Bun · Vite 8 · React + Tailwind — full client-side static app (no backend).
 
-App: `src/**/*.ts(x)`; Worker: `worker/index.ts` (Pexels/Pixabay proxy, Wrangler-deployed).
+App: `src/**/*.ts(x)`; stock search (Pexels/Pixabay) calls provider APIs
+directly from the browser with user keys from Settings (`src/modules/media/stock/`).
 
 ## Commands
 
 - `bun install` / `bun run dev` / `bun run build` / `bun run preview` / `bun run deploy` / `bun run clean`
-- `bunx tsc --noEmit` — app; `-p worker/tsconfig.json` — Worker; `-p tsconfig.node.json` — `vite.config.ts`
+- `bunx tsc --noEmit` — app; `-p tsconfig.node.json` — `vite.config.ts`
 
-Run all three typechecks before finishing. No npm, no lint.
+Run both typechecks before finishing. No npm, no lint.
 
 ## Dev server
 
