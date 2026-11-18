@@ -76,7 +76,10 @@ export const drawBackground = (
     ctx.restore();
     return;
   }
-  if (isVideoEl && (mediaEl as HTMLVideoElement).readyState < 2) {
+  // A mid-seek video (readyState 1) still presents its last frame, so keep
+  // drawing it: skipping would flash the fallback/base instead (scrub flicker).
+  // Never-loaded media has no dimensions and already returned above.
+  if (isVideoEl && (mediaEl as HTMLVideoElement).readyState < 1) {
     ctx.restore();
     return;
   }

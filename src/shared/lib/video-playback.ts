@@ -105,14 +105,15 @@ function manageLoopingPlayback(
       safeSeek(secondaryVid, 0, 0.05);
     }
   } else {
-    // Scrubbing/paused: seek precisely, keep both paused.
+    // Scrubbing/paused: pin precisely, keep both paused. Throttled so a
+    // fast drag doesn't abort the decoder on every frame (scrub flicker).
     if (!primaryVid.paused) primaryVid.pause();
-    safeSeek(primaryVid, primaryTargetTime, 0.1);
+    pinSeek(primaryVid, primaryTargetTime, 0.1);
     if (!secondaryVid.paused) secondaryVid.pause();
     if (inCrossfade) {
-      safeSeek(secondaryVid, secondaryTargetTime, 0.1);
+      pinSeek(secondaryVid, secondaryTargetTime, 0.1);
     } else {
-      safeSeek(secondaryVid, 0, 0.05);
+      pinSeek(secondaryVid, 0, 0.05);
     }
   }
 }
@@ -123,6 +124,29 @@ function safeSeek(v: HTMLVideoElement, t: number, tolerance: number): void {
   if (Math.abs(v.currentTime - t) <= tolerance) return;
   try {
     v.currentTime = t;
+  } catch {
+    /* metadata not ready yet — retried next frame */
+  }
+}
+
+/** Last pin-seek issue time per element (scrub throttle). */
+const lastPinSeek = new WeakMap<HTMLVideoElement, number>();
+const PIN_SEEK_MIN_GAP = 80;
+
+/**
+ * Paused/scrub pin: converge without aborting the decoder every frame.
+ * Skips while a seek is in flight or inside the throttle gap — the next
+ * frame carries a newer target anyway, so this only delays, never drops.
+ */
+function pinSeek(v: HTMLVideoElement, t: number, tolerance: number): void {
+  if (v.readyState < 1) return;
+  if (v.seeking) return;
+  if (Math.abs(v.currentTime - t) <= tolerance) return;
+  const now = performance.now();
+  if (now - (lastPinSeek.get(v) ?? 0) < PIN_SEEK_MIN_GAP) return;
+  try {
+    v.currentTime = t;
+    lastPinSeek.set(v, now);
   } catch {
     /* metadata not ready yet — retried next frame */
   }
@@ -155,6 +179,6 @@ function manageNonLoopingPlayback(
     }
   } else {
     if (!primaryVid.paused) primaryVid.pause();
-    safeSeek(primaryVid, targetTime, 0.1);
+    pinSeek(primaryVid, targetTime, 0.1);
   }
 }

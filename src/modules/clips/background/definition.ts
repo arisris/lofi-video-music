@@ -17,7 +17,7 @@ const canDrawImage = (img: unknown): img is HTMLImageElement =>
 
 const canDrawVideo = (v: unknown): v is HTMLVideoElement =>
   !!v &&
-  (v as HTMLVideoElement).readyState >= 2 &&
+  (v as HTMLVideoElement).readyState >= 1 &&
   (v as HTMLVideoElement).videoWidth > 0;
 
 /** Darken a #rgb/#rrggbb color toward black; non-hex input falls back to black. */
