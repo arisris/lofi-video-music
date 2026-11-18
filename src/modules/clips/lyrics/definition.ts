@@ -32,14 +32,18 @@ function stackCounts(
 ): { before: number; after: number } {
   if (!karaoke) return { before: 0, after: 0 };
   const legacy =
-    typeof settings.contextLines === "number" ? Math.round(settings.contextLines) : 1;
+    typeof settings.contextLines === "number"
+      ? Math.round(settings.contextLines)
+      : 1;
   const fallback = Math.max(1, legacy);
   const before =
     typeof settings.contextBefore === "number"
       ? Math.round(settings.contextBefore)
       : fallback;
   const after =
-    typeof settings.contextAfter === "number" ? Math.round(settings.contextAfter) : fallback;
+    typeof settings.contextAfter === "number"
+      ? Math.round(settings.contextAfter)
+      : fallback;
   return { before: Math.max(0, before), after: Math.max(0, after) };
 }
 
@@ -73,14 +77,29 @@ export const lyricsClip: ClipDefinition = {
     { key: "fontSize", label: "Size", kind: "slider", min: 16, max: 120 },
     { key: "color", label: "Active color", kind: "color" },
     { key: "inactiveColor", label: "Inactive color", kind: "color" },
-    { key: "contextBefore", label: "Lines before", kind: "slider", min: 0, max: 5, step: 1 },
-    { key: "contextAfter", label: "Lines after", kind: "slider", min: 0, max: 5, step: 1 },
+    {
+      key: "contextBefore",
+      label: "Lines before",
+      kind: "slider",
+      min: 0,
+      max: 5,
+      step: 1,
+    },
+    {
+      key: "contextAfter",
+      label: "Lines after",
+      kind: "slider",
+      min: 0,
+      max: 5,
+      step: 1,
+    },
     { key: "offsetSeconds", label: "Offset (s)", kind: "number" },
   ],
   draw({ ctx, w, h, settings, localTime }) {
     const lines = linesOf(settings);
     if (lines.length === 0) return;
-    const offset = typeof settings.offsetSeconds === "number" ? settings.offsetSeconds : 0;
+    const offset =
+      typeof settings.offsetSeconds === "number" ? settings.offsetSeconds : 0;
     const t = localTime - offset;
     // Karaoke mode: neighbours stay on screen and the stack never blanks
     // once the first line has started (gaps hold the last line, fully
@@ -116,9 +135,13 @@ export const lyricsClip: ClipDefinition = {
             ? settings.textColor
             : "#ffffff";
     const inactive =
-      typeof settings.inactiveColor === "string" ? settings.inactiveColor : "#94a3b8";
+      typeof settings.inactiveColor === "string"
+        ? settings.inactiveColor
+        : "#94a3b8";
     const inOpacity =
-      typeof settings.inactiveOpacity === "number" ? settings.inactiveOpacity : 0.45;
+      typeof settings.inactiveOpacity === "number"
+        ? settings.inactiveOpacity
+        : 0.45;
     // Edge melt: neighbours fade AND shrink per step away from the active
     // line, so a tall stack dissolves at the tips instead of ending on a
     // hard cut. Distance 1 keeps exactly `inactiveOpacity` / 0.85 size, so
@@ -134,44 +157,68 @@ export const lyricsClip: ClipDefinition = {
     // `contextLines` feeds both sides — see stackCounts).
     const { before: nBefore, after: nAfter } = stackCounts(settings, karaoke);
     const boost =
-      typeof settings.activeSizeBoost === "number" ? settings.activeSizeBoost : 1;
+      typeof settings.activeSizeBoost === "number"
+        ? settings.activeSizeBoost
+        : 1;
     const gap = typeof settings.lineGap === "number" ? settings.lineGap : 8;
-    const fontFamily = typeof settings.fontFamily === "string" ? settings.fontFamily : "sans-serif";
-    const fontWeight = typeof settings.fontWeight === "string" ? settings.fontWeight : "normal";
+    const fontFamily =
+      typeof settings.fontFamily === "string"
+        ? settings.fontFamily
+        : "sans-serif";
+    const fontWeight =
+      typeof settings.fontWeight === "string" ? settings.fontWeight : "normal";
     // Active lines default to bold (legacy look); an explicit Weight choice
     // applies to both states so the control is never dead on the active line.
-    const activeWeight = typeof settings.fontWeight === "string" ? settings.fontWeight : "bold";
-    const strokeColor = typeof settings.strokeColor === "string" ? settings.strokeColor : "#000000";
-    const strokeWidth = typeof settings.strokeWidth === "number" ? settings.strokeWidth : 0;
-    const shadowBlur = typeof settings.shadowBlur === "number" ? settings.shadowBlur : 0;
-    const shadowOX = typeof settings.shadowOffsetX === "number" ? settings.shadowOffsetX : 0;
-    const shadowOY = typeof settings.shadowOffsetY === "number" ? settings.shadowOffsetY : 0;
+    const activeWeight =
+      typeof settings.fontWeight === "string" ? settings.fontWeight : "bold";
+    const strokeColor =
+      typeof settings.strokeColor === "string"
+        ? settings.strokeColor
+        : "#000000";
+    const strokeWidth =
+      typeof settings.strokeWidth === "number" ? settings.strokeWidth : 0;
+    const shadowBlur =
+      typeof settings.shadowBlur === "number" ? settings.shadowBlur : 0;
+    const shadowOX =
+      typeof settings.shadowOffsetX === "number" ? settings.shadowOffsetX : 0;
+    const shadowOY =
+      typeof settings.shadowOffsetY === "number" ? settings.shadowOffsetY : 0;
     const hasShadow = shadowBlur > 0 || shadowOX !== 0 || shadowOY !== 0;
 
     // Active-line transition
-    const enterType = resolveEnterTransition(settings.lineTransitionIn ?? settings.lineTransition);
+    const enterType = resolveEnterTransition(
+      settings.lineTransitionIn ?? settings.lineTransition,
+    );
     const exitType = resolveExitTransition(settings.lineTransitionOut);
     const transitionSeconds =
-      typeof settings.lineTransitionDuration === "number" ? settings.lineTransitionDuration : 0.3;
+      typeof settings.lineTransitionDuration === "number"
+        ? settings.lineTransitionDuration
+        : 0.3;
     // Master switch from the Lyric Display panel (defaults on for legacy projects).
     const transOn = settings.lineTransitionEnabled !== false;
     const animates = transOn && transitionSeconds > 0;
     const ends = endsByLine(lines);
     const fallbackLineDuration =
-      typeof settings.fallbackLineDuration === "number" ? settings.fallbackLineDuration : 4;
+      typeof settings.fallbackLineDuration === "number"
+        ? settings.fallbackLineDuration
+        : 4;
     const autoAdvanceUnstamped = settings.unstampedAutoAdvance === true;
     const aStart = lines[index].start;
     // A held line has run past its end — treat it as open-ended so it stays
     // fully settled instead of playing its exit fade to invisible.
     const aEnd = heldBeyondEnd ? Number.POSITIVE_INFINITY : ends[index];
     const span =
-      typeof aStart === "number" && typeof aEnd === "number" && Number.isFinite(aEnd)
+      typeof aStart === "number" &&
+      typeof aEnd === "number" &&
+      Number.isFinite(aEnd)
         ? aEnd - aStart
         : transitionSeconds;
     const tWindow = Math.min(transitionSeconds, Math.max(0.05, span * 0.5));
     const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
     const enterProgress =
-      animates && typeof aStart === "number" ? clamp01((t - aStart) / tWindow) : 1;
+      animates && typeof aStart === "number"
+        ? clamp01((t - aStart) / tWindow)
+        : 1;
     // In stack mode the outgoing line is held on screen, so an exit fade
     // would dip out and snap back — the handoff interpolation below covers
     // the takeover instead. Single mode keeps its disappear-at-end.
@@ -187,7 +234,11 @@ export const lyricsClip: ClipDefinition = {
       if (lines[i].text) visible.push(i);
     }
     visible.push(index);
-    for (let i = index + 1; i <= Math.min(lines.length - 1, index + nAfter); i++) {
+    for (
+      let i = index + 1;
+      i <= Math.min(lines.length - 1, index + nAfter);
+      i++
+    ) {
       if (lines[i].text) visible.push(i);
     }
 
@@ -196,12 +247,18 @@ export const lyricsClip: ClipDefinition = {
     // frame. Single mode never hits this: the previous line is not in its
     // one-line visible set.
     let prevIndex = -1;
-    if (karaoke && animates && enterProgress < 1 && typeof aStart === "number") {
+    if (
+      karaoke &&
+      animates &&
+      enterProgress < 1 &&
+      typeof aStart === "number"
+    ) {
       const prev = resolveActiveLineIndex(lines, aStart - 0.001, {
         fallbackLineDuration,
         autoAdvanceUnstamped,
       });
-      if (prev >= 0 && prev !== index && visible.includes(prev)) prevIndex = prev;
+      if (prev >= 0 && prev !== index && visible.includes(prev))
+        prevIndex = prev;
     }
     // A slide moves the whole stack together — a per-line offset would
     // detach the active line from its frozen neighbours.
@@ -216,7 +273,7 @@ export const lyricsClip: ClipDefinition = {
     const bottomMargin = h > w ? Math.round(h * 0.16) : 140;
     const baseY = h - bottomMargin;
     if (stackShiftY !== 0) ctx.translate(0, stackShiftY);
-    let y = baseY - (visible.indexOf(index) * (size + gap));
+    let y = baseY - visible.indexOf(index) * (size + gap);
     for (const vi of visible) {
       const active = vi === index;
       const handingOff = vi === prevIndex;
@@ -234,12 +291,17 @@ export const lyricsClip: ClipDefinition = {
       y += fs + gap;
       ctx.save();
       if (active) ctx.globalAlpha = Math.min(enter.opacity, exit.opacity);
-      else if (handingOff) ctx.globalAlpha = settledInactive + (1 - settledInactive) * (1 - e);
+      else if (handingOff)
+        ctx.globalAlpha = settledInactive + (1 - settledInactive) * (1 - e);
       else ctx.globalAlpha = settledInactive;
       // Midpoint style swap: the morph is quick enough that a hard color
       // cut reads as a crossfade, and font weight cannot interpolate.
       const useActiveStyle = active || (handingOff && e < 0.5);
-      if ((active || handingOff) && animates && (enterProgress < 1 || exitProgress < 1)) {
+      if (
+        (active || handingOff) &&
+        animates &&
+        (enterProgress < 1 || exitProgress < 1)
+      ) {
         const sc = active ? enter.scale * exit.scale : 1;
         if (karaoke) {
           if (sc !== 1) {
@@ -256,7 +318,10 @@ export const lyricsClip: ClipDefinition = {
       }
       ctx.font = `${useActiveStyle ? activeWeight : fontWeight} ${fs}px ${fontFamily}`;
       if (useActiveStyle && hasShadow) {
-        ctx.shadowColor = typeof settings.shadowColor === "string" ? settings.shadowColor : "rgba(0,0,0,0.8)";
+        ctx.shadowColor =
+          typeof settings.shadowColor === "string"
+            ? settings.shadowColor
+            : "rgba(0,0,0,0.8)";
         ctx.shadowBlur = shadowBlur;
         ctx.shadowOffsetX = shadowOX;
         ctx.shadowOffsetY = shadowOY;
@@ -275,7 +340,8 @@ export const lyricsClip: ClipDefinition = {
   getItemBoundingBox(_ctx, w, h, settings, localTime = 0) {
     const lines = linesOf(settings);
     if (lines.length === 0) return null;
-    const offset = typeof settings.offsetSeconds === "number" ? settings.offsetSeconds : 0;
+    const offset =
+      typeof settings.offsetSeconds === "number" ? settings.offsetSeconds : 0;
     const t = localTime - offset;
     const karaoke = settings.karaokeMode === true;
     let index = resolveActiveLineIndex(lines, t, {
@@ -297,7 +363,11 @@ export const lyricsClip: ClipDefinition = {
     for (let i = Math.max(0, index - nBefore); i < index; i++) {
       if (lines[i].text) before++;
     }
-    for (let i = index + 1; i <= Math.min(lines.length - 1, index + nAfter); i++) {
+    for (
+      let i = index + 1;
+      i <= Math.min(lines.length - 1, index + nAfter);
+      i++
+    ) {
       if (lines[i].text) after++;
     }
     const top = baseY - before * (size + gap) - size / 2 - 8;

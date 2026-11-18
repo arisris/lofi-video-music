@@ -19,12 +19,17 @@ export function Card({
   className?: string;
 }) {
   const pad = padding === "md" ? "p-4" : padding === "sm" ? "p-2.5" : "";
-  const gap = spacing === "sm" ? "space-y-3" : spacing === "md" ? "space-y-4" : "";
+  const gap =
+    spacing === "sm" ? "space-y-3" : spacing === "md" ? "space-y-4" : "";
   const r = radius === "xl" ? "rounded-xl" : "rounded-lg";
   return (
-    <div className={`${gap} ${r} border border-neutral-700/50 bg-neutral-800/40 ${pad} ${className}`}>
+    <div
+      className={`${gap} ${r} border border-neutral-700/50 bg-neutral-800/40 ${pad} ${className}`}
+    >
       {title !== undefined && (
-        <div className={`flex items-center justify-between ${spacing ? "" : "mb-3"}`}>
+        <div
+          className={`flex items-center justify-between ${spacing ? "" : "mb-3"}`}
+        >
           <label className="block text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
             {title}
           </label>

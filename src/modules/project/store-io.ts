@@ -24,11 +24,13 @@ export function buildProjectFromStore(name?: string): ProjectV1 {
     tracks: s.tracks,
     video: {
       clips: [],
-      selectedClipId: currentRoute === "/" ? s.selectedClipId : (s.videoSel ?? null),
+      selectedClipId:
+        currentRoute === "/" ? s.selectedClipId : (s.videoSel ?? null),
     },
     thumb: {
       clips: [],
-      selectedClipId: currentRoute === "/image" ? s.selectedClipId : (s.thumbSel ?? null),
+      selectedClipId:
+        currentRoute === "/image" ? s.selectedClipId : (s.thumbSel ?? null),
     },
     mediaPool: s.mediaPool,
     videoClipsLive: currentRoute === "/" ? s.clips : (s.videoClips ?? []),
@@ -42,20 +44,31 @@ export function buildProjectFromStore(name?: string): ProjectV1 {
  * snapshot (videoClips/thumbClips) — make sure the snapshot is fresh by
  * stashing the inactive route's live clips when the snapshot is still null.
  */
-export async function exportProjectBundle(name?: string): Promise<{ blob: Blob; filename: string; remoteKept: string[] }> {
+export async function exportProjectBundle(
+  name?: string,
+): Promise<{ blob: Blob; filename: string; remoteKept: string[] }> {
   // Pure read: derive both routes' live clips without writing snapshots back
   // to the store (export must not mutate editor state).
   const fresh = useEditorStore.getState();
   const project = buildProjectFromStore(name);
   const byId = new Map(fresh.mediaPool.map((m) => [m.id, m.url]));
   const audioOf = (syntheticId: string): string | undefined => {
-    const clipId = syntheticId.startsWith("__clip:") ? syntheticId.slice("__clip:".length) : syntheticId;
-    const all = [...(fresh.route === "/" ? fresh.clips : (fresh.videoClips ?? [])), ...(fresh.route === "/image" ? fresh.clips : (fresh.thumbClips ?? []))];
+    const clipId = syntheticId.startsWith("__clip:")
+      ? syntheticId.slice("__clip:".length)
+      : syntheticId;
+    const all = [
+      ...(fresh.route === "/" ? fresh.clips : (fresh.videoClips ?? [])),
+      ...(fresh.route === "/image" ? fresh.clips : (fresh.thumbClips ?? [])),
+    ];
     const c = all.find((x) => x.id === clipId);
     const u = (c?.settings as Record<string, unknown> | undefined)?.audioUrl;
     return typeof u === "string" ? u : undefined;
   };
-  const { blobs, remoteKept } = await collectExportBlobs(project, (id) => byId.get(id), audioOf);
+  const { blobs, remoteKept } = await collectExportBlobs(
+    project,
+    (id) => byId.get(id),
+    audioOf,
+  );
   const blob = await packBundle(project, blobs);
   return { blob, filename: projectFileName(project.meta.name), remoteKept };
 }
@@ -67,7 +80,9 @@ export interface ImportResult {
 }
 
 /** Import a bundle: unpack zip → rehydrate media → replace all editor state. */
-export async function importProjectBundle(file: File | Blob): Promise<ImportResult> {
+export async function importProjectBundle(
+  file: File | Blob,
+): Promise<ImportResult> {
   // Pause first: swapping clip lists mid-play races the render loop and the
   // audio/video playback managers.
   {
@@ -84,11 +99,15 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
   for (const m of project.mediaPool) {
     // Old-bundle compat: synthetic audio used to be pooled —
     // keep it out of the library, redirect to the clip audio map.
-    if (m.kind === "audio" && (m.id.startsWith("assets/") || m.id.startsWith("__clip"))) {
+    if (
+      m.kind === "audio" &&
+      (m.id.startsWith("assets/") || m.id.startsWith("__clip"))
+    ) {
       try {
         const blob =
           m.source.type === "asset"
-            ? (assets.get(m.source.value) ?? assets.get(m.source.value.replace(/^assets\//, "")))
+            ? (assets.get(m.source.value) ??
+              assets.get(m.source.value.replace(/^assets\//, "")))
             : undefined;
         if (blob) clipAudio.set(m.id, URL.createObjectURL(blob));
         else if (m.source.type === "url") clipAudio.set(m.id, m.source.value);
@@ -111,14 +130,21 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
   // assets/__clip_<id>.audio — set audioUrl directly without touching the pool.
   for (const route of [project.routes.video, project.routes.thumb]) {
     for (const c of route.clips) {
-      if (c.media && c.media.mediaId.startsWith("__clip:") && !poolById.has(c.media.mediaId)) {
+      if (
+        c.media &&
+        c.media.mediaId.startsWith("__clip:") &&
+        !poolById.has(c.media.mediaId)
+      ) {
         const key = `assets/__clip_${c.media.mediaId.slice("__clip:".length)}.audio`;
         const blob = assets.get(key);
         if (blob) c.settings.audioUrl = URL.createObjectURL(blob);
       }
     }
   }
-  const applyClipAudio = (src: ProjectV1["routes"]["video"]["clips"][number], clip: TimelineClip) => {
+  const applyClipAudio = (
+    src: ProjectV1["routes"]["video"]["clips"][number],
+    clip: TimelineClip,
+  ) => {
     const ref = src.media?.mediaId;
     if (ref && clipAudio.has(ref)) clip.settings.audioUrl = clipAudio.get(ref);
     return clip;
@@ -131,7 +157,11 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
   const normalizeMusicLyrics = (clips: TimelineClip[]): TimelineClip[] => {
     const layers = clips.filter((c) => c.type === "lyrics");
     const overlap = (a: TimelineClip, b: TimelineClip) =>
-      Math.max(0, Math.min(a.start + a.duration, b.start + b.duration) - Math.max(a.start, b.start));
+      Math.max(
+        0,
+        Math.min(a.start + a.duration, b.start + b.duration) -
+          Math.max(a.start, b.start),
+      );
     // Assign each lyrics layer to exactly one music clip (most overlap) so a
     // layer is never duplicated across tracks, and never silently dropped:
     // layers with no overlap are kept as-is.
@@ -206,7 +236,9 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
     return out;
   };
   const videoClips: TimelineClip[] = normalizeMusicLyrics(
-    project.routes.video.clips.map((c) => applyClipAudio(c, rehydrateClip(c, pool))),
+    project.routes.video.clips.map((c) =>
+      applyClipAudio(c, rehydrateClip(c, pool)),
+    ),
   );
   const thumbClips: TimelineClip[] = project.routes.thumb.clips.map((c) =>
     applyClipAudio(c, rehydrateClip(c, pool)),
@@ -214,7 +246,11 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
   // Revoke old blobs that are no longer used (pool + clip-owned audio).
   const st = useEditorStore.getState();
   const oldAudio = new Set<string>();
-  for (const c of [...st.clips, ...(st.videoClips ?? []), ...(st.thumbClips ?? [])]) {
+  for (const c of [
+    ...st.clips,
+    ...(st.videoClips ?? []),
+    ...(st.thumbClips ?? []),
+  ]) {
     const u = (c.settings as Record<string, unknown>).audioUrl;
     if (typeof u === "string" && u.startsWith("blob:")) oldAudio.add(u);
   }
@@ -255,7 +291,10 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
       ? project.output.recordResolution
       : st.recordResolution;
   useEditorStore.setState({
-    projectName: typeof project.meta.name === "string" && project.meta.name ? project.meta.name : st.projectName,
+    projectName:
+      typeof project.meta.name === "string" && project.meta.name
+        ? project.meta.name
+        : st.projectName,
     tracks,
     mediaPool: pool,
     videoClips,
@@ -263,7 +302,10 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
     videoSel: project.routes.video.selectedClipId,
     thumbSel: project.routes.thumb.selectedClipId,
     clips: route === "/" ? videoClips : thumbClips,
-    selectedClipId: route === "/" ? project.routes.video.selectedClipId : project.routes.thumb.selectedClipId,
+    selectedClipId:
+      route === "/"
+        ? project.routes.video.selectedClipId
+        : project.routes.thumb.selectedClipId,
     selectedTrackId: "track-1",
     currentTime: 0,
     // New project = old undo history no longer applies.
@@ -271,7 +313,9 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
     future: [],
     aspectRatio,
     recordResolution,
-    recordFps: Number.isFinite(project.output.recordFps) ? project.output.recordFps : st.recordFps,
+    recordFps: Number.isFinite(project.output.recordFps)
+      ? project.output.recordFps
+      : st.recordFps,
     lyricsSettings: { ...st.lyricsSettings, ...(project.lyricsSettings ?? {}) },
   });
   return { project, mediaLoaded: pool.length, mediaFailed: failed };

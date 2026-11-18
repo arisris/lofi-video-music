@@ -27,10 +27,7 @@ import { ClipContextMenu } from "./ClipContextMenu";
 
 const TRACK_ROW_H = 48;
 
-function trackIdOf(
-  c: TimelineClip,
-  tracks: Array<{ id: string }>,
-): string {
+function trackIdOf(c: TimelineClip, tracks: Array<{ id: string }>): string {
   return resolveTrackId(c, tracks);
 }
 
@@ -385,9 +382,7 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                           )
                         ) {
                           for (const c of st.clips) {
-                            if (
-                              trackIdOf(c, st.tracks) === track.id
-                            ) {
+                            if (trackIdOf(c, st.tracks) === track.id) {
                               revokeClipUrls(c, st);
                             }
                           }
@@ -397,8 +392,7 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                           useEditorStore.setState({
                             tracks: remaining,
                             clips: st.clips.filter(
-                              (c) =>
-                                trackIdOf(c, st.tracks) !== track.id,
+                              (c) => trackIdOf(c, st.tracks) !== track.id,
                             ),
                             selectedTrackId:
                               st.selectedTrackId === track.id

@@ -65,7 +65,10 @@ export const deleteDownload = (id: string): Promise<void> =>
     });
 
 /** Sum of persisted download bytes (IndexedDB) without keeping blobs alive. */
-export const getDownloadsUsage = async (): Promise<{ bytes: number; count: number }> => {
+export const getDownloadsUsage = async (): Promise<{
+  bytes: number;
+  count: number;
+}> => {
   try {
     const recs = await listDownloads();
     return {

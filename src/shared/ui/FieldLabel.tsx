@@ -10,7 +10,9 @@ export function SectionTitle({
   className?: string;
 }) {
   return (
-    <h4 className={`${className} text-[10px] font-bold tracking-widest text-neutral-500 uppercase`}>
+    <h4
+      className={`${className} text-[10px] font-bold tracking-widest text-neutral-500 uppercase`}
+    >
       {children}
     </h4>
   );

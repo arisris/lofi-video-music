@@ -78,20 +78,34 @@ function globalLyricsBbox(time?: number): {
     ...st.lyricsSettings,
     lines: track.lines,
   };
-  const bbox = lyricsClip.getItemBoundingBox?.(ctx, w, h, settings, track.localTime);
+  const bbox = lyricsClip.getItemBoundingBox?.(
+    ctx,
+    w,
+    h,
+    settings,
+    track.localTime,
+  );
   if (!bbox) return null;
   return { settings, bbox, localTime: track.localTime };
 }
 
 /** Selected clip currently active at the playhead that can be dragged on canvas. */
-export function getSelectedCanvasClip(time?: number): SelectedCanvasClip | null {
+export function getSelectedCanvasClip(
+  time?: number,
+): SelectedCanvasClip | null {
   const st = useEditorStore.getState();
   if (!st.selectedClipId) return null;
   // Global lyrics layer ("lyrics") is not a timeline clip — hit-test the global bbox.
   if (st.selectedClipId === "lyrics") {
     const g = globalLyricsBbox(time);
     if (!g) return null;
-    return { clip: null, settings: g.settings, bbox: g.bbox, localTime: g.localTime, isGlobalLyrics: true };
+    return {
+      clip: null,
+      settings: g.settings,
+      bbox: g.bbox,
+      localTime: g.localTime,
+      isGlobalLyrics: true,
+    };
   }
   const now = time ?? st.currentTime;
   const clip = st.clips.find((c) => c.id === st.selectedClipId);
@@ -114,11 +128,20 @@ export function getSelectedCanvasClip(time?: number): SelectedCanvasClip | null 
     now - clip.start,
   );
   if (!bbox) return null;
-  return { clip, settings, bbox, localTime: now - clip.start, isGlobalLyrics: false };
+  return {
+    clip,
+    settings,
+    bbox,
+    localTime: now - clip.start,
+    isGlobalLyrics: false,
+  };
 }
 
 /** Topmost clip at a canvas position (or null). */
-export function findClipAtPos(pos: { x: number; y: number }): SelectedCanvasClip | null {
+export function findClipAtPos(pos: {
+  x: number;
+  y: number;
+}): SelectedCanvasClip | null {
   const st = useEditorStore.getState();
   const ctx = runtime.ctx;
   if (!ctx) return null;
@@ -137,7 +160,13 @@ export function findClipAtPos(pos: { x: number; y: number }): SelectedCanvasClip
       if (!resolved) continue;
       settings = resolved;
     }
-    const bbox = renderer.getItemBoundingBox(ctx, w, h, settings, now - clip.start);
+    const bbox = renderer.getItemBoundingBox(
+      ctx,
+      w,
+      h,
+      settings,
+      now - clip.start,
+    );
     if (!bbox) continue;
     const local = inverseTransformPoint(pos.x, pos.y, bbox, settings);
     if (
@@ -146,7 +175,13 @@ export function findClipAtPos(pos: { x: number; y: number }): SelectedCanvasClip
       local.y >= bbox.y &&
       local.y <= bbox.y + bbox.height
     ) {
-      return { clip, settings, bbox, localTime: now - clip.start, isGlobalLyrics: false };
+      return {
+        clip,
+        settings,
+        bbox,
+        localTime: now - clip.start,
+        isGlobalLyrics: false,
+      };
     }
   }
   // Last: global lyrics layer (above background, below other clips is
@@ -161,7 +196,13 @@ export function findClipAtPos(pos: { x: number; y: number }): SelectedCanvasClip
       local.y >= g.bbox.y &&
       local.y <= g.bbox.y + g.bbox.height
     ) {
-      return { clip: null, settings: g.settings, bbox: g.bbox, localTime: g.localTime, isGlobalLyrics: true };
+      return {
+        clip: null,
+        settings: g.settings,
+        bbox: g.bbox,
+        localTime: g.localTime,
+        isGlobalLyrics: true,
+      };
     }
   }
   return null;
@@ -230,7 +271,11 @@ export const handleCanvasDragStart = (e: DragPointerEvent) => {
   const selectedInfo = getSelectedCanvasClip();
   let clickedHandle: string | null = null;
   if (selectedInfo) {
-    clickedHandle = findHandleAtPos(pos, selectedInfo.bbox, selectedInfo.settings);
+    clickedHandle = findHandleAtPos(
+      pos,
+      selectedInfo.bbox,
+      selectedInfo.settings,
+    );
   }
 
   if (clickedHandle && selectedInfo) {
@@ -249,7 +294,10 @@ export const handleCanvasDragStart = (e: DragPointerEvent) => {
     const originY = num(settings.originY, 0.5);
     const cx = bbox.x + bbox.width * originX;
     const cy = bbox.y + bbox.height * originY;
-    const dragPivot = { x: cx + num(settings.x, 0), y: cy + num(settings.y, 0) };
+    const dragPivot = {
+      x: cx + num(settings.x, 0),
+      y: cy + num(settings.y, 0),
+    };
     useEditorStore.setState({ dragPivot });
 
     const dx = pos.x - dragPivot.x;
@@ -298,8 +346,12 @@ export const handleCanvasDragStart = (e: DragPointerEvent) => {
 
     const live = useEditorStore.getState();
     for (const other of live.clips) {
-      if ((hit.clip && other.id === hit.clip.id) || other.type === "background") continue;
-      if (live.currentTime < other.start || live.currentTime > other.start + other.duration) {
+      if ((hit.clip && other.id === hit.clip.id) || other.type === "background")
+        continue;
+      if (
+        live.currentTime < other.start ||
+        live.currentTime > other.start + other.duration
+      ) {
         continue;
       }
       const renderer = clipRegistry.get(other.type);
@@ -319,8 +371,10 @@ export const handleCanvasDragStart = (e: DragPointerEvent) => {
       const otherSy = num(s.scaleY, 1);
       const otherOriginX = num(s.originX, 0.5);
       const otherOriginY = num(s.originY, 0.5);
-      const otherCx = otherBbox.x + otherBbox.width * otherOriginX + num(s.x, 0);
-      const otherCy = otherBbox.y + otherBbox.height * otherOriginY + num(s.y, 0);
+      const otherCx =
+        otherBbox.x + otherBbox.width * otherOriginX + num(s.x, 0);
+      const otherCy =
+        otherBbox.y + otherBbox.height * otherOriginY + num(s.y, 0);
       const otherW = otherBbox.width * otherSx;
       const otherH = otherBbox.height * otherSy;
       const otherLeft = otherCx - otherW * otherOriginX;
@@ -432,14 +486,19 @@ export const handleCanvasDragMove = (e: DragPointerEvent) => {
   if (state.transformMode === "rotate") {
     const selectedInfo = getSelectedCanvasClip();
     if (selectedInfo && state.dragPivot) {
-      const currentAngle = Math.atan2(pos.y - state.dragPivot.y, pos.x - state.dragPivot.x);
+      const currentAngle = Math.atan2(
+        pos.y - state.dragPivot.y,
+        pos.x - state.dragPivot.x,
+      );
       const deltaAngle = currentAngle - state.initialDragAngle;
       let newRotation = state.initialRotation + (deltaAngle * 180) / Math.PI;
       if (e.shiftKey) newRotation = Math.round(newRotation / 15) * 15;
       if (selectedInfo.isGlobalLyrics) {
         state.updateLyricsSettings({ rotation: newRotation });
       } else if (selectedInfo.clip) {
-        state.updateClipSettings(selectedInfo.clip.id, { rotation: newRotation });
+        state.updateClipSettings(selectedInfo.clip.id, {
+          rotation: newRotation,
+        });
       }
     }
     return;
@@ -450,7 +509,9 @@ export const handleCanvasDragMove = (e: DragPointerEvent) => {
     if (selectedInfo && state.dragPivot) {
       const currentDx = pos.x - state.dragPivot.x;
       const currentDy = pos.y - state.dragPivot.y;
-      const currentDist = Math.sqrt(currentDx * currentDx + currentDy * currentDy);
+      const currentDist = Math.sqrt(
+        currentDx * currentDx + currentDy * currentDy,
+      );
       let scaleFactor = 1;
       if (state.initialDragDistance > 0) {
         // No mirroring: dragging past the pivot just shrinks toward the
@@ -462,7 +523,8 @@ export const handleCanvasDragMove = (e: DragPointerEvent) => {
         scaleY: Math.max(0.05, state.initialScaleY * scaleFactor),
       };
       if (selectedInfo.isGlobalLyrics) state.updateLyricsSettings(patch);
-      else if (selectedInfo.clip) state.updateClipSettings(selectedInfo.clip.id, patch);
+      else if (selectedInfo.clip)
+        state.updateClipSettings(selectedInfo.clip.id, patch);
     }
     return;
   }

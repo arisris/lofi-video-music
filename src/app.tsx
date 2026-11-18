@@ -35,9 +35,9 @@ const AppContent = () => {
 
   // Panel side being dragged — width/height transition disabled while dragging
   // so resize follows the pointer without lag (transition-all + drag = rubber-banding).
-  const [resizingSide, setResizingSide] = useState<"left" | "right" | "timeline" | null>(
-    null,
-  );
+  const [resizingSide, setResizingSide] = useState<
+    "left" | "right" | "timeline" | null
+  >(null);
 
   // Global canvas drag listener: window-level move/up
   // so a drag survives even when the pointer leaves the canvas.

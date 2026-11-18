@@ -16,8 +16,7 @@ const VARIANTS: Record<string, string> = {
     "flex w-full gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 py-2.5 text-xs font-bold tracking-wider text-blue-400 uppercase hover:bg-blue-500 hover:text-white",
   secondary:
     "flex w-full gap-2 rounded border border-neutral-700 bg-neutral-800 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700",
-  mini:
-    "rounded bg-neutral-800 px-2 py-1 text-[10px] text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white",
+  mini: "rounded bg-neutral-800 px-2 py-1 text-[10px] text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white",
   icon: "shrink-0 rounded-lg border text-neutral-300 transition-colors hover:border-blue-500/40 hover:bg-blue-600/15 hover:text-blue-400",
   iconGhost: "text-neutral-500 transition-colors hover:text-white",
 };

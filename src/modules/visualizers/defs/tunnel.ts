@@ -11,7 +11,13 @@
 // the vanishing point.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
-import { TAU_GLSL, glowField, rainbowField, mainColorField, opacityField } from "../_core/shader";
+import {
+  TAU_GLSL,
+  glowField,
+  rainbowField,
+  mainColorField,
+  opacityField,
+} from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -142,7 +148,14 @@ export const TunnelVisualizer: VisualizerDef = {
         { value: "1", label: "Square" },
       ],
     },
-    { kind: "slider", key: "speed", label: "Speed", min: 0.1, max: 3, step: 0.01 },
+    {
+      kind: "slider",
+      key: "speed",
+      label: "Speed",
+      min: 0.1,
+      max: 3,
+      step: 0.01,
+    },
     {
       kind: "slider",
       key: "zoom",
@@ -151,7 +164,14 @@ export const TunnelVisualizer: VisualizerDef = {
       max: 3,
       step: 0.05,
     },
-    { kind: "slider", key: "twist", label: "Twist", min: 0, max: 2, step: 0.01 },
+    {
+      kind: "slider",
+      key: "twist",
+      label: "Twist",
+      min: 0,
+      max: 2,
+      step: 0.01,
+    },
     {
       kind: "slider",
       key: "spokes",

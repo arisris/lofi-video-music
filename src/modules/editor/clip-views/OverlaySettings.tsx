@@ -32,7 +32,8 @@ export function OverlaySettingsView({ clipId }: { clipId: string }) {
   const updateClip = useEditorStore((s) => s.updateClip);
   if (!clip) return null;
 
-  const mediaType = typeof values.mediaType === "string" ? values.mediaType : "none";
+  const mediaType =
+    typeof values.mediaType === "string" ? values.mediaType : "none";
   const loop = values.loop !== false;
   const speed = typeof values.speed === "number" ? values.speed : 1.0;
   const opacity = typeof values.opacity === "number" ? values.opacity : 1.0;
@@ -97,8 +98,10 @@ export function OverlaySettingsView({ clipId }: { clipId: string }) {
   return (
     <InspectorRoot>
       <Card title="Media Settings" spacing="sm">
-
-        <Button variant="secondary" onClick={() => triggerFilePicker(replaceMedia)}>
+        <Button
+          variant="secondary"
+          onClick={() => triggerFilePicker(replaceMedia)}
+        >
           <i className="icon-[ri--folder-open-line]" />
           Replace Media Source
         </Button>
@@ -107,7 +110,11 @@ export function OverlaySettingsView({ clipId }: { clipId: string }) {
           <div className="mt-2">
             <SettingRow
               title="Loop Video"
-              description={loop ? "Loops continuously" : "Locks timeline clip to video length"}
+              description={
+                loop
+                  ? "Loops continuously"
+                  : "Locks timeline clip to video length"
+              }
               control={<TogglePill value={loop} onToggle={toggleLoop} />}
             />
           </div>

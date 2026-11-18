@@ -201,7 +201,8 @@ export const confettiVfx: VfxDefinition = {
         ? settings.palette
         : "rainbow";
     const shape =
-      typeof settings.shape === "string" && SHAPE_OPTIONS.includes(settings.shape)
+      typeof settings.shape === "string" &&
+      SHAPE_OPTIONS.includes(settings.shape)
         ? settings.shape
         : "mixed";
     const motion =
@@ -264,7 +265,13 @@ export const confettiVfx: VfxDefinition = {
       const round = shape === "circle" || (shape === "mixed" && p.round);
       if (round) {
         ctx.beginPath();
-        ctx.arc(0, 0, Math.max(0.5, ((pw + ph) / 4) * (0.25 + 0.75 * squash)), 0, tau);
+        ctx.arc(
+          0,
+          0,
+          Math.max(0.5, ((pw + ph) / 4) * (0.25 + 0.75 * squash)),
+          0,
+          tau,
+        );
         ctx.fill();
       } else {
         ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
@@ -283,7 +290,8 @@ export const confettiVfx: VfxDefinition = {
         if (age > p.life) continue;
         const prog = age / p.life;
         const x = ox + Math.cos(p.angle) * p.power * age;
-        const y = oy + Math.sin(p.angle) * p.power * age + 0.5 * GRAVITY * age * age;
+        const y =
+          oy + Math.sin(p.angle) * p.power * age + 0.5 * GRAVITY * age * age;
         const rot = p.spinOffset + t * p.spinSpeed * 2;
         paint(p, x, y, rot, 1 - 0.3 * prog, opacityMult * (1 - prog));
       }
@@ -330,7 +338,8 @@ export const confettiVfx: VfxDefinition = {
         const wobble =
           Math.sin(t * p.swaySpeed + p.swayOffset) * p.swayAmount * 0.3;
         const x = ox + Math.cos(cone) * p.power * age + wobble * age;
-        const y = oy + Math.sin(cone) * p.power * age + 0.5 * GRAVITY * age * age;
+        const y =
+          oy + Math.sin(cone) * p.power * age + 0.5 * GRAVITY * age * age;
         const fade = Math.min(1, (p.life - age) / (0.4 * p.life));
         const rot = p.spinOffset + t * p.spinSpeed * 2;
         paint(p, x, y, rot, 1, opacityMult * fade);
@@ -342,7 +351,9 @@ export const confettiVfx: VfxDefinition = {
       // Gentle rising pieces with a wide sway and slow tumble.
       for (const p of pieces) {
         const y =
-          h + 70 - ((p.y0 * span + clock * p.fallSpeed * 0.45 * speedMult) % span);
+          h +
+          70 -
+          ((p.y0 * span + clock * p.fallSpeed * 0.45 * speedMult) % span);
         const sway =
           Math.sin(clock * p.swaySpeed + p.swayOffset) *
           p.swayAmount *

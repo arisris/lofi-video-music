@@ -111,7 +111,11 @@ interface EditorState {
   duplicateClip: (id: string) => void;
   removeClip: (id: string) => void;
   /** Seal the bg lane (no gaps/overlaps); merges into the drag gesture. */
-  packBackground: (mergeKey?: string, tieId?: string, trimHeadId?: string) => void;
+  packBackground: (
+    mergeKey?: string,
+    tieId?: string,
+    trimHeadId?: string,
+  ) => void;
   select: (id: string | null) => void;
   /** Undo/redo history (pre-mutation snapshot; same-gesture drags merged). */
   past: HistoryNode[];
@@ -338,8 +342,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     get().pushHistory(mergeKey);
     set({ clips: packed });
   },
-  select: (id) =>
-    set({ selectedClipId: id, selectedTransitionClipId: null }),
+  select: (id) => set({ selectedClipId: id, selectedTransitionClipId: null }),
   past: [],
   future: [],
   pushHistory: (mergeKey) => {

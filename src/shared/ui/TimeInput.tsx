@@ -109,7 +109,9 @@ export const TimeInput = ({
         <div className="flex h-full w-5 flex-none items-center justify-center border-r border-neutral-800/50 bg-neutral-950/40 text-[9px] font-bold text-neutral-600 select-none">
           {label}
         </div>
-        <span className="px-1.5 font-mono text-[10px] text-neutral-600">--:--</span>
+        <span className="px-1.5 font-mono text-[10px] text-neutral-600">
+          --:--
+        </span>
       </div>
     );
 
@@ -131,7 +133,9 @@ export const TimeInput = ({
           // one goes in as a placeholder instead, so opening the field and
           // pressing Enter leaves it derived.
           defaultValue={value !== null ? formatLrcTime(value) : ""}
-          placeholder={derived === undefined ? "0:00.00" : formatLrcTime(derived)}
+          placeholder={
+            derived === undefined ? "0:00.00" : formatLrcTime(derived)
+          }
           className="h-full w-full min-w-0 flex-1 bg-neutral-900 px-1.5 font-mono text-[10px] text-white outline-none"
           onFocus={() => onActivate?.()}
           onBlur={(e) => close(e.currentTarget.value, true)}

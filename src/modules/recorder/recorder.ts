@@ -27,11 +27,22 @@ export const startRecording = (mode?: "timeline" | "clip") => {
     return;
   }
   let mimeType = "video/webm; codecs=vp9,opus";
-  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/webm";
-  if (typeof MediaRecorder !== "undefined" && !MediaRecorder.isTypeSupported(mimeType) && MediaRecorder.isTypeSupported("video/mp4")) {
+  if (
+    typeof MediaRecorder === "undefined" ||
+    !MediaRecorder.isTypeSupported(mimeType)
+  )
+    mimeType = "video/webm";
+  if (
+    typeof MediaRecorder !== "undefined" &&
+    !MediaRecorder.isTypeSupported(mimeType) &&
+    MediaRecorder.isTypeSupported("video/mp4")
+  ) {
     mimeType = "video/mp4";
   }
-  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported(mimeType)) {
+  if (
+    typeof MediaRecorder === "undefined" ||
+    !MediaRecorder.isTypeSupported(mimeType)
+  ) {
     alert("Recording is not supported in your browser.");
     return;
   }
@@ -75,7 +86,9 @@ export const startRecording = (mode?: "timeline" | "clip") => {
   };
   runtime.mediaRecorder.onstop = () => {
     if (runtime.recordedChunks.length === 0) return;
-    const blob = new Blob(runtime.recordedChunks, { type: mimeType.split(";")[0] });
+    const blob = new Blob(runtime.recordedChunks, {
+      type: mimeType.split(";")[0],
+    });
     const ext = mimeType.includes("mp4") ? "mp4" : "webm";
     const elapsed = Date.now() - useEditorStore.getState().recordStartTime;
     const finish = (finalBlob: Blob) => {
@@ -107,7 +120,9 @@ export const startRecording = (mode?: "timeline" | "clip") => {
   const tick = () => {
     const live = useEditorStore.getState();
     if (!live.isRecording) return;
-    live.setRecordingTime(formatTime(Math.floor((Date.now() - live.recordStartTime) / 1000)));
+    live.setRecordingTime(
+      formatTime(Math.floor((Date.now() - live.recordStartTime) / 1000)),
+    );
     setTimeout(tick, 1000);
   };
   tick();

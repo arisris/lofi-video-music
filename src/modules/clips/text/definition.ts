@@ -39,9 +39,28 @@ export const textClip: ClipDefinition = {
     { key: "content", label: "Content", kind: "text" },
     { key: "fontSize", label: "Size", kind: "slider", min: 12, max: 200 },
     { key: "textColor", label: "Color", kind: "color" },
-    { key: "textEffect", label: "Effect", kind: "select", options: ["none", "typewriter", "wavy"] },
-    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
-    { key: "offsetY", label: "Base Y offset", kind: "slider", min: -500, max: 500, step: 1 },
+    {
+      key: "textEffect",
+      label: "Effect",
+      kind: "select",
+      options: ["none", "typewriter", "wavy"],
+    },
+    {
+      key: "opacity",
+      label: "Opacity",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
+    {
+      key: "offsetY",
+      label: "Base Y offset",
+      kind: "slider",
+      min: -500,
+      max: 500,
+      step: 1,
+    },
   ],
   draw({ ctx, w, h, settings, localTime, duration }) {
     ctx.save();

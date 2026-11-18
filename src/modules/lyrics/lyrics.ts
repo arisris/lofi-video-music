@@ -88,7 +88,8 @@ export function parseLrc(raw: string): LyricsData {
       const value = meta[2].trim();
       if (key === "ti") title = value;
       else if (key === "ar") artist = value;
-      else if (key === "offset") offsetSeconds = (parseFloat(value) || 0) / 1000;
+      else if (key === "offset")
+        offsetSeconds = (parseFloat(value) || 0) / 1000;
       continue;
     }
 
@@ -105,10 +106,7 @@ export function parseLrc(raw: string): LyricsData {
 
     for (const stamp of stamps) {
       lines.push(
-        createLyricLine(
-          text,
-          Math.max(0, tagToSeconds(stamp) - offsetSeconds),
-        ),
+        createLyricLine(text, Math.max(0, tagToSeconds(stamp) - offsetSeconds)),
       );
     }
   }
@@ -225,9 +223,7 @@ export function parseLyricText(
   raw: string,
   options: SunoStripOptions = {},
 ): LyricsData {
-  return LOOKS_TIMED.test(raw)
-    ? parseLrc(raw)
-    : parsePlainLyrics(raw, options);
+  return LOOKS_TIMED.test(raw) ? parseLrc(raw) : parsePlainLyrics(raw, options);
 }
 
 /**

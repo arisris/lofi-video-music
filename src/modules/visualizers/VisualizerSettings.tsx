@@ -31,7 +31,9 @@ function ImageField({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between">
-        <span className="block text-[10px] text-neutral-500">{field.label}</span>
+        <span className="block text-[10px] text-neutral-500">
+          {field.label}
+        </span>
         {stored && (
           <button
             className="cursor-pointer text-[9px] text-neutral-500 hover:text-rose-400"
@@ -79,7 +81,15 @@ function ImageField({
   );
 }
 
-function Field({ field, value, onChange }: { field: FieldSchema; value: unknown; onChange: (v: unknown) => void }) {
+function Field({
+  field,
+  value,
+  onChange,
+}: {
+  field: FieldSchema;
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
   switch (field.kind) {
     case "slider":
       return (
@@ -101,14 +111,27 @@ function Field({ field, value, onChange }: { field: FieldSchema; value: unknown;
         />
       );
     case "toggle":
-      return <ToggleControl label={field.label} value={value === true} onChange={onChange} />;
+      return (
+        <ToggleControl
+          label={field.label}
+          value={value === true}
+          onChange={onChange}
+        />
+      );
     case "select":
       return (
         <label className="flex items-center justify-between gap-2 text-xs text-neutral-300">
           <span>{field.label}</span>
           <SelectControl
-            value={typeof value === "string" || typeof value === "number" ? String(value) : ""}
-            options={field.options.map((o) => ({ value: o.value, label: o.label }))}
+            value={
+              typeof value === "string" || typeof value === "number"
+                ? String(value)
+                : ""
+            }
+            options={field.options.map((o) => ({
+              value: o.value,
+              label: o.label,
+            }))}
             onChange={(v) => onChange(v)}
             size="sm"
             wrapperClassName="w-32"
@@ -116,19 +139,19 @@ function Field({ field, value, onChange }: { field: FieldSchema; value: unknown;
         </label>
       );
     case "image":
-      return (
-        <ImageField
-          field={field}
-          value={value}
-          onChange={onChange}
-        />
-      );
+      return <ImageField field={field} value={value} onChange={onChange} />;
     default:
       return null;
   }
 }
 
-export function VisualizerSettings({ clipId, variant }: { clipId: string; variant: string }) {
+export function VisualizerSettings({
+  clipId,
+  variant,
+}: {
+  clipId: string;
+  variant: string;
+}) {
   const { values, set } = useClipSettings(clipId);
   const defs = listVisualizerDefs();
   const def = defs.find((d) => d.id === variant) ?? defs[0];
@@ -150,7 +173,10 @@ export function VisualizerSettings({ clipId, variant }: { clipId: string; varian
 export function VisualizerVariantSelect({ clipId }: { clipId: string }) {
   const { values, set } = useClipSettings(clipId);
   const defs = listVisualizerDefs();
-  const current = typeof values.variant === "string" ? values.variant : (defs[0]?.id ?? "bars");
+  const current =
+    typeof values.variant === "string"
+      ? values.variant
+      : (defs[0]?.id ?? "bars");
   return (
     <label className="flex items-center justify-between gap-2 text-xs text-neutral-300">
       <span>Variant</span>
@@ -182,7 +208,10 @@ export function VisualizerVariantSelect({ clipId }: { clipId: string }) {
           ]);
           const store = useEditorStore.getState();
           const clip = store.clips.find((c) => c.id === clipId);
-          const prevSettings = (clip?.settings ?? values) as Record<string, unknown>;
+          const prevSettings = (clip?.settings ?? values) as Record<
+            string,
+            unknown
+          >;
           const cleaned: Record<string, unknown> = { variant: v };
           for (const [k, val] of Object.entries(prevSettings)) {
             if (keep.has(k)) cleaned[k] = val;

@@ -215,10 +215,9 @@ export const RecordSettingsModal = () => {
             <p>
               <strong className="text-amber-400">Performance warning: </strong>
               Recording happens in real time directly in the browser. Choosing
-              high quality (such as 1080p/1440p) and 60 FPS requires a
-              capable computer. Keep the browser tab active during
-              recording to avoid lag or broken audio-video
-              synchronization.
+              high quality (such as 1080p/1440p) and 60 FPS requires a capable
+              computer. Keep the browser tab active during recording to avoid
+              lag or broken audio-video synchronization.
             </p>
           </div>
         </div>

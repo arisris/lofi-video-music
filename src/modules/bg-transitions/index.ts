@@ -28,7 +28,12 @@ export const bgTransitionRegistry = createRegistry<BgTransitionDefinition>(
   (def) => def.type,
 );
 
-for (const def of [fadeTransition, zoomTransition, blurTransition, foldTransition]) {
+for (const def of [
+  fadeTransition,
+  zoomTransition,
+  blurTransition,
+  foldTransition,
+]) {
   bgTransitionRegistry.register(def);
 }
 
@@ -64,7 +69,10 @@ function successorOf(list: Prepared[], item: Prepared): Prepared | undefined {
 
 /** Visible now: the clip itself plus any head pre-roll. */
 function isActive(item: Prepared, time: number): boolean {
-  const pre = item.tr.type === "none" ? 0 : Math.min(item.tr.duration, item.clip.duration);
+  const pre =
+    item.tr.type === "none"
+      ? 0
+      : Math.min(item.tr.duration, item.clip.duration);
   return (
     time >= item.clip.start - pre &&
     time <= item.clip.start + item.clip.duration
@@ -128,7 +136,9 @@ export function renderBackgroundLayers(
     let outgoingScale = 1;
     let outgoingBlur = 0;
     if (succPhase !== null && succ) {
-      const response = bgTransitionRegistry.get(succ.tr.type)?.outgoing?.(succPhase);
+      const response = bgTransitionRegistry
+        .get(succ.tr.type)
+        ?.outgoing?.(succPhase);
       if (response?.scale) outgoingScale = response.scale;
       if (response?.blur) outgoingBlur = response.blur;
     }
@@ -157,7 +167,8 @@ export function renderBackgroundLayers(
         paint(clip, effectiveBase);
       }
     } else {
-      if (outgoingBlur > 0.05) ctx.filter = `blur(${outgoingBlur.toFixed(1)}px)`;
+      if (outgoingBlur > 0.05)
+        ctx.filter = `blur(${outgoingBlur.toFixed(1)}px)`;
       try {
         paint(clip, effectiveBase);
       } finally {

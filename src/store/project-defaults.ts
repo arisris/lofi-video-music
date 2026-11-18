@@ -52,7 +52,8 @@ export function resolveTrackId(
 /** Insert missing dedicated lanes (old bundles predate the bg lane). */
 export function ensureDedicatedTracks(
   tracks: TimelineTrack[],
-): TimelineTrack[] {  const has = (id: string) => tracks.some((t) => t.id === id);
+): TimelineTrack[] {
+  const has = (id: string) => tracks.some((t) => t.id === id);
   const out = tracks.map((t) => ({ ...t }));
   if (!has(BG_TRACK_ID)) out.unshift({ id: BG_TRACK_ID, name: "Background" });
   if (!has(MUSIC_TRACK_ID)) {

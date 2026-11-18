@@ -209,7 +209,14 @@ export const VinylVisualizer: VisualizerDef = {
       max: 1,
       step: 0.01,
     },
-    { kind: "slider", key: "glow", label: "Edge glow", min: 0, max: 2, step: 0.05 },
+    {
+      kind: "slider",
+      key: "glow",
+      label: "Edge glow",
+      min: 0,
+      max: 2,
+      step: 0.05,
+    },
     {
       kind: "slider",
       key: "beat",

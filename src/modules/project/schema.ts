@@ -80,7 +80,8 @@ export function isProjectV1(v: unknown): v is ProjectV1 {
   if (typeof p.meta !== "object" || !p.meta) return false;
   if (typeof p.output !== "object" || !p.output) return false;
   const routes = p.routes as Record<string, unknown> | undefined;
-  if (typeof routes?.video !== "object" || typeof routes?.thumb !== "object") return false;
+  if (typeof routes?.video !== "object" || typeof routes?.thumb !== "object")
+    return false;
   if (!Array.isArray(p.mediaPool)) return false;
   const validRoute = (r: unknown): boolean => {
     if (!r || typeof r !== "object") return false;
@@ -106,7 +107,12 @@ export function isProjectV1(v: unknown): v is ProjectV1 {
     if (!m || typeof m !== "object") return false;
     const o = m as Record<string, unknown>;
     const src = o.source as Record<string, unknown> | undefined;
-    return typeof o.id === "string" && !!o.id && !!src && typeof src.value === "string";
+    return (
+      typeof o.id === "string" &&
+      !!o.id &&
+      !!src &&
+      typeof src.value === "string"
+    );
   });
   return validRoute(routes.video) && validRoute(routes.thumb) && validPool;
 }

@@ -4,7 +4,10 @@ import { DEFAULT_TRANSFORM } from "../../../shared/lib/canvas-transform";
 import { drawTextItem, getTextBoundingBox } from "../text/draw-text";
 
 /** Active music clip name at a global time (pure: no store reads). */
-export function activeMusicNameIn(clips: TimelineClip[], globalTime: number): string | null {
+export function activeMusicNameIn(
+  clips: TimelineClip[],
+  globalTime: number,
+): string | null {
   const active = clips.find(
     (c) =>
       c.type === "music" &&
@@ -24,7 +27,8 @@ export function resolveTitleText(
   globalTime: number,
 ): string | null {
   const auto = (settings.autoTrackName as boolean | undefined) !== false;
-  if (!auto) return typeof settings.content === "string" ? settings.content : "";
+  if (!auto)
+    return typeof settings.content === "string" ? settings.content : "";
   return activeMusicNameIn(clips, globalTime);
 }
 
@@ -77,8 +81,22 @@ export const titleClip: ClipDefinition = {
     { key: "content", label: "Title", kind: "text" },
     { key: "fontSize", label: "Size", kind: "slider", min: 24, max: 220 },
     { key: "textColor", label: "Color", kind: "color" },
-    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
-    { key: "offsetY", label: "Base Y offset", kind: "slider", min: -500, max: 500, step: 1 },
+    {
+      key: "opacity",
+      label: "Opacity",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
+    {
+      key: "offsetY",
+      label: "Base Y offset",
+      kind: "slider",
+      min: -500,
+      max: 500,
+      step: 1,
+    },
   ],
   draw({ ctx, w, h, settings, localTime, duration }) {
     const text = typeof settings.content === "string" ? settings.content : "";

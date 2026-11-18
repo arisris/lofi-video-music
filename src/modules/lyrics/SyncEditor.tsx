@@ -424,7 +424,10 @@ export function SyncEditor({ clipId }: { clipId: string }) {
   };
 
   /** The line the global button would stamp next, following the marker. */
-  const workLine = useMemo(() => findWorkLine(lines, focusId), [lines, focusId]);
+  const workLine = useMemo(
+    () => findWorkLine(lines, focusId),
+    [lines, focusId],
+  );
 
   /**
    * The global button: the same two taps, walking the list from the marker.

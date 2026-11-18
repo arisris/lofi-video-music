@@ -27,7 +27,10 @@ const GRAPH_PROPS: Array<{ id: GraphProp; label: string; hint: string }> = [
 ];
 
 /** Vertical band + behavior per graphed property (auto-fits the data). */
-function propBand(prop: GraphProp, vals: number[]): {
+function propBand(
+  prop: GraphProp,
+  vals: number[],
+): {
   lo: number;
   hi: number;
   min: number;
@@ -194,7 +197,10 @@ export function MotionKeyframesCard({ clipId }: { clipId: string }) {
   const yOf = (v: number) =>
     band.hi > band.lo ? (1 - (v - band.lo) / (band.hi - band.lo)) * 100 : 50;
   const valOf = (fracY: number) =>
-    Math.min(band.max, Math.max(band.min, band.hi - fracY * (band.hi - band.lo)));
+    Math.min(
+      band.max,
+      Math.max(band.min, band.hi - fracY * (band.hi - band.lo)),
+    );
 
   const write = (next: MotionKeyframe[], preset: string = "custom") => {
     set(
@@ -285,7 +291,8 @@ export function MotionKeyframesCard({ clipId }: { clipId: string }) {
         dragRef.current = null;
         window.removeEventListener("keydown", cancel, true);
       };
-      drag.cancelEsc = () => window.removeEventListener("keydown", cancel, true);
+      drag.cancelEsc = () =>
+        window.removeEventListener("keydown", cancel, true);
       window.addEventListener("keydown", cancel, true);
     }
     const fracX = (e.clientX - box.left) / box.width;
@@ -293,13 +300,7 @@ export function MotionKeyframesCard({ clipId }: { clipId: string }) {
     const prev = keyframes[index - 1]?.t ?? 0;
     const next = keyframes[index + 1]?.t ?? Math.max(0, duration);
     // Horizontal = retime (never crosses neighbours), vertical = graph prop.
-    patch(
-      index,
-      "t",
-      round2(
-        Math.min(Math.max(fracX * duration, prev), next),
-      ),
-    );
+    patch(index, "t", round2(Math.min(Math.max(fracX * duration, prev), next)));
     patch(index, graphProp, round2(valOf(Math.min(Math.max(fracY, 0), 1))));
   };
 
@@ -416,12 +417,13 @@ export function MotionKeyframesCard({ clipId }: { clipId: string }) {
         aria-label={`Motion graph: horizontal is time, vertical is ${propLabel}`}
         aria-valuemin={0}
         aria-valuemax={round2(duration)}
-        aria-valuenow={round2(Math.min(Math.max(0, local), Math.max(0, duration)))}
+        aria-valuenow={round2(
+          Math.min(Math.max(0, local), Math.max(0, duration)),
+        )}
         className="relative mb-3 h-24 cursor-pointer overflow-hidden rounded border border-neutral-800 bg-neutral-950/60 outline-none focus-visible:outline-2 focus-visible:outline-blue-500"
         onClick={(e) => {
           const box = e.currentTarget.getBoundingClientRect();
-          const frac =
-            box.width > 0 ? (e.clientX - box.left) / box.width : 0;
+          const frac = box.width > 0 ? (e.clientX - box.left) / box.width : 0;
           goTo(round2(Math.min(Math.max(0, frac), 1) * duration));
         }}
         onKeyDown={(e) => {

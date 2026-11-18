@@ -26,7 +26,12 @@ const MAX_HEIGHT = 600;
 const MAX_VIEWPORT_SHARE_H = 0.5;
 
 /** Draggable handle that resizes side panels (horizontal) or timeline (vertical). */
-export const Resizer = ({ side, onResize, order = "", onDragStateChange }: ResizerProps) => {
+export const Resizer = ({
+  side,
+  onResize,
+  order = "",
+  onDragStateChange,
+}: ResizerProps) => {
   const [isResizing, setIsResizing] = useState(false);
   const drag = useRef<{
     startX: number;
@@ -69,19 +74,33 @@ export const Resizer = ({ side, onResize, order = "", onDragStateChange }: Resiz
       const startSize = state.timelineHeight;
       const maxSize = Math.max(
         MIN_HEIGHT + 40,
-        Math.min(MAX_HEIGHT, Math.floor(window.innerHeight * MAX_VIEWPORT_SHARE_H)),
+        Math.min(
+          MAX_HEIGHT,
+          Math.floor(window.innerHeight * MAX_VIEWPORT_SHARE_H),
+        ),
       );
-      drag.current = { startX: e.clientX, startY: e.clientY, startSize, maxSize };
+      drag.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startSize,
+        maxSize,
+      };
       setIsResizing(true);
       onDragStateChange?.(true);
       document.body.style.cursor = "row-resize";
     } else {
-      const startSize = side === "left" ? state.mediaPoolWidth : state.inspectorWidth;
+      const startSize =
+        side === "left" ? state.mediaPoolWidth : state.inspectorWidth;
       const maxSize = Math.max(
         MIN_WIDTH + 40,
         Math.min(MAX_WIDTH, Math.floor(window.innerWidth * MAX_VIEWPORT_SHARE)),
       );
-      drag.current = { startX: e.clientX, startY: e.clientY, startSize, maxSize };
+      drag.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startSize,
+        maxSize,
+      };
       setIsResizing(true);
       onDragStateChange?.(true);
       document.body.style.cursor = "col-resize";

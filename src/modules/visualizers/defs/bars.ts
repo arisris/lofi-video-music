@@ -7,7 +7,13 @@
 // either mode.
 
 import { AUDIO_LIVE_V, AUDIO_PEAK_V, type VisualizerDef } from "../_core/types";
-import { HSL_GLSL, glowField, rainbowField, mainColorField, opacityField } from "../_core/shader";
+import {
+  HSL_GLSL,
+  glowField,
+  rainbowField,
+  mainColorField,
+  opacityField,
+} from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;
@@ -330,7 +336,14 @@ export const BarsVisualizer: VisualizerDef = {
       step: 0.01,
     },
     // Blocks only: the height of one LED cell, in pixels.
-    { kind: "slider", key: "cell", label: "Cell Size", min: 2, max: 12, step: 1 },
+    {
+      kind: "slider",
+      key: "cell",
+      label: "Cell Size",
+      min: 2,
+      max: 12,
+      step: 1,
+    },
     {
       kind: "slider",
       key: "reflection",

@@ -14,13 +14,15 @@ export const getMediaUrls = (clip: TimelineClip): string[] => {
   pushEl(s.bgElement);
   pushEl(s.mediaElement);
   if (Array.isArray(s.bgElements)) for (const v of s.bgElements) pushEl(v);
-  if (Array.isArray(s.mediaElements)) for (const v of s.mediaElements) pushEl(v);
+  if (Array.isArray(s.mediaElements))
+    for (const v of s.mediaElements) pushEl(v);
   if (typeof s.audioUrl === "string" && s.audioUrl) urls.push(s.audioUrl);
   return urls;
 };
 
 export const cloneMediaElement = <T>(el: T): T => {
-  if (!el || typeof (el as { cloneNode?: unknown }).cloneNode !== "function") return el;
+  if (!el || typeof (el as { cloneNode?: unknown }).cloneNode !== "function")
+    return el;
   const node = el as unknown as Element & {
     tagName: string;
     src?: string;
@@ -50,9 +52,12 @@ export const cloneVids = <T>(vids: T): T => {
 };
 
 /** Deep-copy settings; <video>/<img> elements are cloned so duplicates stay independent. */
-export function cloneClipSettings(settings: Record<string, unknown>): Record<string, unknown> {
+export function cloneClipSettings(
+  settings: Record<string, unknown>,
+): Record<string, unknown> {
   const copy: Record<string, unknown> = { ...(settings as object) };
-  if (copy.mediaElement) copy.mediaElement = cloneMediaElement(copy.mediaElement);
+  if (copy.mediaElement)
+    copy.mediaElement = cloneMediaElement(copy.mediaElement);
   if (copy.mediaElements) copy.mediaElements = cloneVids(copy.mediaElements);
   if (copy.bgElement) copy.bgElement = cloneMediaElement(copy.bgElement);
   if (copy.bgElements) copy.bgElements = cloneVids(copy.bgElements);
@@ -73,7 +78,9 @@ export const revokeClipUrls = (clip: TimelineClip, state: RevokeState) => {
     // Still referenced by the library — never revoke.
     if (poolUrls.has(url)) continue;
     const inUse =
-      state.clips.some((c) => c.id !== clip.id && getMediaUrls(c).includes(url)) ||
+      state.clips.some(
+        (c) => c.id !== clip.id && getMediaUrls(c).includes(url),
+      ) ||
       (state.videoClips ?? []).some((c) => getMediaUrls(c).includes(url)) ||
       (state.thumbClips ?? []).some((c) => getMediaUrls(c).includes(url));
     if (inUse) continue;

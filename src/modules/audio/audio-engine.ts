@@ -17,8 +17,10 @@ function audioSettingsOf(clip: { settings: Record<string, unknown> }) {
 
 export function initAudioEngine() {
   if (runtime.audioReady && runtime.audioCtx) return;
-  const Ctor = window.AudioContext ??
-    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const Ctor =
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext: typeof AudioContext })
+      .webkitAudioContext;
   const audioCtx = new Ctor();
   const audioEl = ensureAudioElement();
   const analyser = audioCtx.createAnalyser();
@@ -36,15 +38,24 @@ export function initAudioEngine() {
   eqHigh.type = "highshelf";
   eqHigh.frequency.value = 4000;
   const gainNode = audioCtx.createGain();
-  const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+  const panner = audioCtx.createStereoPanner
+    ? audioCtx.createStereoPanner()
+    : null;
   const dest = audioCtx.createMediaStreamDestination();
 
   let last: AudioNode = source;
-  last.connect(eqLow); last = eqLow;
-  last.connect(eqMid); last = eqMid;
-  last.connect(eqHigh); last = eqHigh;
-  last.connect(gainNode); last = gainNode;
-  if (panner) { last.connect(panner); last = panner; }
+  last.connect(eqLow);
+  last = eqLow;
+  last.connect(eqMid);
+  last = eqMid;
+  last.connect(eqHigh);
+  last = eqHigh;
+  last.connect(gainNode);
+  last = gainNode;
+  if (panner) {
+    last.connect(panner);
+    last = panner;
+  }
   last.connect(analyser);
   analyser.connect(audioCtx.destination);
   analyser.connect(dest);
@@ -62,7 +73,9 @@ export function initAudioEngine() {
   runtime.audioReady = true;
 }
 
-export function applyAudioSettings(clip: { settings: Record<string, unknown> }) {
+export function applyAudioSettings(clip: {
+  settings: Record<string, unknown>;
+}) {
   const audioEl = ensureAudioElement();
   const s = audioSettingsOf(clip);
   if (!runtime.audioReady || !runtime.audioCtx) {
@@ -112,7 +125,10 @@ const toAbsoluteUrl = (url: string): string => {
 let pendingSeek: { el: HTMLAudioElement; handler: () => void } | null = null;
 
 function setPendingSeek(el: HTMLAudioElement, handler: () => void) {
-  if (pendingSeek && (pendingSeek.el !== el || pendingSeek.handler !== handler)) {
+  if (
+    pendingSeek &&
+    (pendingSeek.el !== el || pendingSeek.handler !== handler)
+  ) {
     try {
       pendingSeek.el.removeEventListener("loadedmetadata", pendingSeek.handler);
     } catch {
@@ -142,13 +158,19 @@ export function seekTo(time: number) {
 
   const audioEl = runtime.audioEl ?? ensureAudioElement();
   const clip = activeMusicClipIn(list, next);
-  if (!clip || typeof clip.settings.audioUrl !== "string" || !clip.settings.audioUrl) {
+  if (
+    !clip ||
+    typeof clip.settings.audioUrl !== "string" ||
+    !clip.settings.audioUrl
+  ) {
     if (!audioEl.paused) audioEl.pause();
     return;
   }
   const url = clip.settings.audioUrl as string;
   const startOffset =
-    typeof clip.settings.startOffset === "number" ? clip.settings.startOffset : 0;
+    typeof clip.settings.startOffset === "number"
+      ? clip.settings.startOffset
+      : 0;
   const playhead = next - clip.start + startOffset;
   const audioDur =
     typeof clip.settings.audioDuration === "number"
@@ -163,7 +185,9 @@ export function seekTo(time: number) {
       if (playhead < audioDur) {
         try {
           audioEl.currentTime = Math.max(0, playhead);
-        } catch { /* noop */ }
+        } catch {
+          /* noop */
+        }
         applyAudioSettings(clip);
         if (useEditorStore.getState().playing) {
           void audioEl.play().catch(() => {});
@@ -178,7 +202,9 @@ export function seekTo(time: number) {
     if (playhead < audioDur) {
       try {
         audioEl.currentTime = Math.max(0, playhead);
-      } catch { /* noop */ }
+      } catch {
+        /* noop */
+      }
       applyAudioSettings(clip);
       if (useEditorStore.getState().playing && audioEl.paused) {
         void audioEl.play().catch(() => {});
@@ -196,11 +222,24 @@ export function playAudio() {
   const st = useEditorStore.getState();
   st.setPlaying(true);
   const clip = activeMusicClipIn(clipsForAudio(), st.currentTime);
-  if (!clip) { audioEl.pause(); return; }
-  const url = typeof clip.settings.audioUrl === "string" ? clip.settings.audioUrl : "";
-  const startOffset = typeof clip.settings.startOffset === "number" ? clip.settings.startOffset : 0;
-  if (!url) { audioEl.pause(); return; }
-  const audioDur = typeof clip.settings.audioDuration === "number" ? clip.settings.audioDuration : clip.duration;
+  if (!clip) {
+    audioEl.pause();
+    return;
+  }
+  const url =
+    typeof clip.settings.audioUrl === "string" ? clip.settings.audioUrl : "";
+  const startOffset =
+    typeof clip.settings.startOffset === "number"
+      ? clip.settings.startOffset
+      : 0;
+  if (!url) {
+    audioEl.pause();
+    return;
+  }
+  const audioDur =
+    typeof clip.settings.audioDuration === "number"
+      ? clip.settings.audioDuration
+      : clip.duration;
   const playAt = (offset: number) => {
     if (offset >= audioDur) {
       audioEl.pause();
@@ -212,7 +251,9 @@ export function playAudio() {
         clearPendingSeek(audioEl, onLoaded);
         try {
           audioEl.currentTime = Math.max(0, offset);
-        } catch { /* noop */ }
+        } catch {
+          /* noop */
+        }
         applyAudioSettings(clip);
         if (useEditorStore.getState().playing) {
           void audioEl.play().catch(() => {});
@@ -223,7 +264,11 @@ export function playAudio() {
       if (audioEl.readyState >= 1) onLoaded();
       return;
     }
-    try { audioEl.currentTime = Math.max(0, offset); } catch { /* noop */ }
+    try {
+      audioEl.currentTime = Math.max(0, offset);
+    } catch {
+      /* noop */
+    }
     void audioEl.play().catch(() => {});
   };
   if (toAbsoluteUrl(audioEl.src) !== toAbsoluteUrl(url)) {
@@ -250,7 +295,11 @@ export function pauseAudio() {
 export function skipToNextTrack() {
   const { clips, currentTime, playing } = useEditorStore.getState();
   const musics = clips
-    .filter((c) => c.type === "music" && (c.settings.enabled as boolean | undefined) !== false)
+    .filter(
+      (c) =>
+        c.type === "music" &&
+        (c.settings.enabled as boolean | undefined) !== false,
+    )
     .sort((a, b) => a.start - b.start);
   if (musics.length === 0) return;
   const next = musics.find((c) => c.start > currentTime + 0.1) ?? musics[0];
@@ -265,13 +314,21 @@ export function skipToNextTrack() {
 export function skipToPrevTrack() {
   const { clips, currentTime, playing } = useEditorStore.getState();
   const musics = clips
-    .filter((c) => c.type === "music" && (c.settings.enabled as boolean | undefined) !== false)
+    .filter(
+      (c) =>
+        c.type === "music" &&
+        (c.settings.enabled as boolean | undefined) !== false,
+    )
     .sort((a, b) => a.start - b.start);
   if (musics.length === 0) return;
-  const idx = musics.findIndex((c) => currentTime >= c.start && currentTime <= c.start + c.duration);
+  const idx = musics.findIndex(
+    (c) => currentTime >= c.start && currentTime <= c.start + c.duration,
+  );
   let target = musics[0];
   if (idx === -1) {
-    target = [...musics].reverse().find((c) => c.start + c.duration < currentTime) ?? musics[0];
+    target =
+      [...musics].reverse().find((c) => c.start + c.duration < currentTime) ??
+      musics[0];
   } else if (currentTime - musics[idx].start > 2) {
     target = musics[idx];
   } else if (idx > 0) {
@@ -288,10 +345,14 @@ export function skipToPrevTrack() {
 }
 
 /** 0..1 level for the visualizer. */
-export function getAudioLevel(kind: "bass" | "mid" | "treble" | "volume" = "volume"): number {
+export function getAudioLevel(
+  kind: "bass" | "mid" | "treble" | "volume" = "volume",
+): number {
   if (!runtime.analyser || !runtime.dataArray) return 0;
   if (!useEditorStore.getState().playing) return 0;
-  runtime.analyser.getByteFrequencyData(runtime.dataArray as Uint8Array<ArrayBuffer>);
+  runtime.analyser.getByteFrequencyData(
+    runtime.dataArray as Uint8Array<ArrayBuffer>,
+  );
   const data = runtime.dataArray;
   const len = data.length;
   const avg = (a: number, b: number) => {
@@ -300,9 +361,13 @@ export function getAudioLevel(kind: "bass" | "mid" | "treble" | "volume" = "volu
     return sum / Math.max(1, b - a) / 255;
   };
   switch (kind) {
-    case "bass": return avg(0, Math.floor(len * 0.1) || 1);
-    case "mid": return avg(Math.floor(len * 0.1), Math.floor(len * 0.5));
-    case "treble": return avg(Math.floor(len * 0.5), len);
-    default: return avg(0, len);
+    case "bass":
+      return avg(0, Math.floor(len * 0.1) || 1);
+    case "mid":
+      return avg(Math.floor(len * 0.1), Math.floor(len * 0.5));
+    case "treble":
+      return avg(Math.floor(len * 0.5), len);
+    default:
+      return avg(0, len);
   }
 }

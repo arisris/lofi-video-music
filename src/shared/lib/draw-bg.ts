@@ -1,7 +1,4 @@
-import {
-  resolveMotionAt,
-  sanitizeMotionKeyframes,
-} from "./motion-keyframes";
+import { resolveMotionAt, sanitizeMotionKeyframes } from "./motion-keyframes";
 import { getAudioLevel } from "../../modules/audio/audio-engine";
 
 export type BgMediaElement =
@@ -48,8 +45,7 @@ export const drawBackground = (
   // returns 0 when paused/scrubbing/headless, so the frame stays static
   // there. Scale-only (max +8%) so edges stay covered.
   const pulseAmt =
-    typeof (trackObj as Record<string, unknown> | null)?.audioPulse ===
-    "number"
+    typeof (trackObj as Record<string, unknown> | null)?.audioPulse === "number"
       ? ((trackObj as Record<string, unknown>).audioPulse as number)
       : 0;
   if (pulseAmt > 0) {

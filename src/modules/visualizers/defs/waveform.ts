@@ -9,7 +9,13 @@
 // where the waveform climbs, which is what read as stiff and pixelated.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
-import { HSL_GLSL, glowField, rainbowField, mainColorField, opacityField } from "../_core/shader";
+import {
+  HSL_GLSL,
+  glowField,
+  rainbowField,
+  mainColorField,
+  opacityField,
+} from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;

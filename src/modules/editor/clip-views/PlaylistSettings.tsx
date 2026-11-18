@@ -3,7 +3,12 @@
 import { useClipSettings } from "../../../shared/hooks/useClipSettings";
 import { InspectorRoot } from "../../../shared/ui/InspectorRoot";
 import { RangeInput } from "../../../shared/ui/RangeInput";
-import { BackgroundBoxSettings, StrokeShadowSettings, TransformSettings, TypographySettings } from "./TextSettings";
+import {
+  BackgroundBoxSettings,
+  StrokeShadowSettings,
+  TransformSettings,
+  TypographySettings,
+} from "./TextSettings";
 
 export function PlaylistSettingsView({ clipId }: { clipId: string }) {
   const { values, set } = useClipSettings(clipId);
@@ -14,7 +19,9 @@ export function PlaylistSettingsView({ clipId }: { clipId: string }) {
     <InspectorRoot>
       <div className="mb-4 grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-2 block text-xs text-neutral-400">Max Tracks</label>
+          <label className="mb-2 block text-xs text-neutral-400">
+            Max Tracks
+          </label>
           <RangeInput
             value={Math.min(15, Math.max(3, maxItems))}
             min={3}
@@ -35,7 +42,9 @@ export function PlaylistSettingsView({ clipId }: { clipId: string }) {
             onClick={() => set("truncateText", !truncate)}
           >
             <span className="text-[10px] font-bold uppercase">Truncate</span>
-            <div className={`h-3 w-3 rounded-full transition-all ${truncate ? "bg-blue-400" : "bg-neutral-600"}`} />
+            <div
+              className={`h-3 w-3 rounded-full transition-all ${truncate ? "bg-blue-400" : "bg-neutral-600"}`}
+            />
           </button>
         </div>
       </div>

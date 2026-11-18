@@ -15,7 +15,8 @@ export function GlvizSettingsView({ clipId }: { clipId: string }) {
   const { values } = useClipSettings(clipId);
   const updateClipSettings = useEditorStore((s) => s.updateClipSettings);
   const defs = listVisualizerDefs();
-  const current = typeof values.variant === "string" ? values.variant : (defs[0]?.id ?? "");
+  const current =
+    typeof values.variant === "string" ? values.variant : (defs[0]?.id ?? "");
 
   const selectStyle = (id: string) => {
     const next = getVisualizerDef(id);

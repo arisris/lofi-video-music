@@ -7,7 +7,9 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={`py-8 text-center text-xs text-neutral-500 italic ${className}`}>
+    <div
+      className={`py-8 text-center text-xs text-neutral-500 italic ${className}`}
+    >
       {children}
     </div>
   );

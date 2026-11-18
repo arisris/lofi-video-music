@@ -9,7 +9,14 @@
 // the size down leaves room for the shadow without touching the spectrum.
 
 import { AUDIO_LIVE_V, type VisualizerDef } from "../_core/types";
-import { HSL_GLSL, TAU_GLSL, glowField, rainbowField, mainColorField, opacityField } from "../_core/shader";
+import {
+  HSL_GLSL,
+  TAU_GLSL,
+  glowField,
+  rainbowField,
+  mainColorField,
+  opacityField,
+} from "../_core/shader";
 
 const FRAGMENT = `
 precision mediump float;

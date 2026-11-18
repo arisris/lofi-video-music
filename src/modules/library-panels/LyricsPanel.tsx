@@ -29,7 +29,12 @@ const fileBaseName = (clip: { settings?: Record<string, unknown> }) => {
   const raw = String(
     clip.settings?.name || clip.settings?.sourceName || "lyrics",
   );
-  return raw.replace(/\.[^.]+$/, "").replace(/[^\w\-. ]+/g, "").trim() || "lyrics";
+  return (
+    raw
+      .replace(/\.[^.]+$/, "")
+      .replace(/[^\w\-. ]+/g, "")
+      .trim() || "lyrics"
+  );
 };
 
 export const LyricsPanel = () => {
@@ -44,7 +49,10 @@ export const LyricsPanel = () => {
 
   // Production model: lyrics attach to a music clip (settings.lines),
   // one global layer follows the currently playing music. No lyrics layer.
-  const targets = useMemo(() => clips.filter((c) => c.type === "music"), [clips]);
+  const targets = useMemo(
+    () => clips.filter((c) => c.type === "music"),
+    [clips],
+  );
   const target = targets.find((c) => c.id === targetId) ?? targets[0] ?? null;
   // The selected target may be deleted or replaced by an import — fall back
   // instead of silently pointing at a different clip.
@@ -52,7 +60,10 @@ export const LyricsPanel = () => {
     if (targetId && !targets.some((c) => c.id === targetId)) setTargetId(null);
   }, [targets, targetId]);
   const lines = useMemo(
-    () => (Array.isArray(target?.settings.lines) ? (target.settings.lines as LyricLine[]) : []),
+    () =>
+      Array.isArray(target?.settings.lines)
+        ? (target.settings.lines as LyricLine[])
+        : [],
     [target],
   );
   const sourceName =
@@ -66,9 +77,12 @@ export const LyricsPanel = () => {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-neutral-900/50 p-8 text-center">
         <i className="icon-[ri--mic-line] h-8 w-8 text-neutral-700" />
-        <p className="text-xs font-medium text-neutral-500">Add a track to the timeline first</p>
+        <p className="text-xs font-medium text-neutral-500">
+          Add a track to the timeline first
+        </p>
         <p className="text-[10px] leading-relaxed text-neutral-600">
-          Add a music track first, then sync its words right here — lyrics render on the canvas while the track plays.
+          Add a music track first, then sync its words right here — lyrics
+          render on the canvas while the track plays.
         </p>
       </div>
     );
@@ -78,9 +92,7 @@ export const LyricsPanel = () => {
     <div className="flex h-full w-full flex-col overflow-hidden bg-neutral-900/50 p-4">
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <div className="flex-none space-y-1.5">
-          <SectionTitle className="">
-            Lyrics For
-            </SectionTitle>
+          <SectionTitle className="">Lyrics For</SectionTitle>
           <div className="flex gap-2">
             <SelectControl
               value={target?.id ?? ""}
@@ -96,10 +108,16 @@ export const LyricsPanel = () => {
             <Button
               variant="icon"
               size="sm"
-              title={stack ? "Display mode: Stack — click for Single line" : "Display mode: Single line — click for Stack"}
+              title={
+                stack
+                  ? "Display mode: Stack — click for Single line"
+                  : "Display mode: Single line — click for Stack"
+              }
               onClick={() => updateLyricsSettings({ karaokeMode: !stack })}
             >
-              <i className={`${stack ? "icon-[ri--stack-line]" : "icon-[ri--align-center]"} h-4 w-4 ${stack ? "text-blue-400" : ""}`} />
+              <i
+                className={`${stack ? "icon-[ri--stack-line]" : "icon-[ri--align-center]"} h-4 w-4 ${stack ? "text-blue-400" : ""}`}
+              />
             </Button>
             <Button
               variant="icon"
@@ -113,7 +131,11 @@ export const LyricsPanel = () => {
         </div>
 
         <SegmentedTabs
-          options={INPUT_TABS.map((t) => ({ value: t.id, label: t.label, icon: t.icon }))}
+          options={INPUT_TABS.map((t) => ({
+            value: t.id,
+            label: t.label,
+            icon: t.icon,
+          }))}
           value={inputTab}
           onChange={setInputTab}
         />
@@ -169,7 +191,9 @@ const RawTab = ({
    * lyrics it was never written against.
    */
   const signature = lines.map((l) => l.id ?? l.text).join("|");
-  const [draft, setDraft] = useState<{ sig: string; text: string } | null>(null);
+  const [draft, setDraft] = useState<{ sig: string; text: string } | null>(
+    null,
+  );
   const draftIsLive = draft !== null && draft.sig === signature;
   const rawText = draftIsLive && draft ? draft.text : serializeLyricText(lines);
   /**
@@ -201,9 +225,7 @@ const RawTab = ({
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between gap-2">
-        <SectionTitle className="">
-          Raw Text
-            </SectionTitle>
+        <SectionTitle className="">Raw Text</SectionTitle>
         {draftIsLive && (
           <button
             onClick={() => setDraft(null)}
@@ -322,11 +344,9 @@ const LrcTab = ({
         const keepParenTags =
           useEditorStore.getState().clips.find((c) => c.id === targetId)
             ?.settings?.keepParenTags === true;
-        const parsed = parseLyricsFile(
-          file.name,
-          String(reader.result ?? ""),
-          { keepParenTags },
-        );
+        const parsed = parseLyricsFile(file.name, String(reader.result ?? ""), {
+          keepParenTags,
+        });
         if (parsed.lines.length === 0) return;
         updateClipSettings(targetId, {
           lines: parsed.lines,
@@ -388,8 +408,8 @@ const LrcTab = ({
       <p className="text-[9px] leading-relaxed text-neutral-500">
         Reads <span className="font-mono">.lrc</span> with{" "}
         <span className="font-mono">[00:12.34]</span> timestamps, and plain{" "}
-        <span className="font-mono">.txt</span> — a plain file arrives unstamped,
-        ready for the Sync tab. Export writes an{" "}
+        <span className="font-mono">.txt</span> — a plain file arrives
+        unstamped, ready for the Sync tab. Export writes an{" "}
         <span className="font-mono">.lrc</span>, so a gap you carved into a line
         comes back out as an empty marker.
       </p>

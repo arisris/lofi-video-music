@@ -109,7 +109,14 @@ export const KaleidoscopeVisualizer: VisualizerDef = {
       step: 1,
     },
     { kind: "slider", key: "spin", label: "Spin", min: 0, max: 2, step: 0.01 },
-    { kind: "slider", key: "twirl", label: "Twirl", min: 0, max: 3, step: 0.05 },
+    {
+      kind: "slider",
+      key: "twirl",
+      label: "Twirl",
+      min: 0,
+      max: 3,
+      step: 0.05,
+    },
     {
       kind: "slider",
       key: "zoom",

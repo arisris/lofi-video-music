@@ -177,7 +177,8 @@ export function renderProjectFrame(
   // currently playing, drawn with the global lyricsSettings style. The global
   // transform applies around the layout bbox (mirrors old drawWithTransform).
   {
-    const gs = opts.lyricsSettings ?? useEditorStore.getState().lyricsSettings ?? {};
+    const gs =
+      opts.lyricsSettings ?? useEditorStore.getState().lyricsSettings ?? {};
     if ((gs.enabled as boolean | undefined) !== false) {
       const track = activeMusicLyrics(clips, time, opts.route ?? "/");
       if (track) {
@@ -186,7 +187,13 @@ export function renderProjectFrame(
           ...gs,
           lines: track.lines,
         };
-        const bbox = lyricsClip.getItemBoundingBox?.(ctx, w, h, merged, track.localTime);
+        const bbox = lyricsClip.getItemBoundingBox?.(
+          ctx,
+          w,
+          h,
+          merged,
+          track.localTime,
+        );
         const drawOne = () =>
           lyricsClip.draw({
             ctx,

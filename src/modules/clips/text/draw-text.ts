@@ -16,10 +16,13 @@ export function getTextBoundingBox(
   item: Record<string, unknown>,
   centerYOffset = -100,
 ): ClipBBox {
-  const family = typeof item.fontFamily === "string" ? item.fontFamily : "sans-serif";
-  const weight = typeof item.fontWeight === "string" ? item.fontWeight : "normal";
+  const family =
+    typeof item.fontFamily === "string" ? item.fontFamily : "sans-serif";
+  const weight =
+    typeof item.fontWeight === "string" ? item.fontWeight : "normal";
   const fontSize = typeof item.fontSize === "number" ? item.fontSize : 32;
-  const lineHeight = typeof item.lineHeight === "number" ? item.lineHeight : 1.2;
+  const lineHeight =
+    typeof item.lineHeight === "number" ? item.lineHeight : 1.2;
   const content = typeof item.content === "string" ? item.content : "";
   ctx.save();
   ctx.font = `${weight} ${fontSize}px ${family}`;
@@ -32,9 +35,16 @@ export function getTextBoundingBox(
   ctx.restore();
   const padding = typeof item.bgPadding === "number" ? item.bgPadding : 0;
   const strokePad = typeof item.strokeWidth === "number" ? item.strokeWidth : 0;
-  const wavyPad = item.textEffect === "wavy" && typeof item.wavyAmplitude === "number" ? Math.abs(item.wavyAmplitude) : 0;
+  const wavyPad =
+    item.textEffect === "wavy" && typeof item.wavyAmplitude === "number"
+      ? Math.abs(item.wavyAmplitude)
+      : 0;
   const width = maxWidth + padding * 2 + strokePad * 2;
-  const height = lines.length * fontSize * lineHeight + padding * 2 + strokePad * 2 + wavyPad * 2;
+  const height =
+    lines.length * fontSize * lineHeight +
+    padding * 2 +
+    strokePad * 2 +
+    wavyPad * 2;
   const yBase = typeof item.offsetY === "number" ? item.offsetY : centerYOffset;
   return {
     x: w / 2 - width / 2,
@@ -78,17 +88,24 @@ export function drawTextItem(
 
   ctx.save();
 
-  const family = typeof item.fontFamily === "string" ? item.fontFamily : "sans-serif";
-  const weight = typeof item.fontWeight === "string" ? item.fontWeight : "normal";
+  const family =
+    typeof item.fontFamily === "string" ? item.fontFamily : "sans-serif";
+  const weight =
+    typeof item.fontWeight === "string" ? item.fontWeight : "normal";
   const fontSize = typeof item.fontSize === "number" ? item.fontSize : 32;
-  const lineHeight = typeof item.lineHeight === "number" ? item.lineHeight : 1.2;
-  const textAlign = typeof item.textAlign === "string" ? item.textAlign : "center";
+  const lineHeight =
+    typeof item.lineHeight === "number" ? item.lineHeight : 1.2;
+  const textAlign =
+    typeof item.textAlign === "string" ? item.textAlign : "center";
 
   ctx.font = `${weight} ${fontSize}px ${family}`;
   ctx.textBaseline = "top";
 
   const lines: string[] = content.split(/\n|\\n/);
-  const lineInfo = lines.map((line) => ({ content: line, width: measureEmojiText(ctx, line, fontSize) }));
+  const lineInfo = lines.map((line) => ({
+    content: line,
+    width: measureEmojiText(ctx, line, fontSize),
+  }));
   const maxWidth = Math.max(1, ...lineInfo.map((l) => l.width));
   const totalHeight = lines.length * fontSize * lineHeight;
   const padding = typeof item.bgPadding === "number" ? item.bgPadding : 0;
@@ -102,12 +119,16 @@ export function drawTextItem(
   const bgY = centerY - bgHeight / 2;
 
   const shadowBlur = typeof item.shadowBlur === "number" ? item.shadowBlur : 0;
-  const shadowOX = typeof item.shadowOffsetX === "number" ? item.shadowOffsetX : 0;
-  const shadowOY = typeof item.shadowOffsetY === "number" ? item.shadowOffsetY : 0;
+  const shadowOX =
+    typeof item.shadowOffsetX === "number" ? item.shadowOffsetX : 0;
+  const shadowOY =
+    typeof item.shadowOffsetY === "number" ? item.shadowOffsetY : 0;
   const hasShadow = shadowBlur > 0 || shadowOX !== 0 || shadowOY !== 0;
-  const shadowColor = typeof item.shadowColor === "string" ? item.shadowColor : "rgba(0,0,0,0.8)";
+  const shadowColor =
+    typeof item.shadowColor === "string" ? item.shadowColor : "rgba(0,0,0,0.8)";
 
-  const bgColor = typeof item.bgColor === "string" ? item.bgColor : "transparent";
+  const bgColor =
+    typeof item.bgColor === "string" ? item.bgColor : "transparent";
   if (bgColor && bgColor !== "transparent") {
     // Background box stays crisp: no text shadow bleeds onto it.
     ctx.save();
@@ -118,7 +139,13 @@ export function drawTextItem(
     ctx.fillStyle = bgColor;
     ctx.beginPath();
     if (ctx.roundRect) {
-      ctx.roundRect(bgX, bgY, bgWidth, bgHeight, typeof item.bgRadius === "number" ? item.bgRadius : 0);
+      ctx.roundRect(
+        bgX,
+        bgY,
+        bgWidth,
+        bgHeight,
+        typeof item.bgRadius === "number" ? item.bgRadius : 0,
+      );
     } else {
       ctx.rect(bgX, bgY, bgWidth, bgHeight);
     }
@@ -140,7 +167,11 @@ export function drawTextItem(
 
   let contentToDraw = content;
   if (item.textEffect === "typewriter") {
-    const speed = typeof item.typewriterSpeed === "number" && Number.isFinite(item.typewriterSpeed) ? item.typewriterSpeed : 15;
+    const speed =
+      typeof item.typewriterSpeed === "number" &&
+      Number.isFinite(item.typewriterSpeed)
+        ? item.typewriterSpeed
+        : 15;
     const t = Number.isFinite(localTime) ? Math.max(0, localTime) : 0;
     let charCount = Math.floor(t * speed);
     if (item.typewriterOut !== false && Number.isFinite(duration)) {

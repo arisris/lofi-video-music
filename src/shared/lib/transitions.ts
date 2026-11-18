@@ -13,19 +13,10 @@
  */
 
 export type EnterTransition =
-  | "none"
-  | "fade"
-  | "slide-up"
-  | "slide-down"
-  | "zoom-in"
-  | "bounce";
+  "none" | "fade" | "slide-up" | "slide-down" | "zoom-in" | "bounce";
 
 export type ExitTransition =
-  | "none"
-  | "fade"
-  | "slide-up"
-  | "slide-down"
-  | "zoom-out";
+  "none" | "fade" | "slide-up" | "slide-down" | "zoom-out";
 
 export interface TransitionOption<T extends string> {
   id: T;

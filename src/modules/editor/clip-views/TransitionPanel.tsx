@@ -16,7 +16,9 @@ import { RangeInput } from "../../../shared/ui/RangeInput";
 import { SelectControl } from "../../../shared/ui/Select";
 
 function bgName(s: Record<string, unknown>): string {
-  return typeof s.fileName === "string" && s.fileName ? s.fileName : "Background";
+  return typeof s.fileName === "string" && s.fileName
+    ? s.fileName
+    : "Background";
 }
 
 export function TransitionPanel({ clipId }: { clipId: string }) {
@@ -40,7 +42,9 @@ export function TransitionPanel({ clipId }: { clipId: string }) {
         <div className="animate-in fade-in flex flex-1 items-center gap-2 overflow-hidden duration-200">
           <i className="icon-[ri--arrow-left-right-line] h-4 w-4 shrink-0 text-blue-500" />
           <span className="truncate text-[10px] font-bold tracking-wider text-neutral-200 uppercase">
-            {prev ? `${bgName(prev.settings)} → ${bgName(clip.settings)}` : `Black → ${bgName(clip.settings)}`}
+            {prev
+              ? `${bgName(prev.settings)} → ${bgName(clip.settings)}`
+              : `Black → ${bgName(clip.settings)}`}
           </span>
         </div>
         <button
@@ -82,7 +86,10 @@ export function TransitionPanel({ clipId }: { clipId: string }) {
                   ariaLabel="Transition duration"
                   className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-800"
                 />
-                <Button variant="mini" onClick={() => set("transitionDuration", 1)}>
+                <Button
+                  variant="mini"
+                  onClick={() => set("transitionDuration", 1)}
+                >
                   Reset
                 </Button>
               </div>
@@ -102,8 +109,8 @@ export function TransitionPanel({ clipId }: { clipId: string }) {
                     ? "Sharpens in from black — nothing precedes this clip."
                     : tr.type === "fold"
                       ? "Fades in from black — nothing precedes this clip."
-                      : "Fades in from black — nothing precedes this clip."}
-              {" "}Fades out where the lane goes empty.
+                      : "Fades in from black — nothing precedes this clip."}{" "}
+              Fades out where the lane goes empty.
             </p>
           </Card>
         </InspectorRoot>

@@ -43,7 +43,12 @@ const getHex = (val: string) => {
   return `#${r}${g}${b}`;
 };
 
-export function ColorInput({ label, value, onUpdate, onChange }: ColorInputProps) {
+export function ColorInput({
+  label,
+  value,
+  onUpdate,
+  onChange,
+}: ColorInputProps) {
   const emit = onUpdate ?? onChange ?? (() => {});
   const currentHex = getHex(value ?? "");
   const currentAlpha = getAlpha(value ?? "");
@@ -66,7 +71,9 @@ export function ColorInput({ label, value, onUpdate, onChange }: ColorInputProps
 
   return (
     <div className="mb-4">
-      <label className="mb-1.5 block text-[10px] text-neutral-500">{label}</label>
+      <label className="mb-1.5 block text-[10px] text-neutral-500">
+        {label}
+      </label>
       <div className="flex h-7 items-center overflow-hidden rounded border border-neutral-700/50 bg-neutral-800/40 transition-all focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/50">
         {/* 1. Color Picker Area */}
         <div className="relative flex h-full w-10 flex-none items-center justify-center border-r border-neutral-700/50 bg-neutral-900/20">

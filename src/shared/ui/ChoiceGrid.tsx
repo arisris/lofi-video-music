@@ -14,7 +14,12 @@ export function ChoiceGrid<T extends string>({
   columns?: 2 | 3 | 4;
   tone?: "chip" | "card";
 }) {
-  const cols = columns === 4 ? "grid-cols-4" : columns === 2 ? "grid-cols-2" : "grid-cols-3";
+  const cols =
+    columns === 4
+      ? "grid-cols-4"
+      : columns === 2
+        ? "grid-cols-2"
+        : "grid-cols-3";
   if (tone === "card") {
     return (
       <div className={`grid ${cols} gap-1.5`}>

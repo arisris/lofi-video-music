@@ -8,7 +8,10 @@ import {
   contentTrackId,
 } from "../../store/project-defaults";
 
-export function addClipOfType(type: string, overrides: Record<string, unknown> = {}) {
+export function addClipOfType(
+  type: string,
+  overrides: Record<string, unknown> = {},
+) {
   const def = getClipDef(type);
   const st = useEditorStore.getState();
   // music→music lane, background→bg lane, others follow the selected

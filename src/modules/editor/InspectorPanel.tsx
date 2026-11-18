@@ -131,7 +131,9 @@ function LyricsGlobalView() {
 
 export function InspectorPanel() {
   const selectedId = useEditorStore((s) => s.selectedClipId);
-  const selectedTransitionId = useEditorStore((s) => s.selectedTransitionClipId);
+  const selectedTransitionId = useEditorStore(
+    (s) => s.selectedTransitionClipId,
+  );
   const clips = useEditorStore((s) => s.clips);
   const updateClipSettings = useEditorStore((s) => s.updateClipSettings);
   const removeClip = useEditorStore((s) => s.removeClip);

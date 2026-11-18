@@ -125,7 +125,13 @@ export function buildPresetKeyframes(
     y: number,
     scale: number,
     rotation = 0,
-  ): MotionKeyframe => ({ t: r2(t), x: r2(x), y: r2(y), scale: r2(scale), rotation: r2(rotation) });
+  ): MotionKeyframe => ({
+    t: r2(t),
+    x: r2(x),
+    y: r2(y),
+    scale: r2(scale),
+    rotation: r2(rotation),
+  });
 
   switch (preset) {
     case "zoomIn":

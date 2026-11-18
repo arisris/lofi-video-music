@@ -3,7 +3,10 @@ import { getIconData } from "../../../shared/lib/icon-cache";
 
 const iconDataCache: Record<string, unknown> = {};
 const iconDataPromises: Record<string, Promise<unknown>> = {};
-const iconImageCache: Record<string, { img: HTMLImageElement; loaded: boolean }> = {};
+const iconImageCache: Record<
+  string,
+  { img: HTMLImageElement; loaded: boolean }
+> = {};
 
 export const getIconDataAsync = (iconName: string): unknown => {
   if (iconDataCache[iconName] !== undefined) return iconDataCache[iconName];

@@ -20,13 +20,20 @@ export function FontSelector({
       </label>
       <SelectControl
         value={value}
-        options={GoogleFontsList.map((f) => ({ value: f, label: f.replace(/'/g, "") }))}
+        options={GoogleFontsList.map((f) => ({
+          value: f,
+          label: f.replace(/'/g, ""),
+        }))}
         onChange={(v) => {
           loadGoogleFont(v);
           onUpdate(v);
         }}
         size="md"
-        optionStyle={(v) => ({ fontFamily: v, padding: "10px", background: "#1e293b" })}
+        optionStyle={(v) => ({
+          fontFamily: v,
+          padding: "10px",
+          background: "#1e293b",
+        })}
         ariaLabel={label}
       />
     </div>

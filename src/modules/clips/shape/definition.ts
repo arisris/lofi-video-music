@@ -5,11 +5,19 @@ import { getIconDataAsync, getIconImage } from "./icon-render";
 
 // Full vector shapes
 // (rectangle/circle/triangle/star/polygon/heart/icon + gradient fill).
-function num(s: Record<string, unknown>, key: string, fallback: number): number {
+function num(
+  s: Record<string, unknown>,
+  key: string,
+  fallback: number,
+): number {
   return typeof s[key] === "number" ? (s[key] as number) : fallback;
 }
 
-function str(s: Record<string, unknown>, key: string, fallback: string): string {
+function str(
+  s: Record<string, unknown>,
+  key: string,
+  fallback: string,
+): string {
   return typeof s[key] === "string" ? (s[key] as string) : fallback;
 }
 
@@ -40,11 +48,31 @@ export const shapeClip: ClipDefinition = {
     opacity: 1,
   },
   schema: [
-    { key: "shapeType", label: "Shape", kind: "select", options: ["rectangle", "circle", "triangle", "star", "polygon", "heart", "icon"] },
+    {
+      key: "shapeType",
+      label: "Shape",
+      kind: "select",
+      options: [
+        "rectangle",
+        "circle",
+        "triangle",
+        "star",
+        "polygon",
+        "heart",
+        "icon",
+      ],
+    },
     { key: "width", label: "Width", kind: "slider", min: 16, max: 800 },
     { key: "height", label: "Height", kind: "slider", min: 16, max: 800 },
     { key: "fillColor", label: "Fill", kind: "color" },
-    { key: "opacity", label: "Opacity", kind: "slider", min: 0, max: 1, step: 0.05 },
+    {
+      key: "opacity",
+      label: "Opacity",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
   ],
   draw({ ctx, w, h, settings, localTime, duration }) {
     ctx.save();
@@ -60,7 +88,11 @@ export const shapeClip: ClipDefinition = {
     ctx.globalAlpha *= num(settings, "opacity", 1);
 
     const shadowBlur = num(settings, "shadowBlur", 0);
-    if (shadowBlur > 0 || num(settings, "shadowOffsetX", 0) !== 0 || num(settings, "shadowOffsetY", 0) !== 0) {
+    if (
+      shadowBlur > 0 ||
+      num(settings, "shadowOffsetX", 0) !== 0 ||
+      num(settings, "shadowOffsetY", 0) !== 0
+    ) {
       ctx.shadowColor = str(settings, "shadowColor", "rgba(0,0,0,0.5)");
       ctx.shadowBlur = shadowBlur;
       ctx.shadowOffsetX = num(settings, "shadowOffsetX", 0);
@@ -100,7 +132,8 @@ export const shapeClip: ClipDefinition = {
 
     ctx.beginPath();
     if (type === "rectangle") {
-      if (ctx.roundRect) ctx.roundRect(x, y, width, height, num(settings, "cornerRadius", 0));
+      if (ctx.roundRect)
+        ctx.roundRect(x, y, width, height, num(settings, "cornerRadius", 0));
       else ctx.rect(x, y, width, height);
     } else if (type === "circle") {
       ctx.arc(centerX, centerY, Math.min(width, height) / 2, 0, Math.PI * 2);
@@ -117,9 +150,15 @@ export const shapeClip: ClipDefinition = {
       const step = Math.PI / spikes;
       ctx.moveTo(centerX, centerY - outer);
       for (let i = 0; i < spikes; i++) {
-        ctx.lineTo(centerX + Math.cos(rot) * outer, centerY + Math.sin(rot) * outer);
+        ctx.lineTo(
+          centerX + Math.cos(rot) * outer,
+          centerY + Math.sin(rot) * outer,
+        );
         rot += step;
-        ctx.lineTo(centerX + Math.cos(rot) * inner, centerY + Math.sin(rot) * inner);
+        ctx.lineTo(
+          centerX + Math.cos(rot) * inner,
+          centerY + Math.sin(rot) * inner,
+        );
         rot += step;
       }
       ctx.closePath();
@@ -137,8 +176,22 @@ export const shapeClip: ClipDefinition = {
     } else if (type === "heart") {
       const topY = centerY - height * 0.25;
       ctx.moveTo(centerX, centerY + height * 0.35);
-      ctx.bezierCurveTo(centerX - width * 0.6, centerY - height * 0.2, centerX - width * 0.35, centerY - height * 0.5, centerX, topY);
-      ctx.bezierCurveTo(centerX + width * 0.35, centerY - height * 0.5, centerX + width * 0.6, centerY - height * 0.2, centerX, centerY + height * 0.35);
+      ctx.bezierCurveTo(
+        centerX - width * 0.6,
+        centerY - height * 0.2,
+        centerX - width * 0.35,
+        centerY - height * 0.5,
+        centerX,
+        topY,
+      );
+      ctx.bezierCurveTo(
+        centerX + width * 0.35,
+        centerY - height * 0.5,
+        centerX + width * 0.6,
+        centerY - height * 0.2,
+        centerX,
+        centerY + height * 0.35,
+      );
       ctx.closePath();
     }
 

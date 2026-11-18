@@ -7,7 +7,9 @@ export function InspectorRoot({
   className?: string;
 }) {
   return (
-    <div className={`animate-in fade-in slide-in-from-top-2 space-y-4 duration-300 ${className}`}>
+    <div
+      className={`animate-in fade-in slide-in-from-top-2 space-y-4 duration-300 ${className}`}
+    >
       {children}
     </div>
   );

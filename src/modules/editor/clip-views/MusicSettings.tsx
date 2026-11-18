@@ -44,7 +44,8 @@ export function MusicSettingsView({ clipId }: { clipId: string }) {
   };
 
   const volume = typeof values.volume === "number" ? values.volume : 1.0;
-  const rate = typeof values.playbackRate === "number" ? values.playbackRate : 1.0;
+  const rate =
+    typeof values.playbackRate === "number" ? values.playbackRate : 1.0;
   const pan = typeof values.pan === "number" ? values.pan : 0;
 
   return (
@@ -99,7 +100,11 @@ export function MusicSettingsView({ clipId }: { clipId: string }) {
           <label className="mb-2 flex justify-between text-xs font-bold tracking-wider text-neutral-400 uppercase">
             <span>Stereo Panning</span>
             <span className="font-mono text-blue-400">
-              {pan === 0 ? "Center" : pan < 0 ? `L ${Math.round(Math.abs(pan) * 100)}%` : `R ${Math.round(pan * 100)}%`}
+              {pan === 0
+                ? "Center"
+                : pan < 0
+                  ? `L ${Math.round(Math.abs(pan) * 100)}%`
+                  : `R ${Math.round(pan * 100)}%`}
             </span>
           </label>
           <RangeInput
@@ -119,12 +124,19 @@ export function MusicSettingsView({ clipId }: { clipId: string }) {
           </label>
           <div className="space-y-2 rounded-lg border border-neutral-800/50 bg-neutral-950/40 p-3 text-xs">
             {(
-              [["Bass", "eqLow"], ["Mids", "eqMid"], ["Treble", "eqHigh"]] as const
+              [
+                ["Bass", "eqLow"],
+                ["Mids", "eqMid"],
+                ["Treble", "eqHigh"],
+              ] as const
             ).map(([band, key]) => {
-              const v = typeof values[key] === "number" ? (values[key] as number) : 0;
+              const v =
+                typeof values[key] === "number" ? (values[key] as number) : 0;
               return (
                 <div key={key} className="flex items-center justify-between">
-                  <span className="w-12 text-[10px] font-semibold text-neutral-400">{band}</span>
+                  <span className="w-12 text-[10px] font-semibold text-neutral-400">
+                    {band}
+                  </span>
                   <RangeInput
                     value={v}
                     min={-12}
@@ -165,7 +177,9 @@ export function MusicSettingsView({ clipId }: { clipId: string }) {
             {`${clip.duration.toFixed(2)}s`}
           </div>
           <div>
-            <span className="font-bold text-neutral-400">Start Offset (Trim): </span>
+            <span className="font-bold text-neutral-400">
+              Start Offset (Trim):{" "}
+            </span>
             {`${(typeof values.startOffset === "number" ? values.startOffset : 0).toFixed(2)}s`}
           </div>
           <div>

@@ -43,7 +43,9 @@ export function ensureAudioElement(): HTMLAudioElement {
     // engine and the preview tick share one element (one element = max one
     // MediaElementSource; two elements = analyser/recorder goes silent).
     if (typeof document !== "undefined") {
-      const dom = document.getElementById("audioElement") as HTMLAudioElement | null;
+      const dom = document.getElementById(
+        "audioElement",
+      ) as HTMLAudioElement | null;
       if (dom) {
         runtime.audioEl = dom;
         return dom;

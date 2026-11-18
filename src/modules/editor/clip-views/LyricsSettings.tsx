@@ -46,23 +46,36 @@ function StackOnlyChip() {
 function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
   const { values, set } = binding;
   const karaoke = values.karaokeMode === true;
-  const enterType = resolveEnterTransition(values.lineTransitionIn ?? values.lineTransition);
+  const enterType = resolveEnterTransition(
+    values.lineTransitionIn ?? values.lineTransition,
+  );
   const exitType = resolveExitTransition(values.lineTransitionOut);
-  const seconds = typeof values.lineTransitionDuration === "number" ? values.lineTransitionDuration : 0.3;
+  const seconds =
+    typeof values.lineTransitionDuration === "number"
+      ? values.lineTransitionDuration
+      : 0.3;
   // Explicit master switch (defaults on); the pickers underneath still select
   // the curves for when it is re-enabled. Both-none also reads as off.
   const transOn = values.lineTransitionEnabled !== false;
   const off = !transOn || (enterType === "none" && exitType === "none");
-  const rawContext = typeof values.contextLines === "number" ? Math.round(values.contextLines) : 1;
+  const rawContext =
+    typeof values.contextLines === "number"
+      ? Math.round(values.contextLines)
+      : 1;
   // Same fallback as the renderer (stackCounts): legacy `contextLines`
   // feeds both sides, floored at one; explicit before/after win.
   const legacyFallback = Math.max(1, rawContext);
   const beforeShown =
-    typeof values.contextBefore === "number" ? Math.round(values.contextBefore) : legacyFallback;
+    typeof values.contextBefore === "number"
+      ? Math.round(values.contextBefore)
+      : legacyFallback;
   const afterShown =
-    typeof values.contextAfter === "number" ? Math.round(values.contextAfter) : legacyFallback;
+    typeof values.contextAfter === "number"
+      ? Math.round(values.contextAfter)
+      : legacyFallback;
   const autoAdvance = values.unstampedAutoAdvance === true;
-  const offset = typeof values.offsetSeconds === "number" ? values.offsetSeconds : 0;
+  const offset =
+    typeof values.offsetSeconds === "number" ? values.offsetSeconds : 0;
 
   const modeCard = (active: boolean) =>
     active
@@ -79,12 +92,17 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
           aria-pressed={!karaoke}
           className={`cursor-pointer rounded-xl border p-2.5 text-left transition-all ${modeCard(!karaoke)}`}
         >
-          <div className="flex h-8 flex-col items-center justify-center gap-1" aria-hidden>
+          <div
+            className="flex h-8 flex-col items-center justify-center gap-1"
+            aria-hidden
+          >
             <div className="h-1.5 w-3/4 rounded-full bg-white" />
             <div className="h-1 w-1/2 rounded-full border border-dashed border-neutral-700" />
             <div className="h-1 w-1/2 rounded-full border border-dashed border-neutral-700" />
           </div>
-          <div className={`mt-1.5 text-[10px] font-bold ${!karaoke ? "text-blue-400" : "text-neutral-300"}`}>
+          <div
+            className={`mt-1.5 text-[10px] font-bold ${!karaoke ? "text-blue-400" : "text-neutral-300"}`}
+          >
             Single line
           </div>
           <div className="text-[9px] leading-snug text-neutral-500">
@@ -96,12 +114,17 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
           aria-pressed={karaoke}
           className={`cursor-pointer rounded-xl border p-2.5 text-left transition-all ${modeCard(karaoke)}`}
         >
-          <div className="flex h-8 flex-col items-center justify-center gap-1" aria-hidden>
+          <div
+            className="flex h-8 flex-col items-center justify-center gap-1"
+            aria-hidden
+          >
             <div className="h-1 w-1/2 rounded-full bg-neutral-500" />
             <div className="h-1.5 w-3/4 rounded-full bg-white" />
             <div className="h-1 w-1/2 rounded-full bg-neutral-500" />
           </div>
-          <div className={`mt-1.5 text-[10px] font-bold ${karaoke ? "text-blue-400" : "text-neutral-300"}`}>
+          <div
+            className={`mt-1.5 text-[10px] font-bold ${karaoke ? "text-blue-400" : "text-neutral-300"}`}
+          >
             Stack (Karaoke)
           </div>
           <div className="text-[9px] leading-snug text-neutral-500">
@@ -118,22 +141,40 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
       <SectionTitle className="mb-3">Colors</SectionTitle>
       <ColorInput
         label="Active Line Color"
-        value={typeof values.activeColor === "string" ? values.activeColor : (typeof values.color === "string" ? values.color : "#ffffff")}
+        value={
+          typeof values.activeColor === "string"
+            ? values.activeColor
+            : typeof values.color === "string"
+              ? values.color
+              : "#ffffff"
+        }
         onUpdate={(val) => set("activeColor", val)}
       />
       <div className={karaoke ? "" : "pointer-events-none opacity-40"}>
         <ColorInput
-          label={<span>Inactive Line Color {!karaoke && <StackOnlyChip />}</span>}
-          value={typeof values.inactiveColor === "string" ? values.inactiveColor : "#94a3b8"}
+          label={
+            <span>Inactive Line Color {!karaoke && <StackOnlyChip />}</span>
+          }
+          value={
+            typeof values.inactiveColor === "string"
+              ? values.inactiveColor
+              : "#94a3b8"
+          }
           onUpdate={(val) => set("inactiveColor", val)}
         />
       </div>
 
       <SectionTitle className="mt-6 mb-3">Layout</SectionTitle>
-      <div className={`mb-1 grid grid-cols-2 gap-3 ${karaoke ? "" : "pointer-events-none opacity-40"}`}>
+      <div
+        className={`mb-1 grid grid-cols-2 gap-3 ${karaoke ? "" : "pointer-events-none opacity-40"}`}
+      >
         <div>
           <FieldLabel
-            value={<span className="font-mono text-[10px] text-blue-400">{beforeShown}</span>}
+            value={
+              <span className="font-mono text-[10px] text-blue-400">
+                {beforeShown}
+              </span>
+            }
           >
             Lines Before {!karaoke && <StackOnlyChip />}
           </FieldLabel>
@@ -147,7 +188,11 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
         </div>
         <div>
           <FieldLabel
-            value={<span className="font-mono text-[10px] text-blue-400">{afterShown}</span>}
+            value={
+              <span className="font-mono text-[10px] text-blue-400">
+                {afterShown}
+              </span>
+            }
           >
             Lines After {!karaoke && <StackOnlyChip />}
           </FieldLabel>
@@ -177,7 +222,11 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
         </FieldLabel>
         <ScrubInput
           label="X"
-          value={typeof values.activeSizeBoost === "number" ? values.activeSizeBoost : 1}
+          value={
+            typeof values.activeSizeBoost === "number"
+              ? values.activeSizeBoost
+              : 1
+          }
           step={0.05}
           min={0.5}
           max={2}
@@ -188,7 +237,9 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
       <div className="mb-4 grid grid-cols-2 gap-3">
         <div className={karaoke ? "" : "pointer-events-none opacity-40"}>
           <FieldLabel
-            value={<span className="font-mono text-[10px] text-blue-400">{`${typeof values.lineGap === "number" ? values.lineGap : 8} px`}</span>}
+            value={
+              <span className="font-mono text-[10px] text-blue-400">{`${typeof values.lineGap === "number" ? values.lineGap : 8} px`}</span>
+            }
           >
             Line Gap {!karaoke && <StackOnlyChip />}
           </FieldLabel>
@@ -212,7 +263,11 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
           </FieldLabel>
           <ScrubInput
             label="A"
-            value={typeof values.inactiveOpacity === "number" ? values.inactiveOpacity : 0.45}
+            value={
+              typeof values.inactiveOpacity === "number"
+                ? values.inactiveOpacity
+                : 0.45
+            }
             step={0.01}
             min={0}
             max={1}
@@ -235,13 +290,18 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
           }
         />
 
-        <div className={`mt-3 ${transOn ? "" : "pointer-events-none opacity-40"}`}>
+        <div
+          className={`mt-3 ${transOn ? "" : "pointer-events-none opacity-40"}`}
+        >
           <div className="grid grid-cols-2 gap-3">
             <div>
               <FieldLabel>Enter</FieldLabel>
               <SelectControl
                 value={enterType}
-                options={ENTER_TRANSITIONS.map((option) => ({ value: option.id, label: option.label }))}
+                options={ENTER_TRANSITIONS.map((option) => ({
+                  value: option.id,
+                  label: option.label,
+                }))}
                 onChange={(v) => set("lineTransitionIn", v)}
                 size="sm"
                 ariaLabel="Line enter transition"
@@ -251,7 +311,10 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
               <FieldLabel>Exit</FieldLabel>
               <SelectControl
                 value={exitType}
-                options={EXIT_TRANSITIONS.map((option) => ({ value: option.id, label: option.label }))}
+                options={EXIT_TRANSITIONS.map((option) => ({
+                  value: option.id,
+                  label: option.label,
+                }))}
                 onChange={(v) => set("lineTransitionOut", v)}
                 size="sm"
                 ariaLabel="Line exit transition"
@@ -259,9 +322,15 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
             </div>
           </div>
 
-          <div className={`mt-3 ${off ? "pointer-events-none opacity-40" : ""}`}>
+          <div
+            className={`mt-3 ${off ? "pointer-events-none opacity-40" : ""}`}
+          >
             <FieldLabel
-              value={<span className="font-mono text-[10px] text-blue-400">{off ? "off" : `${seconds.toFixed(2)} s`}</span>}
+              value={
+                <span className="font-mono text-[10px] text-blue-400">
+                  {off ? "off" : `${seconds.toFixed(2)} s`}
+                </span>
+              }
             >
               Duration
             </FieldLabel>
@@ -275,7 +344,8 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
             />
           </div>
           <p className="mt-1.5 text-[9px] leading-relaxed text-neutral-500">
-            A line that runs to the end of the track stays put — there is nothing after it to clear the way for.
+            A line that runs to the end of the track stays put — there is
+            nothing after it to clear the way for.
           </p>
         </div>
       </div>
@@ -310,7 +380,8 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
           onUpdate={(val) => set("offsetSeconds", val)}
         />
         <p className="mt-1.5 text-[9px] leading-relaxed text-neutral-500">
-          Shifts every line earlier (negative) or later (positive). Use it to nudge an imported .lrc onto the beat.
+          Shifts every line earlier (negative) or later (positive). Use it to
+          nudge an imported .lrc onto the beat.
         </p>
       </div>
       <div>
@@ -325,7 +396,9 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
             />
           }
         />
-        <div className={`mt-3 ${autoAdvance ? "" : "pointer-events-none opacity-40"}`}>
+        <div
+          className={`mt-3 ${autoAdvance ? "" : "pointer-events-none opacity-40"}`}
+        >
           <FieldLabel
             value={
               <span className="font-mono text-[10px] text-blue-400">
@@ -337,15 +410,20 @@ function LyricDisplaySettingsView({ binding }: { binding: SettingsBinding }) {
           </FieldLabel>
           <ScrubInput
             label="S"
-            value={typeof values.fallbackLineDuration === "number" ? values.fallbackLineDuration : 4}
+            value={
+              typeof values.fallbackLineDuration === "number"
+                ? values.fallbackLineDuration
+                : 4
+            }
             step={0.5}
             min={0.5}
             max={20}
             onUpdate={(val) => set("fallbackLineDuration", val)}
           />
           <p className="mt-1.5 text-[9px] leading-relaxed text-neutral-500">
-            Only used while auto-advance is on, for lines with no timing at all. A stamped line with no end of its
-            own runs until the next line - or until the track ends.
+            Only used while auto-advance is on, for lines with no timing at all.
+            A stamped line with no end of its own runs until the next line - or
+            until the track ends.
           </p>
         </div>
       </div>
@@ -375,7 +453,11 @@ export function LyricsStyleSettings() {
       },
       set: (key: string, value: unknown) => {
         if (key === "textColor") {
-          updateLyricsSettings({ textColor: value, activeColor: value, color: value });
+          updateLyricsSettings({
+            textColor: value,
+            activeColor: value,
+            color: value,
+          });
         } else {
           binding.set(key, value);
         }
@@ -385,7 +467,12 @@ export function LyricsStyleSettings() {
   );
   return (
     <InspectorRoot>
-      <TypographySettings binding={typographyBinding} hideLineHeight hideAlign hideTextColor />
+      <TypographySettings
+        binding={typographyBinding}
+        hideLineHeight
+        hideAlign
+        hideTextColor
+      />
       <StrokeShadowSettings binding={binding} />
       {/* No BackgroundBox: the lyrics renderer draws bare centered lines and
         reads no bg* keys, so the shared section would be a dead control. */}

@@ -29,19 +29,26 @@ function isRuntimeValue(v: unknown): boolean {
   if (!v || typeof v !== "object") return false;
   const o = v as Record<string, unknown>;
   // DOM / Image / Video / Canvas / Audio elements.
-  if (typeof (o as { cloneNode?: unknown }).cloneNode === "function") return true;
-  if (typeof (o as unknown as HTMLCanvasElement).getContext === "function") return true;
+  if (typeof (o as { cloneNode?: unknown }).cloneNode === "function")
+    return true;
+  if (typeof (o as unknown as HTMLCanvasElement).getContext === "function")
+    return true;
   if (typeof window !== "undefined" && v instanceof Element) return true;
   return false;
 }
 
 /** Copy settings keeping only JSON-safe values (recursive, drops runtime). */
-export function serializeSettings(settings: Record<string, unknown>): Record<string, unknown> {
+export function serializeSettings(
+  settings: Record<string, unknown>,
+): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(settings ?? {})) {
-    if (RUNTIME_KEYS.has(k) || typeof v === "function" || isRuntimeValue(v)) continue;
+    if (RUNTIME_KEYS.has(k) || typeof v === "function" || isRuntimeValue(v))
+      continue;
     if (Array.isArray(v)) {
-      const arr = v.filter((x) => typeof x !== "function" && !isRuntimeValue(x));
+      const arr = v.filter(
+        (x) => typeof x !== "function" && !isRuntimeValue(x),
+      );
       // Keep any JSON-safe array (primitives or plain objects like lyrics
       // lines, keyframes, points). Drop only unserializable entries.
       try {
@@ -60,7 +67,8 @@ export function serializeSettings(settings: Record<string, unknown>): Record<str
       }
       continue;
     }
-    if (["string", "number", "boolean"].includes(typeof v) || v === null) out[k] = v;
+    if (["string", "number", "boolean"].includes(typeof v) || v === null)
+      out[k] = v;
   }
   return out;
 }
@@ -78,9 +86,11 @@ function findPoolForClip(
   // Object-identity match (clip created from a pool asset).
   for (const m of pool) {
     if (s.mediaElement && m.element && s.mediaElement === m.element) return m;
-    if (s.mediaElements && m.elements && s.mediaElements === m.elements) return m;
+    if (s.mediaElements && m.elements && s.mediaElements === m.elements)
+      return m;
     const gf = (s.gifFrames as unknown[] | null) ?? null;
-    const mgf = (m as { gifFrames?: unknown }).gifFrames as unknown[] | undefined;
+    const mgf = (m as { gifFrames?: unknown }).gifFrames as
+      unknown[] | undefined;
     if (Array.isArray(gf) && gf.length > 0 && mgf === gf) return m;
   }
   // URL match (music via audioUrl, or URL-based background).
@@ -92,19 +102,31 @@ function findPoolForClip(
   return undefined;
 }
 
-export function serializeClip(clip: TimelineClip, pool: MediaItem[]): ProjectClip {
+export function serializeClip(
+  clip: TimelineClip,
+  pool: MediaItem[],
+): ProjectClip {
   const s = clip.settings as Record<string, unknown>;
   const linked = findPoolForClip(clip, pool);
   let media: ProjectClipMedia | null = null;
   if (linked) {
     media = {
       mediaId: linked.id,
-      fileName: typeof s.fileName === "string" ? (s.fileName as string) : linked.name,
-      mediaType: typeof s.mediaType === "string" ? (s.mediaType as string) : linked.type,
+      fileName:
+        typeof s.fileName === "string" ? (s.fileName as string) : linked.name,
+      mediaType:
+        typeof s.mediaType === "string" ? (s.mediaType as string) : linked.type,
     };
-  } else if (clip.type === "music" && typeof s.audioUrl === "string" && s.audioUrl) {
+  } else if (
+    clip.type === "music" &&
+    typeof s.audioUrl === "string" &&
+    s.audioUrl
+  ) {
     // Pool-less music (timeline file picker): synthesize media on export.
-    media = { mediaId: `__clip:${clip.id}`, fileName: typeof s.name === "string" ? (s.name as string) : "music" };
+    media = {
+      mediaId: `__clip:${clip.id}`,
+      fileName: typeof s.name === "string" ? (s.name as string) : "music",
+    };
   }
   return {
     id: clip.id,
@@ -146,10 +168,14 @@ export interface SerializeInput {
   lyricsSettings: Record<string, unknown>;
 }
 
-function routeOf(live: TimelineClip[], snap: ProjectRouteState, pool: MediaItem[]): ProjectRouteState {
-  const clips = (live.length > 0 ? live : snap.clips.map((c) => c as unknown as TimelineClip)).map((c) =>
-    serializeClip(c, pool),
-  );
+function routeOf(
+  live: TimelineClip[],
+  snap: ProjectRouteState,
+  pool: MediaItem[],
+): ProjectRouteState {
+  const clips = (
+    live.length > 0 ? live : snap.clips.map((c) => c as unknown as TimelineClip)
+  ).map((c) => serializeClip(c, pool));
   return { clips, selectedClipId: snap.selectedClipId };
 }
 

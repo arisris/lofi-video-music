@@ -180,7 +180,8 @@ export function PlaybackControls() {
                     Record Full Video
                   </span>
                   <span className="text-[9px] text-neutral-500">
-                    Duration: {formatTime(Math.floor(getTotalDuration(clipsForAudio())))}
+                    Duration:{" "}
+                    {formatTime(Math.floor(getTotalDuration(clipsForAudio())))}
                   </span>
                 </div>
                 <i className="icon-[ri--movie-2-line] h-4 w-4 text-blue-400" />

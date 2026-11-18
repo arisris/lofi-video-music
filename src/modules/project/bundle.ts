@@ -15,20 +15,27 @@ export function projectFileName(metaName: string): string {
 }
 
 /** Assemble a bundle from the project + asset bytes. */
-export async function packBundle(project: ProjectV1, blobs: Map<string, Blob>): Promise<Blob> {
+export async function packBundle(
+  project: ProjectV1,
+  blobs: Map<string, Blob>,
+): Promise<Blob> {
   const jobs: Array<Promise<[string, Uint8Array]>> = [];
   for (const [path, blob] of blobs) {
     const name = path.startsWith("assets/") ? path : `assets/${path}`;
     jobs.push(
-      blob.arrayBuffer().then((buf) => [name, new Uint8Array(buf)] as [string, Uint8Array]),
+      blob
+        .arrayBuffer()
+        .then((buf) => [name, new Uint8Array(buf)] as [string, Uint8Array]),
     );
   }
   const entries = await Promise.all(jobs);
-    const files: Record<string, Uint8Array> = {
-        [PROJECT_ENTRY]: strToU8(JSON.stringify(project, null, 2)),
-    };
-    for (const [name_1, data] of entries) files[name_1] = data;
-    return new Blob([new Uint8Array(zipSync(files)).buffer as ArrayBuffer], { type: "application/zip" });
+  const files: Record<string, Uint8Array> = {
+    [PROJECT_ENTRY]: strToU8(JSON.stringify(project, null, 2)),
+  };
+  for (const [name_1, data] of entries) files[name_1] = data;
+  return new Blob([new Uint8Array(zipSync(files)).buffer as ArrayBuffer], {
+    type: "application/zip",
+  });
 }
 
 export interface UnpackedBundle {
@@ -67,7 +74,10 @@ export function unpackBundle(data: Uint8Array): UnpackedBundle {
     const copy = new Uint8Array(bytes.length);
     copy.set(bytes);
     assets.set(name, new Blob([copy.buffer as ArrayBuffer]));
-    assets.set(name.replace(/^assets\//, ""), new Blob([copy.buffer as ArrayBuffer]));
+    assets.set(
+      name.replace(/^assets\//, ""),
+      new Blob([copy.buffer as ArrayBuffer]),
+    );
   }
   return { project: json, assets };
 }

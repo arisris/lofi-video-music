@@ -10,7 +10,8 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`failed to load image: ${url.slice(0, 80)}`));
+    img.onerror = () =>
+      reject(new Error(`failed to load image: ${url.slice(0, 80)}`));
     img.src = url;
   });
 }
@@ -23,15 +24,21 @@ function loadVideoPair(url: string): Promise<HTMLVideoElement[]> {
       v.muted = true;
       v.loop = false;
       v.playsInline = true;
-      (v as HTMLVideoElement & { crossOrigin: string | null }).crossOrigin = "anonymous";
+      (v as HTMLVideoElement & { crossOrigin: string | null }).crossOrigin =
+        "anonymous";
       v.onloadedmetadata = () => resolve(v);
-      v.onerror = () => reject(new Error(`failed to load video: ${url.slice(0, 80)}`));
+      v.onerror = () =>
+        reject(new Error(`failed to load video: ${url.slice(0, 80)}`));
     });
   return Promise.all([make(), make()]);
 }
 
 export interface GifDecoded {
-  frames: Array<{ canvas: HTMLCanvasElement; delay: number; dims: { left: number; top: number; width: number; height: number } }>;
+  frames: Array<{
+    canvas: HTMLCanvasElement;
+    delay: number;
+    dims: { left: number; top: number; width: number; height: number };
+  }>;
   durationMs: number;
   width: number;
   height: number;
@@ -50,18 +57,28 @@ export async function decodeGifBytes(buf: ArrayBuffer): Promise<GifDecoded> {
     if (i > 0) {
       const pf = raw[i - 1];
       if (pf.disposalType === 2) {
-        bctx.clearRect(pf.dims.left, pf.dims.top, pf.dims.width, pf.dims.height);
+        bctx.clearRect(
+          pf.dims.left,
+          pf.dims.top,
+          pf.dims.width,
+          pf.dims.height,
+        );
       } else if (pf.disposalType === 3 && prev) {
         bctx.putImageData(prev, 0, 0);
       }
     }
-    if (frame.disposalType === 3) prev = bctx.getImageData(0, 0, baking.width, baking.height);
+    if (frame.disposalType === 3)
+      prev = bctx.getImageData(0, 0, baking.width, baking.height);
     const tmp = document.createElement("canvas");
     tmp.width = frame.dims.width;
     tmp.height = frame.dims.height;
     const tctx = tmp.getContext("2d")!;
     tctx.putImageData(
-      new ImageData(frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>, frame.dims.width, frame.dims.height),
+      new ImageData(
+        frame.patch as unknown as Uint8ClampedArray<ArrayBuffer>,
+        frame.dims.width,
+        frame.dims.height,
+      ),
       0,
       0,
     );
@@ -96,7 +113,9 @@ export async function rehydrateMedia(
   let url = m.source.type === "url" ? m.source.value : "";
   let blob: Blob | undefined;
   if (m.source.type === "asset") {
-    const hit = assets.get(m.source.value) ?? assets.get(m.source.value.replace(/^assets\//, ""));
+    const hit =
+      assets.get(m.source.value) ??
+      assets.get(m.source.value.replace(/^assets\//, ""));
     if (!hit) throw new Error(`missing asset: ${m.source.value} (${m.name})`);
     blob = hit;
     url = URL.createObjectURL(hit);
@@ -127,10 +146,16 @@ export async function rehydrateMedia(
       base.width = pair[0].videoWidth;
       base.height = pair[0].videoHeight;
     } else if (m.kind === "gif") {
-      const buf = blob ? await blob.arrayBuffer() : await (await fetch(url)).arrayBuffer();
+      const buf = blob
+        ? await blob.arrayBuffer()
+        : await (await fetch(url)).arrayBuffer();
       const g = await decodeGifBytes(buf);
-      (base as MediaItem & { gifFrames?: unknown; gifDuration?: number }).gifFrames = g.frames;
-      (base as MediaItem & { gifFrames?: unknown; gifDuration?: number }).gifDuration = g.durationMs;
+      (
+        base as MediaItem & { gifFrames?: unknown; gifDuration?: number }
+      ).gifFrames = g.frames;
+      (
+        base as MediaItem & { gifFrames?: unknown; gifDuration?: number }
+      ).gifDuration = g.durationMs;
       base.duration = g.durationMs / 1000;
       base.width = g.width;
       base.height = g.height;
@@ -198,7 +223,10 @@ export async function collectExportBlobs(
         if (!u) continue;
         try {
           const blob = await (await fetch(u)).blob();
-          out.set(`assets/__clip_${c.media.mediaId.slice("__clip:".length)}.audio`, blob);
+          out.set(
+            `assets/__clip_${c.media.mediaId.slice("__clip:".length)}.audio`,
+            blob,
+          );
         } catch {
           /* skip — clip keeps its remote URL */
         }
@@ -231,10 +259,19 @@ export function rehydrateClip(
   if (ref) {
     const hit =
       pool.find((m) => m.id === ref.mediaId) ??
-      pool.find((m) => m.id === (ref.mediaId.startsWith("assets/") ? ref.mediaId.slice(7) : ref.mediaId));
+      pool.find(
+        (m) =>
+          m.id ===
+          (ref.mediaId.startsWith("assets/")
+            ? ref.mediaId.slice(7)
+            : ref.mediaId),
+      );
     if (hit) {
       settings.mediaId = hit.id;
-      if (ref.mediaType === "video" || (hit.type === "video" && ref.mediaType !== "image")) {
+      if (
+        ref.mediaType === "video" ||
+        (hit.type === "video" && ref.mediaType !== "image")
+      ) {
         settings.mediaElements = hit.elements ?? null;
         settings.mediaType = "video";
       } else if (hit.type === "gif") {
@@ -250,7 +287,10 @@ export function rehydrateClip(
       if (typeof settings.fileName !== "string" || !settings.fileName) {
         settings.fileName = ref.fileName ?? hit.name;
       }
-      if ((settings.thumbnail == null || settings.thumbnail === "") && hit.thumbnail) {
+      if (
+        (settings.thumbnail == null || settings.thumbnail === "") &&
+        hit.thumbnail
+      ) {
         settings.thumbnail = hit.thumbnail;
       }
       if (typeof settings.videoDuration !== "number" && hit.duration) {
@@ -263,7 +303,9 @@ export function rehydrateClip(
       const poolHit = pool.find((m) => m.url === audioHolder.audioUrl);
       if (poolHit) audioHolder.audioUrl = poolHit.url;
       else if (ref.mediaId.startsWith("assets/")) {
-        const byAsset = pool.find((m) => m.id === ref.mediaId || m.url.includes(ref.mediaId));
+        const byAsset = pool.find(
+          (m) => m.id === ref.mediaId || m.url.includes(ref.mediaId),
+        );
         if (byAsset) audioHolder.audioUrl = byAsset.url;
       }
     }

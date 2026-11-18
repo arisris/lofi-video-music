@@ -109,7 +109,10 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
             value={presetValue}
             options={
               presetValue === "custom"
-                ? [...MOTION_PRESET_OPTIONS, { value: "custom", label: "Custom (edited)" }]
+                ? [
+                    ...MOTION_PRESET_OPTIONS,
+                    { value: "custom", label: "Custom (edited)" },
+                  ]
                 : MOTION_PRESET_OPTIONS
             }
             onChange={requestPreset}

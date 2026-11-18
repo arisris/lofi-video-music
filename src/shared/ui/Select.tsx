@@ -8,8 +8,12 @@ import type { CSSProperties } from "react";
 
 export type SelectOption = string | { value: string; label: string };
 
-function normalize(options: SelectOption[]): Array<{ value: string; label: string }> {
-  return options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
+function normalize(
+  options: SelectOption[],
+): Array<{ value: string; label: string }> {
+  return options.map((o) =>
+    typeof o === "string" ? { value: o, label: o } : o,
+  );
 }
 
 export function SelectControl({
@@ -35,9 +39,7 @@ export function SelectControl({
 }) {
   const items = normalize(options);
   const sizeClass =
-    size === "sm"
-      ? "h-7 px-2 pr-7 text-[10px]"
-      : "px-3 py-2 pr-8 text-xs";
+    size === "sm" ? "h-7 px-2 pr-7 text-[10px]" : "px-3 py-2 pr-8 text-xs";
   return (
     <div className={`relative ${wrapperClassName}`}>
       <select

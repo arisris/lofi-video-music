@@ -45,7 +45,9 @@ export function SliderControl({
   return (
     <div>
       <FieldLabel
-        value={<span className="font-mono text-[10px] text-blue-400">{text}</span>}
+        value={
+          <span className="font-mono text-[10px] text-blue-400">{text}</span>
+        }
       >
         {label}
       </FieldLabel>

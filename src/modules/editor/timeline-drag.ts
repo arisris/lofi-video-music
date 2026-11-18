@@ -59,7 +59,9 @@ export const beginClipDrag = (
     initialStart: clip.start,
     initialDuration: clip.duration,
     initialStartOffset:
-      typeof clip.settings.startOffset === "number" ? clip.settings.startOffset : 0,
+      typeof clip.settings.startOffset === "number"
+        ? clip.settings.startOffset
+        : 0,
   };
   window.addEventListener("mousemove", handleWindowMouseMove);
   window.addEventListener("mouseup", handleWindowMouseUp);
@@ -146,7 +148,10 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
         (typeof clip.settings.audioDuration === "number"
           ? (clip.settings.audioDuration as number)
           : clip.duration) - isDraggingClip.initialStartOffset;
-      newDur = Math.max(0.1, Math.min(maxDur, isDraggingClip.initialDuration + dx));
+      newDur = Math.max(
+        0.1,
+        Math.min(maxDur, isDraggingClip.initialDuration + dx),
+      );
     } else {
       newDur = Math.max(0.1, isDraggingClip.initialDuration + dx);
     }
@@ -164,7 +169,8 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
         typeof clip.settings.audioDuration === "number"
           ? (clip.settings.audioDuration as number)
           : clip.duration;
-      const maxOffset = Math.min(audioLen, base + isDraggingClip.initialDuration) - 0.1;
+      const maxOffset =
+        Math.min(audioLen, base + isDraggingClip.initialDuration) - 0.1;
       if (newOffset > maxOffset) {
         newOffset = maxOffset;
         newStart = isDraggingClip.initialStart + (maxOffset - base);
@@ -172,7 +178,8 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
       nextSettings.startOffset = newOffset;
       newDur = Math.max(
         0.1,
-        isDraggingClip.initialDuration - (newStart - isDraggingClip.initialStart),
+        isDraggingClip.initialDuration -
+          (newStart - isDraggingClip.initialStart),
       );
     } else {
       newStart = Math.max(0, isDraggingClip.initialStart + dx);
@@ -199,14 +206,19 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
   const isVideo =
     (clip.type === "background" && s.mediaType === "video") ||
     (clip.type === "overlay" && s.mediaType === "video");
-  const videoDuration = typeof s.videoDuration === "number" ? s.videoDuration : 0;
+  const videoDuration =
+    typeof s.videoDuration === "number" ? s.videoDuration : 0;
   if (isVideo && videoDuration > 0) {
     const speed = typeof s.speed === "number" ? s.speed : 1.0;
     const visualLen = videoDuration / speed;
     if (visualLen > 0.05) {
       if (s.loop !== false) {
-        const maxMultiples = Math.max(5, Math.min(100, Math.ceil(300 / visualLen)));
-        for (let i = 1; i <= maxMultiples; i++) videoSnapPoints.push(clip.start + i * visualLen);
+        const maxMultiples = Math.max(
+          5,
+          Math.min(100, Math.ceil(300 / visualLen)),
+        );
+        for (let i = 1; i <= maxMultiples; i++)
+          videoSnapPoints.push(clip.start + i * visualLen);
       } else {
         videoSnapPoints.push(clip.start + visualLen);
       }
@@ -227,14 +239,22 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
       if (Math.abs(newEnd - point) < SNAP_THRESHOLD) {
         newDur = point - newStart;
         const trackIdx = st.tracks.findIndex((t) => t.id === clip.trackId);
-        nextSnap.push({ time: point, type: "end", isVideoSnap: true, trackIdx: trackIdx >= 0 ? trackIdx : 0 });
+        nextSnap.push({
+          time: point,
+          type: "end",
+          isVideoSnap: true,
+          trackIdx: trackIdx >= 0 ? trackIdx : 0,
+        });
         snapped = true;
         break;
       }
     }
   }
 
-  if (!snapped && (isDraggingClip?.type === "move" || isDraggingClip?.type === "resize-start")) {
+  if (
+    !snapped &&
+    (isDraggingClip?.type === "move" || isDraggingClip?.type === "resize-start")
+  ) {
     for (const point of snapPoints) {
       if (Math.abs(newStart - point) < SNAP_THRESHOLD) {
         newStart = point;
@@ -244,11 +264,15 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
       }
     }
   }
-  if (!snapped && (isDraggingClip?.type === "move" || isDraggingClip?.type === "resize-end")) {
+  if (
+    !snapped &&
+    (isDraggingClip?.type === "move" || isDraggingClip?.type === "resize-end")
+  ) {
     const newEnd = newStart + newDur;
     for (const point of snapPoints) {
       if (Math.abs(newEnd - point) < SNAP_THRESHOLD) {
-        if (isDraggingClip?.type === "move") newStart = Math.max(0, point - newDur);
+        if (isDraggingClip?.type === "move")
+          newStart = Math.max(0, point - newDur);
         else newDur = point - newStart;
         nextSnap.push({ time: point, type: "end" });
         break;
@@ -300,7 +324,10 @@ export const handleWindowMouseUp = () => {
   st.setSnapLines([]);
   // Seal the bg lane on release. Moves reorder by drop position; tail
   // extension ripples followers; head extension trims the predecessor.
-  if (draggedId && st.clips.some((c) => c.id === draggedId && c.type === "background")) {
+  if (
+    draggedId &&
+    st.clips.some((c) => c.id === draggedId && c.type === "background")
+  ) {
     st.packBackground(
       `update:${draggedId}`,
       draggedId,
@@ -319,7 +346,9 @@ export const handleWheelNative = (e: WheelEvent) => {
   const timelineWidth = totalDuration * st.timelineZoom;
 
   const timelineArea = document.getElementById("timeline-content-area");
-  const visibleWidth = timelineArea ? timelineArea.clientWidth : window.innerWidth - 128;
+  const visibleWidth = timelineArea
+    ? timelineArea.clientWidth
+    : window.innerWidth - 128;
   const maxScrollLeft = Math.max(0, timelineWidth - visibleWidth);
 
   const totalTracksHeight = st.tracks.length * TRACK_ROW_H;
@@ -332,7 +361,10 @@ export const handleWheelNative = (e: WheelEvent) => {
     const centerTime = (st.timelineScrollLeft + visibleWidth / 2) / oldZoom;
     useEditorStore.setState({
       timelineZoom: newZoom,
-      timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, centerTime * newZoom - visibleWidth / 2)),
+      timelineScrollLeft: Math.max(
+        0,
+        Math.min(maxScrollLeft, centerTime * newZoom - visibleWidth / 2),
+      ),
     });
   } else if (e.shiftKey) {
     useEditorStore.setState({
@@ -350,8 +382,14 @@ export const handleWheelNative = (e: WheelEvent) => {
     });
   } else {
     useEditorStore.setState({
-      timelineScrollLeft: Math.max(0, Math.min(maxScrollLeft, st.timelineScrollLeft + e.deltaX)),
-      timelineScrollTop: Math.max(0, Math.min(maxScrollTop, st.timelineScrollTop + e.deltaY)),
+      timelineScrollLeft: Math.max(
+        0,
+        Math.min(maxScrollLeft, st.timelineScrollLeft + e.deltaX),
+      ),
+      timelineScrollTop: Math.max(
+        0,
+        Math.min(maxScrollTop, st.timelineScrollTop + e.deltaY),
+      ),
     });
   }
 };

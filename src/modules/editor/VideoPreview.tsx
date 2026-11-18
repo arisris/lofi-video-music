@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { designSize, recordSize, toDesignPos } from "../../shared/lib/canvas-space";
+import {
+  designSize,
+  recordSize,
+  toDesignPos,
+} from "../../shared/lib/canvas-space";
 import { runtime, bindAudioElement } from "../../shared/lib/runtime";
 import { renderFrame } from "../../engine/render-loop";
 import {
@@ -10,10 +14,7 @@ import {
   handleCanvasDragStart,
   type DragPointerEvent,
 } from "./canvas-drag";
-import {
-  applyAudioSettings,
-  clipsForAudio,
-} from "../audio/audio-engine";
+import { applyAudioSettings, clipsForAudio } from "../audio/audio-engine";
 import { getTotalDuration, useEditorStore } from "../../store/editor-store";
 import { stopRecording } from "../recorder/recorder";
 import { ClipContextMenu } from "./ClipContextMenu";
@@ -38,7 +39,11 @@ export function VideoPreview() {
   const recordingTime = useEditorStore((s) => s.recordingTime);
   const aspectRatio = useEditorStore((s) => s.aspectRatio);
   const recordResolution = useEditorStore((s) => s.recordResolution);
-  const [menu, setMenu] = useState<{ x: number; y: number; clipId: string } | null>(null);
+  const [menu, setMenu] = useState<{
+    x: number;
+    y: number;
+    clipId: string;
+  } | null>(null);
 
   // Close the menu once its clip is gone (e.g. deleted via shortcut/undo).
   useEffect(() => {
@@ -79,19 +84,27 @@ export function VideoPreview() {
     const selectedInfo = getSelectedCanvasClip();
     let hoverCursor: string | null = null;
     if (selectedInfo) {
-      const handle = findHandleAtPos(pos, selectedInfo.bbox, selectedInfo.settings);
+      const handle = findHandleAtPos(
+        pos,
+        selectedInfo.bbox,
+        selectedInfo.settings,
+      );
       if (handle === "rotate") hoverCursor = "crosshair";
-      else if (handle === "resize-tl" || handle === "resize-br") hoverCursor = "nwse-resize";
-      else if (handle === "resize-tr" || handle === "resize-bl") hoverCursor = "nesw-resize";
+      else if (handle === "resize-tl" || handle === "resize-br")
+        hoverCursor = "nwse-resize";
+      else if (handle === "resize-tr" || handle === "resize-bl")
+        hoverCursor = "nesw-resize";
     }
 
     if (hoverCursor) {
-      if (canvasCursor !== hoverCursor) useEditorStore.setState({ canvasCursor: hoverCursor });
+      if (canvasCursor !== hoverCursor)
+        useEditorStore.setState({ canvasCursor: hoverCursor });
       isHoveringClip = false;
     } else {
       const hit = findClipAtPos(pos);
       const next = hit ? "move" : null;
-      if (canvasCursor !== next) useEditorStore.setState({ canvasCursor: next });
+      if (canvasCursor !== next)
+        useEditorStore.setState({ canvasCursor: next });
       isHoveringClip = !!hit;
     }
   };
@@ -130,7 +143,10 @@ export function VideoPreview() {
         const audioEl = runtime.audioEl;
         if (activeClip && audioEl) {
           const targetSrc = activeClip.settings.audioUrl as string | undefined;
-          if (targetSrc && toAbsoluteUrl(audioEl.src) !== toAbsoluteUrl(targetSrc)) {
+          if (
+            targetSrc &&
+            toAbsoluteUrl(audioEl.src) !== toAbsoluteUrl(targetSrc)
+          ) {
             audioEl.src = targetSrc;
             applyAudioSettings(activeClip);
             const onLoaded = () => {
@@ -138,19 +154,28 @@ export function VideoPreview() {
                 useEditorStore.getState().currentTime -
                 activeClip.start +
                 ((activeClip.settings.startOffset as number) || 0);
-              if (t < ((activeClip.settings.audioDuration as number) || activeClip.duration)) {
+              if (
+                t <
+                ((activeClip.settings.audioDuration as number) ||
+                  activeClip.duration)
+              ) {
                 try {
                   audioEl.currentTime = t;
-                } catch { /* noop */ }
+                } catch {
+                  /* noop */
+                }
                 applyAudioSettings(activeClip);
                 if (st.playing) void audioEl.play().catch(() => {});
               }
             };
-            audioEl.addEventListener("loadedmetadata", onLoaded, { once: true });
+            audioEl.addEventListener("loadedmetadata", onLoaded, {
+              once: true,
+            });
             st.setTime(st.currentTime + dt);
           } else if (!audioEl.paused) {
             const localTime =
-              audioEl.currentTime - ((activeClip.settings.startOffset as number) || 0);
+              audioEl.currentTime -
+              ((activeClip.settings.startOffset as number) || 0);
             st.setTime(activeClip.start + localTime);
           } else {
             st.setTime(st.currentTime + dt);
@@ -236,7 +261,12 @@ export function VideoPreview() {
       </div>
 
       {menu && (
-        <ClipContextMenu x={menu.x} y={menu.y} clipId={menu.clipId} onClose={() => setMenu(null)} />
+        <ClipContextMenu
+          x={menu.x}
+          y={menu.y}
+          clipId={menu.clipId}
+          onClose={() => setMenu(null)}
+        />
       )}
     </div>
   );

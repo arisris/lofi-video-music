@@ -18,7 +18,11 @@ import { AnimationSettings, TransformSettings } from "./TextSettings";
 
 const SHAPE_TYPES: { id: string; label: string; icon: string }[] = [
   { id: "rectangle", label: "Rect", icon: "icon-[ri--rectangle-line]" },
-  { id: "circle", label: "Circle", icon: "icon-[ri--checkbox-blank-circle-line]" },
+  {
+    id: "circle",
+    label: "Circle",
+    icon: "icon-[ri--checkbox-blank-circle-line]",
+  },
   { id: "triangle", label: "Triangle", icon: "icon-[ri--triangle-line]" },
   { id: "star", label: "Star", icon: "icon-[ri--star-line]" },
   { id: "polygon", label: "Polygon", icon: "icon-[ri--hexagon-line]" },
@@ -44,15 +48,18 @@ function IconPreviewInline({ iconName }: { iconName: string }) {
     };
   }, [iconName]);
 
-  if (!svgText) return <i className="icon-[ri--image-line] h-4 w-4 text-neutral-600" />;
+  if (!svgText)
+    return <i className="icon-[ri--image-line] h-4 w-4 text-neutral-600" />;
   return <span dangerouslySetInnerHTML={{ __html: svgText }} />;
 }
 
 export function ShapeSettingsView({ clipId }: { clipId: string }) {
   const { values, set } = useClipSettings(clipId);
   const isThumbnailMode = useEditorStore((s) => s.route) === "/image";
-  const shapeType = typeof values.shapeType === "string" ? values.shapeType : "rectangle";
-  const fillType = typeof values.fillType === "string" ? values.fillType : "solid";
+  const shapeType =
+    typeof values.shapeType === "string" ? values.shapeType : "rectangle";
+  const fillType =
+    typeof values.fillType === "string" ? values.fillType : "solid";
   const opacity = typeof values.opacity === "number" ? values.opacity : 1.0;
 
   return (
@@ -61,7 +68,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
         <ChoiceGrid
           tone="card"
           columns={4}
-          options={SHAPE_TYPES.map((shape) => ({ value: shape.id, label: shape.label, icon: shape.icon }))}
+          options={SHAPE_TYPES.map((shape) => ({
+            value: shape.id,
+            label: shape.label,
+            icon: shape.icon,
+          }))}
           value={shapeType}
           onChange={(v) => set("shapeType", v)}
         />
@@ -71,7 +82,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
             <FieldLabel>Corner Radius</FieldLabel>
             <ScrubInput
               label="R"
-              value={typeof values.cornerRadius === "number" ? values.cornerRadius : 0}
+              value={
+                typeof values.cornerRadius === "number"
+                  ? values.cornerRadius
+                  : 0
+              }
               min={0}
               max={100}
               onUpdate={(val) => set("cornerRadius", val)}
@@ -85,7 +100,9 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
               <FieldLabel>Spikes</FieldLabel>
               <ScrubInput
                 label="S"
-                value={typeof values.starSpikes === "number" ? values.starSpikes : 5}
+                value={
+                  typeof values.starSpikes === "number" ? values.starSpikes : 5
+                }
                 min={3}
                 max={30}
                 onUpdate={(val) => set("starSpikes", Math.round(val))}
@@ -95,7 +112,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
               <FieldLabel>Inner Ratio</FieldLabel>
               <ScrubInput
                 label="IR"
-                value={typeof values.starInnerRatio === "number" ? values.starInnerRatio : 0.4}
+                value={
+                  typeof values.starInnerRatio === "number"
+                    ? values.starInnerRatio
+                    : 0.4
+                }
                 step={0.05}
                 min={0.1}
                 max={0.9}
@@ -110,7 +131,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
             <FieldLabel>Sides</FieldLabel>
             <ScrubInput
               label="S"
-              value={typeof values.polygonSides === "number" ? values.polygonSides : 6}
+              value={
+                typeof values.polygonSides === "number"
+                  ? values.polygonSides
+                  : 6
+              }
               min={3}
               max={20}
               onUpdate={(val) => set("polygonSides", Math.round(val))}
@@ -125,7 +150,9 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
               <input
                 type="text"
                 className="flex-1 rounded border border-neutral-700/60 bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-200 outline-none focus:border-blue-500"
-                defaultValue={typeof values.iconName === "string" ? values.iconName : ""}
+                defaultValue={
+                  typeof values.iconName === "string" ? values.iconName : ""
+                }
                 key={typeof values.iconName === "string" ? values.iconName : ""}
                 onBlur={(e) => set("iconName", e.target.value)}
               />
@@ -135,7 +162,9 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
                 ) : null}
               </div>
             </div>
-            <p className="text-[9px] text-neutral-500">Format: prefix:name (e.g. ri:music-2-fill or mdi:laptop)</p>
+            <p className="text-[9px] text-neutral-500">
+              Format: prefix:name (e.g. ri:music-2-fill or mdi:laptop)
+            </p>
           </div>
         )}
       </Card>
@@ -157,14 +186,20 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
       >
         <ColorInput
           label={fillType === "gradient" ? "Start Color" : "Fill Color"}
-          value={typeof values.fillColor === "string" ? values.fillColor : "#3b82f6"}
+          value={
+            typeof values.fillColor === "string" ? values.fillColor : "#3b82f6"
+          }
           onUpdate={(val) => set("fillColor", val)}
         />
 
         {fillType === "gradient" && (
           <ColorInput
             label="End Color"
-            value={typeof values.fillColor2 === "string" ? values.fillColor2 : "#8b5cf6"}
+            value={
+              typeof values.fillColor2 === "string"
+                ? values.fillColor2
+                : "#8b5cf6"
+            }
             onUpdate={(val) => set("fillColor2", val)}
           />
         )}
@@ -200,7 +235,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
 
         <ColorInput
           label="Stroke Color"
-          value={typeof values.strokeColor === "string" ? values.strokeColor : "#ffffff"}
+          value={
+            typeof values.strokeColor === "string"
+              ? values.strokeColor
+              : "#ffffff"
+          }
           onUpdate={(val) => set("strokeColor", val)}
         />
 
@@ -208,7 +247,9 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
           <FieldLabel>Stroke Width</FieldLabel>
           <ScrubInput
             label="SW"
-            value={typeof values.strokeWidth === "number" ? values.strokeWidth : 0}
+            value={
+              typeof values.strokeWidth === "number" ? values.strokeWidth : 0
+            }
             min={0}
             max={50}
             onUpdate={(val) => set("strokeWidth", val)}
@@ -217,7 +258,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
 
         <ColorInput
           label="Shadow Color"
-          value={typeof values.shadowColor === "string" ? values.shadowColor : "rgba(0,0,0,0.5)"}
+          value={
+            typeof values.shadowColor === "string"
+              ? values.shadowColor
+              : "rgba(0,0,0,0.5)"
+          }
           onUpdate={(val) => set("shadowColor", val)}
         />
 
@@ -226,7 +271,9 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
             <FieldLabel>Blur</FieldLabel>
             <ScrubInput
               label="B"
-              value={typeof values.shadowBlur === "number" ? values.shadowBlur : 0}
+              value={
+                typeof values.shadowBlur === "number" ? values.shadowBlur : 0
+              }
               min={0}
               max={50}
               onUpdate={(val) => set("shadowBlur", val)}
@@ -236,7 +283,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
             <FieldLabel>Offset X</FieldLabel>
             <ScrubInput
               label="OX"
-              value={typeof values.shadowOffsetX === "number" ? values.shadowOffsetX : 0}
+              value={
+                typeof values.shadowOffsetX === "number"
+                  ? values.shadowOffsetX
+                  : 0
+              }
               onUpdate={(val) => set("shadowOffsetX", val)}
             />
           </div>
@@ -244,7 +295,11 @@ export function ShapeSettingsView({ clipId }: { clipId: string }) {
             <FieldLabel>Offset Y</FieldLabel>
             <ScrubInput
               label="OY"
-              value={typeof values.shadowOffsetY === "number" ? values.shadowOffsetY : 0}
+              value={
+                typeof values.shadowOffsetY === "number"
+                  ? values.shadowOffsetY
+                  : 0
+              }
               onUpdate={(val) => set("shadowOffsetY", val)}
             />
           </div>

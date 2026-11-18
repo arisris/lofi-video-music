@@ -6,7 +6,10 @@
 // box. This module adds the two things that path lacks - textures and per-style
 // programs - and stays ignorant of any individual visualizer.
 
-import { WebGLRenderer, type UniformValue } from "../../../shared/lib/webgl-renderer";
+import {
+  WebGLRenderer,
+  type UniformValue,
+} from "../../../shared/lib/webgl-renderer";
 import { runtime } from "../../../shared/lib/runtime";
 import { hexToRGB, hexToRGBA } from "../../../shared/lib/format";
 import {

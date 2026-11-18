@@ -20,32 +20,72 @@ interface ShapeEntry {
 const BASIC_SHAPES: ShapeEntry[] = [
   {
     name: "Rectangle",
-    settings: { shapeType: "rectangle", cornerRadius: 12, fillType: "solid", fillColor: "#10b981", width: 150, height: 150 },
+    settings: {
+      shapeType: "rectangle",
+      cornerRadius: 12,
+      fillType: "solid",
+      fillColor: "#10b981",
+      width: 150,
+      height: 150,
+    },
     svg: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-emerald-400" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="3" /></svg>`,
   },
   {
     name: "Circle",
-    settings: { shapeType: "circle", fillType: "solid", fillColor: "#3b82f6", width: 150, height: 150 },
+    settings: {
+      shapeType: "circle",
+      fillType: "solid",
+      fillColor: "#3b82f6",
+      width: 150,
+      height: 150,
+    },
     svg: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-blue-400" fill="currentColor"><circle cx="12" cy="12" r="9" /></svg>`,
   },
   {
     name: "Triangle",
-    settings: { shapeType: "triangle", fillType: "solid", fillColor: "#f59e0b", width: 150, height: 150 },
+    settings: {
+      shapeType: "triangle",
+      fillType: "solid",
+      fillColor: "#f59e0b",
+      width: 150,
+      height: 150,
+    },
     svg: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-amber-400" fill="currentColor"><polygon points="12,3 21,20 3,20" /></svg>`,
   },
   {
     name: "Hexagon",
-    settings: { shapeType: "polygon", polygonSides: 6, fillType: "solid", fillColor: "#8b5cf6", width: 150, height: 150 },
+    settings: {
+      shapeType: "polygon",
+      polygonSides: 6,
+      fillType: "solid",
+      fillColor: "#8b5cf6",
+      width: 150,
+      height: 150,
+    },
     svg: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-violet-400" fill="currentColor"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7" /></svg>`,
   },
   {
     name: "Star",
-    settings: { shapeType: "star", starSpikes: 5, starInnerRatio: 0.4, fillType: "solid", fillColor: "#ec4899", width: 150, height: 150 },
+    settings: {
+      shapeType: "star",
+      starSpikes: 5,
+      starInnerRatio: 0.4,
+      fillType: "solid",
+      fillColor: "#ec4899",
+      width: 150,
+      height: 150,
+    },
     svg: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-pink-400" fill="currentColor"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" /></svg>`,
   },
   {
     name: "Heart",
-    settings: { shapeType: "heart", fillType: "solid", fillColor: "#ef4444", width: 150, height: 150 },
+    settings: {
+      shapeType: "heart",
+      fillType: "solid",
+      fillColor: "#ef4444",
+      width: 150,
+      height: 150,
+    },
     svg: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-red-400" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>`,
   },
 ];
@@ -54,36 +94,120 @@ const PREMIUM_SHAPES: ShapeEntry[] = [
   {
     name: "Neon Ring",
     desc: "Glowing cyan circle overlay",
-    settings: { shapeType: "circle", fillType: "solid", fillColor: "transparent", strokeColor: "#06b6d4", strokeWidth: 6, shadowColor: "#06b6d4", shadowBlur: 15, shadowOffsetX: 0, shadowOffsetY: 0, width: 180, height: 180 },
-    svgStyle: "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
+    settings: {
+      shapeType: "circle",
+      fillType: "solid",
+      fillColor: "transparent",
+      strokeColor: "#06b6d4",
+      strokeWidth: 6,
+      shadowColor: "#06b6d4",
+      shadowBlur: 15,
+      shadowOffsetX: 0,
+      shadowOffsetY: 0,
+      width: 180,
+      height: 180,
+    },
+    svgStyle:
+      "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 text-cyan-400 filter drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="8" /></svg>`,
   },
   {
     name: "Glass Card",
     desc: "Frosted glassmorphic card",
-    settings: { shapeType: "rectangle", cornerRadius: 16, fillType: "solid", fillColor: "rgba(255, 255, 255, 0.12)", strokeColor: "rgba(255, 255, 255, 0.25)", strokeWidth: 1.5, shadowColor: "rgba(0, 0, 0, 0.35)", shadowBlur: 16, shadowOffsetX: 0, shadowOffsetY: 6, width: 240, height: 140 },
-    svgStyle: "background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(4px); border-color: rgba(255,255,255,0.15);",
+    settings: {
+      shapeType: "rectangle",
+      cornerRadius: 16,
+      fillType: "solid",
+      fillColor: "rgba(255, 255, 255, 0.12)",
+      strokeColor: "rgba(255, 255, 255, 0.25)",
+      strokeWidth: 1.5,
+      shadowColor: "rgba(0, 0, 0, 0.35)",
+      shadowBlur: 16,
+      shadowOffsetX: 0,
+      shadowOffsetY: 6,
+      width: 240,
+      height: 140,
+    },
+    svgStyle:
+      "background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(4px); border-color: rgba(255,255,255,0.15);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 text-white/70" fill="currentColor" stroke="rgba(255,255,255,0.4)" stroke-width="1"><rect x="3" y="5" width="18" height="14" rx="3" /></svg>`,
   },
   {
     name: "Cosmic Heart",
     desc: "Pulsing gradient heart shape",
-    settings: { shapeType: "heart", fillType: "gradient", fillColor: "#a855f7", fillColor2: "#ec4899", shadowColor: "#ec4899", shadowBlur: 12, shadowOffsetX: 0, shadowOffsetY: 0, width: 150, height: 150, animations: { inType: "zoom-in", outType: "zoom-out", type: "pulse", audioReactive: true } },
-    svgStyle: "background: linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(236,72,153,0.15) 100%); border-color: rgba(236,72,153,0.3);",
+    settings: {
+      shapeType: "heart",
+      fillType: "gradient",
+      fillColor: "#a855f7",
+      fillColor2: "#ec4899",
+      shadowColor: "#ec4899",
+      shadowBlur: 12,
+      shadowOffsetX: 0,
+      shadowOffsetY: 0,
+      width: 150,
+      height: 150,
+      animations: {
+        inType: "zoom-in",
+        outType: "zoom-out",
+        type: "pulse",
+        audioReactive: true,
+      },
+    },
+    svgStyle:
+      "background: linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(236,72,153,0.15) 100%); border-color: rgba(236,72,153,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 filter drop-shadow-[0_0_6px_rgba(236,72,153,0.5)]"><defs><linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7" /><stop offset="100%" stop-color="#ec4899" /></linearGradient></defs><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#heartGrad)" /></svg>`,
   },
   {
     name: "Sunburst Star",
     desc: "8-point glowing star preset",
-    settings: { shapeType: "star", starSpikes: 8, starInnerRatio: 0.45, fillType: "gradient", fillColor: "#f97316", fillColor2: "#eab308", shadowColor: "#f97316", shadowBlur: 10, shadowOffsetX: 0, shadowOffsetY: 0, width: 160, height: 160, animations: { inType: "fade", outType: "fade", type: "float", audioReactive: false } },
-    svgStyle: "background: linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(234,179,8,0.15) 100%); border-color: rgba(234,179,8,0.3);",
+    settings: {
+      shapeType: "star",
+      starSpikes: 8,
+      starInnerRatio: 0.45,
+      fillType: "gradient",
+      fillColor: "#f97316",
+      fillColor2: "#eab308",
+      shadowColor: "#f97316",
+      shadowBlur: 10,
+      shadowOffsetX: 0,
+      shadowOffsetY: 0,
+      width: 160,
+      height: 160,
+      animations: {
+        inType: "fade",
+        outType: "fade",
+        type: "float",
+        audioReactive: false,
+      },
+    },
+    svgStyle:
+      "background: linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(234,179,8,0.15) 100%); border-color: rgba(234,179,8,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 filter drop-shadow-[0_0_6px_rgba(249,115,22,0.5)]"><defs><linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f97316" /><stop offset="100%" stop-color="#eab308" /></linearGradient></defs><polygon points="12,2 14,8 20,8 15,12 17,18 12,14 7,18 9,12 4,8 10,8" fill="url(#starGrad)" /></svg>`,
   },
   {
     name: "Cyber Prism",
     desc: "Swinging cyan triangle wireframe",
-    settings: { shapeType: "triangle", fillType: "solid", fillColor: "transparent", strokeColor: "#06b6d4", strokeWidth: 4, shadowColor: "#06b6d4", shadowBlur: 12, shadowOffsetX: 0, shadowOffsetY: 0, width: 160, height: 160, animations: { inType: "slide-down", outType: "fade", type: "swing", audioReactive: true } },
-    svgStyle: "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
+    settings: {
+      shapeType: "triangle",
+      fillType: "solid",
+      fillColor: "transparent",
+      strokeColor: "#06b6d4",
+      strokeWidth: 4,
+      shadowColor: "#06b6d4",
+      shadowBlur: 12,
+      shadowOffsetX: 0,
+      shadowOffsetY: 0,
+      width: 160,
+      height: 160,
+      animations: {
+        inType: "slide-down",
+        outType: "fade",
+        type: "swing",
+        audioReactive: true,
+      },
+    },
+    svgStyle:
+      "background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0) 70%); border-color: rgba(6,182,212,0.3);",
     svg: `<svg viewBox="0 0 24 24" class="w-12 h-12 text-cyan-400 filter drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,4 20,19 4,19" /></svg>`,
   },
 ];
@@ -181,7 +305,9 @@ export const ShapePanel = () => {
       })
       .catch((err: unknown) => {
         console.error("Database population failed:", err);
-        alert("Failed to initialize offline database. Please check console logs.");
+        alert(
+          "Failed to initialize offline database. Please check console logs.",
+        );
         setIsInitializing(false);
       });
   };
@@ -243,9 +369,7 @@ export const ShapePanel = () => {
         {activeTab === "shapes" ? (
           <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-1">
             <div className="space-y-3">
-              <SectionTitle className="">
-                Add Basic Shape
-            </SectionTitle>
+              <SectionTitle className="">Add Basic Shape</SectionTitle>
               <div className="grid grid-cols-3 gap-2">
                 {BASIC_SHAPES.map((shape) => (
                   <button
@@ -263,9 +387,7 @@ export const ShapePanel = () => {
             </div>
 
             <div className="space-y-3">
-              <SectionTitle className="">
-                Premium Presets
-            </SectionTitle>
+              <SectionTitle className="">Premium Presets</SectionTitle>
               <div className="flex flex-col gap-3">
                 {PREMIUM_SHAPES.map((tmpl) => (
                   <button
@@ -364,15 +486,11 @@ export const ShapePanel = () => {
                     ))}
                   </div>
                 ) : (
-                  <EmptyState>
-                    No icons found matching your query.
-                  </EmptyState>
+                  <EmptyState>No icons found matching your query.</EmptyState>
                 )
               ) : (
                 <div className="space-y-4">
-                  <SectionTitle className="">
-                    Popular Lofi Icons
-            </SectionTitle>
+                  <SectionTitle className="">Popular Lofi Icons</SectionTitle>
                   <div className="grid grid-cols-4 gap-2">
                     {CURATED_ICONS.map((id) => (
                       <button

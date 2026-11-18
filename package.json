@@ -4,14 +4,13 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "bun run build && vite preview",
-    "deploy": "bun run build",
+    "preview": "vite build && vite preview",
     "typecheck": "bunx tsc --noEmit",
     "check:tailwind": "bun scripts/check-tailwind.ts",
     "fix:tailwind": "bun scripts/check-tailwind.ts --fix",
     "validate:project": "bun scripts/validate-project.ts",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "bun fmt",
+    "format:check": "bun fmt --check",
     "clean": "rm -rf node_modules && bun install"
   },
   "dependencies": {
@@ -31,9 +30,6 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "prettier": "^3.9.10",
-    "prettier-plugin-tailwindcss": "^0.8.1",
-    "prettier-plugin-tailwindcss-canonical-classes": "^0.1.6",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.2.4",
     "typescript": "^7.0.2",
