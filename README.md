@@ -60,21 +60,9 @@ rail) → Stock API Keys, paste each key, and Test it:
 - Pexels: https://www.pexels.com/api/
 - Pixabay: https://pixabay.com/api/docs/
 
-Keys are stored in `localStorage` (this browser only) and never leave the
-device except on direct provider requests. Typing a key saves it
-automatically; clearing the field removes it. Without keys, uploads and
-emoji still work; only stock search shows a missing-key notice with a link
-to Settings. Changing a key drops cached results fetched with the old one.
-
-Repeat identical searches cost zero network within a session: responses go
-through a shared two-tier request cache (`src/shared/lib/request-cache.ts`)
-with in-memory L1 plus `sessionStorage` L2 (10-minute idle TTL, true LRU,
-100 in-memory entries, 1 MB per-entry cap, in-flight dedupe; failures are
-never cached). Provider fetches use `cache: "no-store"`, so nothing lands in
-the browser disk cache — results survive a page reload but never a closed
-tab or browser restart. `sessionStorage` has its own quota, separate from
-`localStorage`; under quota pressure the least-recently-used entries are
-evicted first.
+Keys stay in `localStorage` (this browser only); typing saves, clearing the
+field removes. Repeat searches are cached for the session (survives reload,
+cleared on restart); changing a key drops the cache.
 
 ## Requirements
 
