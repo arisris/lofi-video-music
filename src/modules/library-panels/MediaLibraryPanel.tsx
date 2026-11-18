@@ -8,6 +8,8 @@ import {
 } from "../media/media-helper";
 import {
   deleteDownload,
+  formatBytes,
+  getDownloadsUsage,
   hydrateDownloads,
   putDownload,
 } from "../media/download-cache";
@@ -366,6 +368,8 @@ interface PanelState {
   pexelsVisibleCount: number;
   hasMorePexels: boolean;
   showPexelsFilters: boolean;
+  storageBytes: number | null;
+  storageQuota: number | null;
   isSearchingPexels: boolean;
   pexelsError: string | null;
   emojiQuery: string;
@@ -402,6 +406,8 @@ const createPanelState = (): PanelState => ({
   pexelsVisibleCount: 10,
   hasMorePexels: true,
   showPexelsFilters: false,
+  storageBytes: null,
+  storageQuota: null,
   isSearchingPexels: false,
   pexelsError: null,
   emojiQuery: "",
@@ -646,6 +652,7 @@ export const MediaLibraryPanel = () => {
                 m.id === asset.id ? { ...m, persisted: true } : m,
               ),
             }));
+            refreshStorage();
             forceUpdate();
           } catch {
             apply({
@@ -754,8 +761,28 @@ export const MediaLibraryPanel = () => {
     );
   };
 
+  const refreshStorage = () => {
+    void (async () => {
+      try {
+        const { bytes } = await getDownloadsUsage();
+        let quota: number | null = null;
+        try {
+          const est = await navigator.storage?.estimate?.();
+          if (typeof est?.quota === "number" && Number.isFinite(est.quota)) {
+            quota = est.quota;
+          }
+        } catch {
+          /* estimate unavailable — show bytes only */
+        }
+        apply({ storageBytes: bytes, storageQuota: quota });
+      } catch {
+        /* keep previous values on failure */
+      }
+    })();
+  };
+
   const handleDownloadDelete = (id: string) => {
-    void deleteDownload(id);
+    void deleteDownload(id).finally(refreshStorage);
     useEditorStore.getState().removeMediaItem(id);
     forceUpdate();
   };
@@ -795,6 +822,7 @@ export const MediaLibraryPanel = () => {
         });
       }
       apply({ downloadsReady: true });
+      refreshStorage();
     });
     if (
       stRef.current.activeSubTab === "pexels" &&
@@ -858,6 +886,12 @@ export const MediaLibraryPanel = () => {
   const visiblePexels = pexelsItems.slice(0, st.pexelsVisibleCount);
   const visiblePixabay = st.pixabayItems.slice(0, st.pixabayVisibleCount);
   const isVideoPixabay = st.pixabayMediaType === "video";
+  const storagePercent =
+    st.storageBytes != null &&
+    st.storageQuota != null &&
+    st.storageQuota > 0
+      ? Math.min(100, (st.storageBytes / st.storageQuota) * 100)
+      : null;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-neutral-900/50 p-4">
@@ -1430,6 +1464,43 @@ export const MediaLibraryPanel = () => {
           </div>
         )}
       </div>
+      {st.activeSubTab === "uploads" && (
+        <div
+          className="mt-3 shrink-0 border-t border-neutral-800 pt-3"
+          role="status"
+          aria-label="Download storage usage"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-[9px] font-bold tracking-wider text-neutral-500 uppercase">
+              <i className="icon-[ri--database-2-line] h-3.5 w-3.5" />
+              Storage
+            </span>
+            <span className="font-mono text-[9px] text-neutral-400">
+              {st.storageBytes == null
+                ? "Calculating…"
+                : `${formatBytes(st.storageBytes)}${st.storageQuota ? ` of ${formatBytes(st.storageQuota)}` : ""} used`}
+            </span>
+          </div>
+          {storagePercent != null && (
+            <div
+              className="mt-2 h-1 overflow-hidden rounded-full bg-neutral-800"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(storagePercent)}
+              aria-label="Downloaded storage quota usage"
+            >
+              <div
+                className="h-full rounded-full bg-blue-600 transition-all"
+                style={{ width: `${storagePercent}%` }}
+              />
+            </div>
+          )}
+          <p className="mt-1.5 text-[9px] text-neutral-600">
+            {`${downloads.length} downloaded • ${localFiles.length} local files`}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
