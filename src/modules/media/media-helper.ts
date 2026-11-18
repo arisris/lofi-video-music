@@ -12,6 +12,8 @@ export interface MediaItem {
   duration: number;
   width?: number;
   height?: number;
+  /** True when the bytes are persisted in IndexedDB (Downloaded section). */
+  persisted?: boolean;
   element?: HTMLImageElement | null;
   elements?: HTMLVideoElement[] | null;
   gifFrames?: any[];

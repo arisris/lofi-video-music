@@ -6,6 +6,11 @@ import {
   processMediaUrl,
   type MediaItem,
 } from "../media/media-helper";
+import {
+  deleteDownload,
+  hydrateDownloads,
+  putDownload,
+} from "../media/download-cache";
 import { useEditorStore } from "../../store/editor-store";
 import { addClipOfType } from "../dock/clip-actions";
 import { getDesignSize } from "../../shared/lib/canvas-space";
@@ -223,6 +228,84 @@ function StockLoadMore({
   );
 }
 
+/** Shared library card (local files + downloads). */
+function LibraryMediaCard({
+  asset,
+  onBackground,
+  onOverlay,
+  onDelete,
+}: {
+  asset: MediaItem;
+  onBackground: () => void;
+  onOverlay: () => void;
+  onDelete?: () => void;
+}) {
+  const width = asset.width || (asset.type === "video" ? 16 : 1);
+  const height = asset.height || (asset.type === "video" ? 9 : 1);
+  return (
+    <div
+      className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950"
+      style={{ aspectRatio: `${width} / ${height}` }}
+    >
+      {asset.thumbnail ? (
+        <img
+          src={asset.thumbnail}
+          className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-300 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-neutral-900">
+          <i
+            className={
+              asset.type === "video"
+                ? "icon-[ri--film-line] h-6 w-6 text-neutral-700"
+                : "icon-[ri--image-line] h-6 w-6 text-neutral-700"
+            }
+          />
+        </div>
+      )}
+      {onDelete && (
+        <button
+          title="Delete download"
+          className="absolute top-1.5 left-1.5 z-20 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-black/70 text-neutral-300 transition-colors hover:bg-red-600 hover:text-white"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+        >
+          <i className="icon-[ri--close-line] h-3.5 w-3.5" />
+        </button>
+      )}
+      <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1">
+        {onDelete && !asset.persisted && (
+          <span className="rounded bg-amber-600/80 px-1.5 py-0.5 text-[8px] font-bold tracking-wide text-white uppercase">
+            Session only
+          </span>
+        )}
+        {asset.type === "video" && (
+          <span className="rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] font-bold text-neutral-300">
+            {`${Math.round(asset.duration)}s`}
+          </span>
+        )}
+      </div>
+      {asset.type === "video" && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity group-hover:opacity-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm">
+            <i className="icon-[ri--play-fill] h-4.5 w-4.5 text-neutral-200" />
+          </div>
+        </div>
+      )}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex min-h-10 flex-col justify-end bg-linear-to-t from-black/80 via-black/40 to-transparent p-2">
+        <span className="truncate pr-1 text-[9px] font-bold text-neutral-200">
+          {asset.name}
+        </span>
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-neutral-950/80 opacity-0 transition-opacity group-hover:opacity-100">
+        <TimelineAddButtons onBackground={onBackground} onOverlay={onOverlay} />
+      </div>
+    </div>
+  );
+}
+
 interface PexelsPhoto {
   id: number;
   width: number;
@@ -271,6 +354,8 @@ interface PanelState {
   activeUploadsCount: number;
   totalUploadsCount: number;
   loadingAssetId: string | null;
+  downloadWarning: string | null;
+  downloadsReady: boolean;
   pexelsQuery: string;
   pexelsVideos: PexelsVideo[];
   pexelsPhotos: PexelsPhoto[];
@@ -305,6 +390,8 @@ const createPanelState = (): PanelState => ({
   activeUploadsCount: 0,
   totalUploadsCount: 0,
   loadingAssetId: null,
+  downloadWarning: null,
+  downloadsReady: false,
   pexelsQuery: "Rain forest",
   pexelsVideos: [],
   pexelsPhotos: [],
@@ -530,6 +617,44 @@ export const MediaLibraryPanel = () => {
       apply({ loadingAssetId: null });
       addAssetToTimeline(processed, asType);
       forceUpdate();
+      // Persist provider downloads in IndexedDB for cross-session reuse.
+      // Best effort: on failure the item stays usable for this session only.
+      if (
+        (asset.source === "pexels" || asset.source === "pixabay") &&
+        processed.url.startsWith("blob:")
+      ) {
+        void (async () => {
+          try {
+            const blob = await (await fetch(processed.url)).blob();
+            if (!blob || blob.size === 0) throw new Error("empty bytes");
+            await putDownload({
+              id: asset.id,
+              name: asset.name,
+              type: processed.type,
+              source: asset.source as string,
+              mime: blob.type,
+              blob,
+              thumbnail: processed.thumbnail,
+              duration: processed.duration,
+              width: processed.width ?? 0,
+              height: processed.height ?? 0,
+              remoteUrl: asset.url,
+              createdAt: Date.now(),
+            });
+            useEditorStore.setState((s) => ({
+              mediaPool: s.mediaPool.map((m) =>
+                m.id === asset.id ? { ...m, persisted: true } : m,
+              ),
+            }));
+            forceUpdate();
+          } catch {
+            apply({
+              downloadWarning:
+                "Could not save the download locally (storage full or blocked). It remains available for this session only.",
+            });
+          }
+        })();
+      }
     });
   };
 
@@ -629,6 +754,12 @@ export const MediaLibraryPanel = () => {
     );
   };
 
+  const handleDownloadDelete = (id: string) => {
+    void deleteDownload(id);
+    useEditorStore.getState().removeMediaItem(id);
+    forceUpdate();
+  };
+
   const triggerUpload = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -654,6 +785,17 @@ export const MediaLibraryPanel = () => {
   };
 
   useEffect(() => {
+    // Restore persisted provider downloads (fresh blob: URLs per session).
+    hydrateDownloads().then((items) => {
+      if (items.length > 0) {
+        useEditorStore.setState((s) => {
+          const ids = new Set(s.mediaPool.map((m) => m.id));
+          const fresh = items.filter((m) => !ids.has(m.id));
+          return fresh.length > 0 ? { mediaPool: [...s.mediaPool, ...fresh] } : s;
+        });
+      }
+      apply({ downloadsReady: true });
+    });
     if (
       stRef.current.activeSubTab === "pexels" &&
       stRef.current.pexelsVideos.length === 0 &&
@@ -677,10 +819,12 @@ export const MediaLibraryPanel = () => {
 
   const st = stRef.current;
   useEditorStore((s) => s.selectedClipId);
-  const uploads = useEditorStore((s) => s.mediaPool).filter(
-    (m) =>
-      (m.source === "upload" || m.source === "pexels" || m.source === "pixabay") &&
-      m.type !== "audio",
+  const pool = useEditorStore((s) => s.mediaPool);
+  const localFiles = pool.filter((m) => m.source === "upload" && m.type !== "audio");
+  // Provider downloads (persisted across sessions via IndexedDB, or
+  // session-only when the local save failed).
+  const downloads = pool.filter(
+    (m) => (m.source === "pexels" || m.source === "pixabay") && m.type !== "audio",
   );
 
   const emojis = emojisData as { categories: Array<{ id: string; items: EmojiItem[] }> };
@@ -739,7 +883,7 @@ export const MediaLibraryPanel = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <SectionTitle className="">
-                Uploaded &amp; Imported
+                Local Files
             </SectionTitle>
               <button
                 className="flex cursor-pointer items-center gap-1 rounded-md bg-blue-600 px-2 py-1 text-[9px] font-bold text-white transition-colors hover:bg-blue-500"
@@ -760,68 +904,74 @@ export const MediaLibraryPanel = () => {
               </div>
             )}
 
-            {uploads.length === 0 && st.activeUploadsCount === 0 && (
+            {localFiles.length === 0 && st.activeUploadsCount === 0 && (
               <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
                 <i className="icon-[ri--folder-upload-line] h-8 w-8 text-neutral-700" />
                 <p className="text-xs font-medium text-neutral-500">
-                  No uploaded or imported assets yet.
+                  No local files uploaded yet.
                 </p>
               </div>
             )}
 
-            {uploads.length > 0 && (
+            {localFiles.length > 0 && (
               <div className="grid grid-cols-2 items-start gap-3">
-                {uploads.map((asset: MediaItem) => {
-                  const width = asset.width || (asset.type === "video" ? 16 : 1);
-                  const height = asset.height || (asset.type === "video" ? 9 : 1);
-                  return (
-                    <div
-                      key={asset.id}
-                      className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950"
-                      style={{ aspectRatio: `${width} / ${height}` }}
-                    >
-                      {asset.thumbnail ? (
-                        <img
-                          src={asset.thumbnail}
-                          className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-neutral-900">
-                          <i
-                            className={
-                              asset.type === "video"
-                                ? "icon-[ri--film-line] h-6 w-6 text-neutral-700"
-                                : "icon-[ri--image-line] h-6 w-6 text-neutral-700"
-                            }
-                          />
-                        </div>
-                      )}
-                      {asset.type === "video" && (
-                        <span className="absolute top-2 right-2 z-10 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] font-bold text-neutral-300">
-                          {`${Math.round(asset.duration)}s`}
-                        </span>
-                      )}
-                      {asset.type === "video" && (
-                        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity group-hover:opacity-0">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm">
-                            <i className="icon-[ri--play-fill] h-4.5 w-4.5 text-neutral-200" />
-                          </div>
-                        </div>
-                      )}
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex min-h-10 flex-col justify-end bg-linear-to-t from-black/80 via-black/40 to-transparent p-2">
-                        <span className="truncate pr-1 text-[9px] font-bold text-neutral-200">
-                          {asset.name}
-                        </span>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-neutral-950/80 opacity-0 transition-opacity group-hover:opacity-100">
-                        <TimelineAddButtons
-                          onBackground={() => addAssetToTimeline(asset, "background")}
-                          onOverlay={() => addAssetToTimeline(asset, "overlay")}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                {localFiles.map((asset: MediaItem) => (
+                  <LibraryMediaCard
+                    key={asset.id}
+                    asset={asset}
+                    onBackground={() => addAssetToTimeline(asset, "background")}
+                    onOverlay={() => addAssetToTimeline(asset, "overlay")}
+                  />
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2">
+              <SectionTitle className="">Downloaded</SectionTitle>
+              {!st.downloadsReady && downloads.length === 0 && (
+                <span className="text-[9px] font-medium text-neutral-600">
+                  Loading downloads...
+                </span>
+              )}
+            </div>
+
+            {st.downloadWarning && (
+              <div className="flex items-start gap-2 rounded-xl border border-amber-900/40 bg-amber-950/20 p-3">
+                <i className="icon-[ri--alert-line] mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                <p className="flex-1 text-[10px] leading-relaxed text-amber-200/90">
+                  {st.downloadWarning}
+                </p>
+                <button
+                  title="Dismiss"
+                  className="cursor-pointer text-amber-400/70 transition-colors hover:text-amber-200"
+                  onClick={() => apply({ downloadWarning: null })}
+                >
+                  <i className="icon-[ri--close-line] h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+
+            {st.downloadsReady && downloads.length === 0 && (
+              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-800 p-8 text-center">
+                <i className="icon-[ri--download-cloud-2-line] h-8 w-8 text-neutral-700" />
+                <p className="text-xs font-medium text-neutral-500">
+                  No downloads yet. Add photos or videos from Pixabay or Pexels and they
+                  will be saved here for every session.
+                </p>
+              </div>
+            )}
+
+            {downloads.length > 0 && (
+              <div className="grid grid-cols-2 items-start gap-3">
+                {downloads.map((asset: MediaItem) => (
+                  <LibraryMediaCard
+                    key={asset.id}
+                    asset={asset}
+                    onBackground={() => addAssetToTimeline(asset, "background")}
+                    onOverlay={() => addAssetToTimeline(asset, "overlay")}
+                    onDelete={() => handleDownloadDelete(asset.id)}
+                  />
+                ))}
               </div>
             )}
           </div>
