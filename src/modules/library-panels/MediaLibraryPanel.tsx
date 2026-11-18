@@ -8,6 +8,8 @@ import {
 } from "../media/media-helper";
 import { useEditorStore } from "../../store/editor-store";
 import { addClipOfType } from "../dock/clip-actions";
+import { getDesignSize } from "../../shared/lib/canvas-space";
+import { buildPresetKeyframes } from "../../shared/lib/motion-keyframes";
 import emojisData from "../../data/animated-emojis.json";
 
 type SubTab = "uploads" | "pixabay" | "pexels" | "emoji";
@@ -475,6 +477,13 @@ export const MediaLibraryPanel = () => {
 
   const addAssetToTimeline = (asset: MediaItem, asType: string) => {
     if (asType === "background") {
+      // New backgrounds start from an editable wander template, not an
+      // opaque procedural preset — every point is tweakable in the panel.
+      const { w, h } = getDesignSize();
+      const wander =
+        asset.type === "video"
+          ? []
+          : buildPresetKeyframes("random", 60, w, h);
       addClipOfType("background", {
         mediaId: asset.id,
         mediaType: asset.type,
@@ -485,7 +494,8 @@ export const MediaLibraryPanel = () => {
         videoDuration: asset.duration,
         fileName: asset.name,
         thumbnail: asset.thumbnail,
-        currentEffect: "random",
+        motionPreset: wander.length > 0 ? "random" : "none",
+        motionKeyframes: wander,
         style: "media",
       });
     } else {

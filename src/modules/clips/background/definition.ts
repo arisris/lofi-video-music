@@ -55,7 +55,7 @@ function drawColorBase(
   ctx.fillRect(0, 0, w, h);
 }
 
-// Background: color/gradient + image/gif/video (Ken Burns for images) —
+// Background: color/gradient + image/gif/video (keyframed motion) —
 // media settings are filled via MediaPanel.
 export const backgroundClip: ClipDefinition = {
   type: "background",
@@ -72,7 +72,10 @@ export const backgroundClip: ClipDefinition = {
     gifFrames: null,
     gifDuration: 0,
     videoDuration: 0,
-    currentEffect: "none",
+    /** Unified motion: preset id that generated the keyframes ("custom" / "none" included). */
+    motionPreset: null,
+    /** Explicit motion control points; 2+ drive the frame, else static. */
+    motionKeyframes: null,
     opacity: 1,
     speed: 1,
     loop: true,
@@ -90,8 +93,8 @@ export const backgroundClip: ClipDefinition = {
       options: ["solid", "gradient", "media"],
     },
     {
-      key: "currentEffect",
-      label: "Motion",
+      key: "motionPreset",
+      label: "Motion Preset",
       kind: "select",
       options: [
         "none",

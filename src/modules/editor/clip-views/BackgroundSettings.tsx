@@ -1,8 +1,15 @@
-// Background clip inspector
-// Ken Burns (images only), video loop/speed, opacity, color fill for
-// solid/gradient mode, then Transform + Animations.
+// Background clip inspector: unified motion (preset → editable keyframes),
+// video loop/speed, opacity, color fill for solid/gradient mode, then
+// Transform + Animations.
+import { useEffect, useState } from "react";
 import { useEditorStore } from "../../../store/editor-store";
 import { useClipSettings } from "../../../shared/hooks/useClipSettings";
+import { getDesignSize } from "../../../shared/lib/canvas-space";
+import {
+  MOTION_PRESET_OPTIONS,
+  buildPresetKeyframes,
+  hasMotionKeyframes,
+} from "../../../shared/lib/motion-keyframes";
 import { Button } from "../../../shared/ui/Button";
 import { Card } from "../../../shared/ui/Card";
 import { ColorInput } from "../../../shared/ui/ColorInput";
@@ -12,17 +19,7 @@ import { RangeInput } from "../../../shared/ui/RangeInput";
 import { SelectControl } from "../../../shared/ui/Select";
 import { SettingRow, TogglePill } from "../../../shared/ui/SettingRow";
 import { AnimationSettings, TransformSettings } from "./TextSettings";
-
-const KEN_BURNS_OPTIONS = [
-  { value: "none", label: "None" },
-  { value: "random", label: "Random Motion (Wander)" },
-  { value: "zoomIn", label: "Zoom In" },
-  { value: "zoomOut", label: "Zoom Out" },
-  { value: "panRight", label: "Pan Right" },
-  { value: "panLeft", label: "Pan Left" },
-  { value: "panUp", label: "Pan Up" },
-  { value: "panDown", label: "Pan Down" },
-];
+import { MotionKeyframesCard } from "./MotionKeyframes";
 
 function videosOf(values: Record<string, unknown>): HTMLVideoElement[] {
   const v = values.mediaElements;
@@ -30,7 +27,7 @@ function videosOf(values: Record<string, unknown>): HTMLVideoElement[] {
 }
 
 export function BackgroundSettingsView({ clipId }: { clipId: string }) {
-  const { values, set } = useClipSettings(clipId);
+  const { clip, values, set } = useClipSettings(clipId);
   const updateClip = useEditorStore((s) => s.updateClip);
   const isThumbnailMode = useEditorStore((s) => s.route) === "/image";
   const mediaType =
@@ -38,6 +35,48 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
   const speed = typeof values.speed === "number" ? values.speed : 1.0;
   const opacity = typeof values.opacity === "number" ? values.opacity : 1;
   const loop = values.loop !== false;
+  const duration =
+    typeof clip?.duration === "number" && clip.duration > 0
+      ? clip.duration
+      : 60;
+  // Preset picker state: last applied template, "custom" after any hand
+  // edit (stamped by MotionKeyframesCard), "none" when cleared.
+  const motionPreset =
+    typeof values.motionPreset === "string" ? values.motionPreset : null;
+  const keyframed = hasMotionKeyframes(values.motionKeyframes, duration);
+  const presetValue = motionPreset ?? (keyframed ? "custom" : "none");
+  // Pending preset switch awaiting reset confirmation (dirty edits exist).
+  const [pendingPreset, setPendingPreset] = useState<string | null>(null);
+  // A pending switch belongs to its clip — drop it when selection changes.
+  useEffect(() => setPendingPreset(null), [clipId]);
+
+  const requestPreset = (preset: string) => {
+    if (preset === presetValue || preset === "custom") return;
+    // Switching away from hand-edited keyframes destroys them — confirm.
+    if (presetValue === "custom") {
+      setPendingPreset(preset);
+      return;
+    }
+    applyPreset(preset);
+  };
+
+  const pendingLabel =
+    pendingPreset === "none"
+      ? "None"
+      : (MOTION_PRESET_OPTIONS.find((o) => o.value === pendingPreset)?.label ??
+        pendingPreset);
+
+  const applyPreset = (preset: string) => {
+    if (preset === "custom") return;
+    if (preset === "none") {
+      set("motionKeyframes", []);
+      set("motionPreset", "none");
+      return;
+    }
+    const { w, h } = getDesignSize();
+    set("motionKeyframes", buildPresetKeyframes(preset, duration, w, h));
+    set("motionPreset", preset);
+  };
 
   const setSpeed = (val: number) => {
     videosOf(values).forEach((v) => {
@@ -60,33 +99,69 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
 
   return (
     <InspectorRoot>
-      {!isThumbnailMode && mediaType !== "video" && (
-        <Card title="Motion / Ken Burns Effect">
+      {/* Unified motion: a preset expands into editable keyframes below.
+          Applies to every media kind, including video. */}
+      {!isThumbnailMode && mediaType !== "none" && (
+        <Card title="Motion">
           <SelectControl
-            value={
-              typeof values.currentEffect === "string"
-                ? values.currentEffect
-                : "none"
+            value={presetValue}
+            options={
+              presetValue === "custom"
+                ? [...MOTION_PRESET_OPTIONS, { value: "custom", label: "Custom (edited)" }]
+                : MOTION_PRESET_OPTIONS
             }
-            options={KEN_BURNS_OPTIONS}
-            onChange={(v) => set("currentEffect", v)}
+            onChange={requestPreset}
             size="md"
+            ariaLabel="Motion preset"
           />
+          <p className="mt-2 text-[10px] leading-snug text-neutral-500">
+            A preset writes editable keyframes — tweak every point below.
+          </p>
+          {pendingPreset !== null && (
+            <div
+              role="alertdialog"
+              aria-label="Confirm preset switch"
+              className="mt-2 rounded-lg border border-amber-800/50 bg-amber-950/25 p-2.5"
+            >
+              <p className="text-[10px] leading-snug text-amber-200/90">
+                Switch to {pendingLabel}? Your edited keyframes will be
+                replaced.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    applyPreset(pendingPreset);
+                    setPendingPreset(null);
+                  }}
+                  title={`Replace keyframes with ${pendingLabel}`}
+                >
+                  <span className="text-[10px]">Replace</span>
+                </Button>
+                <Button
+                  variant="mini"
+                  onClick={() => setPendingPreset(null)}
+                  title="Keep editing current keyframes"
+                >
+                  Keep editing
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
-      )}
-
-      {!isThumbnailMode && mediaType === "video" && (
-        <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 p-3 text-[10px] font-bold tracking-wider text-neutral-500 uppercase">
-          <i className="icon-[ri--information-line] h-4 w-4 shrink-0" />
-          Ken Burns applies to images only — videos play as-is
-        </div>
       )}
 
       {isThumbnailMode && mediaType === "image" && (
         <div className="flex items-center gap-2 rounded-lg border border-amber-800/40 bg-amber-950/20 p-3 text-[10px] font-bold tracking-wider text-amber-500 uppercase">
           <i className="icon-[ri--alert-line] h-4 w-4 shrink-0" />
-          Motion / Ken Burns is disabled in Thumbnail Mode
+          Motion is disabled in Thumbnail Mode
         </div>
+      )}
+
+      {/* Explicit keyframes: image/gif/video. Unlike the preset they also
+          drive video, and 2+ keyframes override the preset above. */}
+      {!isThumbnailMode && mediaType !== "none" && (
+        <MotionKeyframesCard clipId={clipId} />
       )}
 
       {mediaType === "video" && (

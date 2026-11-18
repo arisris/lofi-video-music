@@ -1,3 +1,8 @@
+import {
+  resolveMotionAt,
+  sanitizeMotionKeyframes,
+} from "./motion-keyframes";
+
 export type BgMediaElement =
   HTMLImageElement | HTMLVideoElement | HTMLCanvasElement;
 
@@ -19,46 +24,23 @@ export const drawBackground = (
   let scale = 1.0;
   let translateX = cw / 2;
   let translateY = ch / 2;
+  /** Degrees; non-zero only when motion keyframes drive the frame. */
+  let rotation = 0;
+  // The single motion system: explicit user-editable keyframes.
+  // No presets, no fallback — a clip without 2+ keyframes is static.
+  // Clip duration is unknown here, so sanitize without an upper time bound.
+  const keyframes = sanitizeMotionKeyframes(
+    (trackObj as Record<string, unknown> | null)?.motionKeyframes,
+    0,
+  );
+  const keyedMotion =
+    keyframes.length >= 2 ? resolveMotionAt(keyframes, time) : null;
 
-  let effect = "none";
-
-  // Force disable Ken Burns for video backgrounds as requested
-  const bgKind =
-    (trackObj as Record<string, unknown> | null)?.mediaType ??
-    (trackObj as Record<string, unknown> | null)?.bgType;
-  const isVideo = !!trackObj && bgKind === "video";
-
-  if (
-    trackObj &&
-    (trackObj as Record<string, unknown>).currentEffect &&
-    !isVideo
-  ) {
-    effect = (trackObj as Record<string, unknown>).currentEffect as string;
-  }
-
-  const speed = 0.2;
-  if (effect === "random") {
-    // Sweeps between 1.05 and 1.25 using composite sine/cosine frequencies
-    scale = 1.15 + 0.08 * Math.sin(time * 0.15) + 0.02 * Math.cos(time * 0.37);
-    // Organic pan sweeps
-    translateX += Math.sin(time * 0.23) * (cw * 0.06);
-    translateY += Math.cos(time * 0.17) * (ch * 0.06);
-  } else if (effect === "zoomIn") {
-    scale = 1.1 + 0.05 * (1 - Math.cos(time * speed));
-  } else if (effect === "zoomOut") {
-    scale = 1.1 + 0.05 * (1 + Math.cos(time * speed));
-  } else if (effect === "panRight") {
-    scale = 1.15;
-    translateX += Math.cos(time * speed) * (cw * 0.05);
-  } else if (effect === "panLeft") {
-    scale = 1.15;
-    translateX -= Math.cos(time * speed) * (cw * 0.05);
-  } else if (effect === "panUp") {
-    scale = 1.15;
-    translateY -= Math.cos(time * speed) * (ch * 0.05);
-  } else if (effect === "panDown") {
-    scale = 1.15;
-    translateY += Math.cos(time * speed) * (ch * 0.05);
+  if (keyedMotion) {
+    scale = keyedMotion.scale;
+    translateX += keyedMotion.x;
+    translateY += keyedMotion.y;
+    rotation = keyedMotion.rotation;
   }
 
   if (trackObj) {
@@ -115,7 +97,17 @@ export const drawBackground = (
   const clampedTy = Math.max(minTy, Math.min(maxTy, translateY));
 
   ctx.translate(clampedTx, clampedTy);
-  ctx.scale(scale, scale);
+  if (rotation !== 0) {
+    const rad = (rotation * Math.PI) / 180;
+    // Rotating a cover-fit rect exposes corners; over-zoom conservatively
+    // (|cos| + |sin| <= 1.42) so edges stay covered. The solid color base
+    // painted by the caller hides any sub-pixel remainder.
+    const cover = Math.abs(Math.cos(rad)) + Math.abs(Math.sin(rad));
+    ctx.rotate(rad);
+    ctx.scale(scale * cover, scale * cover);
+  } else {
+    ctx.scale(scale, scale);
+  }
   ctx.drawImage(
     mediaEl,
     -drawWidth / 2,
