@@ -2,6 +2,7 @@ import {
   resolveMotionAt,
   sanitizeMotionKeyframes,
 } from "./motion-keyframes";
+import { getAudioLevel } from "../../modules/audio/audio-engine";
 
 export type BgMediaElement =
   HTMLImageElement | HTMLVideoElement | HTMLCanvasElement;
@@ -41,6 +42,19 @@ export const drawBackground = (
     translateX += keyedMotion.x;
     translateY += keyedMotion.y;
     rotation = keyedMotion.rotation;
+  }
+
+  // Audio pulse: zoom breathes with the bass while playing. getAudioLevel
+  // returns 0 when paused/scrubbing/headless, so the frame stays static
+  // there. Scale-only (max +8%) so edges stay covered.
+  const pulseAmt =
+    typeof (trackObj as Record<string, unknown> | null)?.audioPulse ===
+    "number"
+      ? ((trackObj as Record<string, unknown>).audioPulse as number)
+      : 0;
+  if (pulseAmt > 0) {
+    const level = getAudioLevel("bass");
+    if (level > 0) scale *= 1 + Math.min(pulseAmt, 1) * level * 0.08;
   }
 
   if (trackObj) {

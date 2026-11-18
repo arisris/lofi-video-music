@@ -1,6 +1,6 @@
 // Background clip inspector: unified motion (preset → editable keyframes),
-// video loop/speed, opacity, color fill for solid/gradient mode, then
-// Transform + Animations.
+// video loop/speed, opacity, color fill for solid/gradient mode, then Transform.
+// Boundary transitions live in the dedicated TransitionPanel.
 import { useEffect, useState } from "react";
 import { useEditorStore } from "../../../store/editor-store";
 import { useClipSettings } from "../../../shared/hooks/useClipSettings";
@@ -18,7 +18,7 @@ import { InspectorRoot } from "../../../shared/ui/InspectorRoot";
 import { RangeInput } from "../../../shared/ui/RangeInput";
 import { SelectControl } from "../../../shared/ui/Select";
 import { SettingRow, TogglePill } from "../../../shared/ui/SettingRow";
-import { AnimationSettings, TransformSettings } from "./TextSettings";
+import { TransformSettings } from "./TextSettings";
 import { MotionKeyframesCard } from "./MotionKeyframes";
 
 function videosOf(values: Record<string, unknown>): HTMLVideoElement[] {
@@ -49,6 +49,8 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
   const [pendingPreset, setPendingPreset] = useState<string | null>(null);
   // A pending switch belongs to its clip — drop it when selection changes.
   useEffect(() => setPendingPreset(null), [clipId]);
+  const audioPulse =
+    typeof values.audioPulse === "number" ? values.audioPulse : 0;
 
   const requestPreset = (preset: string) => {
     if (preset === presetValue || preset === "custom") return;
@@ -117,6 +119,29 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
           <p className="mt-2 text-[10px] leading-snug text-neutral-500">
             A preset writes editable keyframes — tweak every point below.
           </p>
+          <div className="mt-3">
+            <label className="mb-1.5 flex justify-between text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+              <span>Audio Pulse</span>
+              <span className="font-mono text-[10px] text-blue-400">{`${Math.round(audioPulse * 100)}%`}</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <RangeInput
+                value={audioPulse}
+                min={0}
+                max={1}
+                step={0.05}
+                onChange={(v) => set("audioPulse", v)}
+                ariaLabel="Audio pulse amount"
+                className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-800"
+              />
+              <Button variant="mini" onClick={() => set("audioPulse", 0)}>
+                Reset
+              </Button>
+            </div>
+            <p className="mt-1.5 text-[10px] leading-snug text-neutral-600">
+              Zoom breathes with the bass while playing.
+            </p>
+          </div>
           {pendingPreset !== null && (
             <div
               role="alertdialog"
@@ -232,7 +257,6 @@ export function BackgroundSettingsView({ clipId }: { clipId: string }) {
       )}
 
       <TransformSettings clipId={clipId} />
-      {!isThumbnailMode && <AnimationSettings clipId={clipId} />}
     </InspectorRoot>
   );
 }

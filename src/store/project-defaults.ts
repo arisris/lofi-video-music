@@ -8,10 +8,132 @@ export function getTotalDuration(clips: TimelineClip[]): number {
   return Math.max(60, Math.ceil(maxEnd));
 }
 
+export const BG_TRACK_ID = "track-bg";
+export const MUSIC_TRACK_ID = "track-1";
+export const CONTENT_TRACK_ID = "track-2";
+
+/** Tracks whose content is locked by type (mirrors the music track). */
+export const DEDICATED_TRACK_IDS: ReadonlySet<string> = new Set([
+  BG_TRACK_ID,
+  MUSIC_TRACK_ID,
+]);
+
 export const DEFAULT_TRACKS: TimelineTrack[] = [
-  { id: "track-1", name: "Track 1 (Music)" },
-  { id: "track-2", name: "Track 2" },
+  { id: BG_TRACK_ID, name: "Background" },
+  { id: MUSIC_TRACK_ID, name: "Track 1 (Music)" },
+  { id: CONTENT_TRACK_ID, name: "Track 2" },
 ];
+
+/** First editable content track (never a dedicated lane). */
+export function contentTrackId(tracks: Array<{ id: string }>): string {
+  return (
+    tracks.find((t) => !DEDICATED_TRACK_IDS.has(t.id))?.id ??
+    tracks[0]?.id ??
+    CONTENT_TRACK_ID
+  );
+}
+
+/**
+ * Hard lane rule: background always resolves to the bg lane, music to the
+ * music lane — stored trackIds are ignored for those types so a clip can
+ * never strand outside its lane (old projects included).
+ */
+export function resolveTrackId(
+  c: { type: string; trackId?: string },
+  tracks: Array<{ id: string }>,
+): string {
+  const has = (id: string) => tracks.some((t) => t.id === id);
+  if (c.type === "background" && has(BG_TRACK_ID)) return BG_TRACK_ID;
+  if (c.type === "music" && has(MUSIC_TRACK_ID)) return MUSIC_TRACK_ID;
+  if (c.trackId && has(c.trackId)) return c.trackId;
+  return contentTrackId(tracks);
+}
+
+/** Insert missing dedicated lanes (old bundles predate the bg lane). */
+export function ensureDedicatedTracks(
+  tracks: TimelineTrack[],
+): TimelineTrack[] {  const has = (id: string) => tracks.some((t) => t.id === id);
+  const out = tracks.map((t) => ({ ...t }));
+  if (!has(BG_TRACK_ID)) out.unshift({ id: BG_TRACK_ID, name: "Background" });
+  if (!has(MUSIC_TRACK_ID)) {
+    const at = out.findIndex((t) => t.id === BG_TRACK_ID);
+    out.splice(at >= 0 ? at + 1 : 0, 0, {
+      id: MUSIC_TRACK_ID,
+      name: "Track 1 (Music)",
+    });
+  }
+  return out;
+}
+
+/**
+ * Seal the background lane: sorted bg clips abut one another with no gaps
+ * and no overlaps. The first clip keeps its start (a black intro is not a
+ * gap); every follower starts exactly where its predecessor ends.
+ * `tieId` wins exact-start ties (the dropped clip goes first).
+ * `trimHeadId`: a resize-start gesture — the clip keeps its dropped head
+ * and an overlapping predecessor is trimmed back instead.
+ */
+export function packBackgroundLane(
+  clips: TimelineClip[],
+  tieId?: string,
+  trimHeadId?: string,
+): TimelineClip[] {
+  const bgs = clips
+    .filter((c) => c.type === "background")
+    .sort(
+      (a, b) =>
+        a.start - b.start ||
+        (a.id === tieId ? -1 : b.id === tieId ? 1 : a.id < b.id ? -1 : 1),
+    );
+  if (bgs.length === 0) return clips;
+  // Work on copies: never mutate store objects outside set().
+  const order = bgs.map((c) => ({ id: c.id, start: c.start }));
+  const dur = new Map<string, number>(bgs.map((c) => [c.id, c.duration]));
+  if (trimHeadId) {
+    const idx = order.findIndex((c) => c.id === trimHeadId);
+    const clip = idx >= 0 ? order[idx] : undefined;
+    const prev = idx > 0 ? order[idx - 1] : undefined;
+    const clipEnd = clip ? clip.start + (dur.get(clip.id) ?? 0) : 0;
+    if (clip && prev && prev.start + (dur.get(prev.id) ?? 0) > clip.start) {
+      const trimmed = clip.start - prev.start;
+      if (trimmed >= 0.1) {
+        dur.set(prev.id, Math.round(trimmed * 100) / 100);
+      } else if (clipEnd - (prev.start + 0.1) >= 0.1) {
+        // Head pushed past the predecessor's head: floor predecessor to
+        // 0.1s and re-anchor the clip after it.
+        dur.set(prev.id, 0.1);
+        clip.start = Math.round((prev.start + 0.1) * 100) / 100;
+        dur.set(clip.id, Math.round((clipEnd - clip.start) * 100) / 100);
+      } else {
+        // Degenerate sliver: fall back to abutting the predecessor's end.
+        const pe = prev.start + (dur.get(prev.id) ?? 0);
+        clip.start = Math.round(pe * 100) / 100;
+        dur.set(clip.id, Math.max(0.1, Math.round((clipEnd - pe) * 100) / 100));
+      }
+    }
+  }
+  const packed = new Map<string, number>();
+  let cursor = order[0].start;
+  for (const c of order) {
+    packed.set(c.id, Math.round(cursor * 100) / 100);
+    cursor += dur.get(c.id) ?? 0;
+  }
+  const changed = order.some(
+    (c) =>
+      packed.get(c.id) !== bgs.find((b) => b.id === c.id)?.start ||
+      dur.get(c.id) !== bgs.find((b) => b.id === c.id)?.duration,
+  );
+  if (!changed) return clips;
+  return clips.map((c) =>
+    packed.has(c.id)
+      ? {
+          ...c,
+          start: packed.get(c.id) as number,
+          duration: dur.get(c.id) as number,
+        }
+      : c,
+  );
+}
 
 /** Initial sidebar width follows the viewport. */
 export function defaultPanelWidth(kind: "left" | "right"): number {

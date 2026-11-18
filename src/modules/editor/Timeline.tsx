@@ -7,6 +7,14 @@ import { revokeClipUrls } from "../../shared/lib/media-urls";
 import { Button } from "../../shared/ui/Button";
 import { RangeInput } from "../../shared/ui/RangeInput";
 import { getTotalDuration, useEditorStore } from "../../store/editor-store";
+import { resolveBgTransition } from "../../shared/lib/transitions";
+import {
+  BG_TRACK_ID,
+  DEDICATED_TRACK_IDS,
+  MUSIC_TRACK_ID,
+  contentTrackId,
+  resolveTrackId,
+} from "../../store/project-defaults";
 import type { TimelineClip } from "../../shared/types/clip";
 import { getClipDef } from "../clips";
 import {
@@ -22,10 +30,8 @@ const TRACK_ROW_H = 48;
 function trackIdOf(
   c: TimelineClip,
   tracks: Array<{ id: string }>,
-  secondId: string,
 ): string {
-  if (c.trackId && tracks.some((t) => t.id === c.trackId)) return c.trackId;
-  return c.type === "music" ? "track-1" : secondId;
+  return resolveTrackId(c, tracks);
 }
 
 function clipLabel(c: TimelineClip): string {
@@ -178,7 +184,6 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
     return () => el.removeEventListener("wheel", handleWheelNative);
   }, []);
 
-  const secondId = tracks[1]?.id ?? tracks[0]?.id ?? "track-2";
   const totalDuration = useMemo(() => getTotalDuration(clips), [clips]);
   const timelineWidth = totalDuration * zoom;
 
@@ -186,12 +191,12 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
     const map = new Map<string, TimelineClip[]>();
     for (const t of tracks) map.set(t.id, []);
     for (const c of clips) {
-      const tid = trackIdOf(c, tracks, secondId);
+      const tid = trackIdOf(c, tracks);
       if (!map.has(tid)) map.set(tid, []);
       map.get(tid)!.push(c);
     }
     return map;
-  }, [clips, tracks, secondId]);
+  }, [clips, tracks]);
 
   const rulerMajors = useMemo(() => {
     const out: number[] = [];
@@ -207,9 +212,25 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
   }, [totalDuration]);
 
   const seekFromClientX = (clientX: number, el: HTMLElement) => {
-    const rect = el.getBoundingClientRect();
-    seekTo((clientX - rect.left + scrollLeft) / zoom);
+    seekTo((clientX - el.getBoundingClientRect().left + scrollLeft) / zoom);
   };
+
+  const editBgTransition = (clipId: string) => {
+    useEditorStore.setState({
+      selectedClipId: clipId,
+      selectedTransitionClipId: clipId,
+    });
+  };
+
+  // Background lane, sorted: badges sit on every head, gap clicks resolve
+  // to the next clip (the lane packs itself, so gaps are only intros).
+  const bgLane = useMemo(
+    () =>
+      clips
+        .filter((c) => c.type === "background")
+        .sort((a, b) => a.start - b.start),
+    [clips],
+  );
 
   return (
     <div
@@ -283,18 +304,24 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
             className="absolute right-0 left-0"
             style={{ top: `${-scrollTop}px` }}
           >
-            {tracks.map((track, i) => {
-              const isMusicTrack = track.id === "track-1" || i === 0;
+            {tracks.map((track) => {
+              const isMusicTrack = track.id === MUSIC_TRACK_ID;
+              const isBgTrack = track.id === BG_TRACK_ID;
+              const isDedicated = DEDICATED_TRACK_IDS.has(track.id);
               const isSelected = selectedTrackId === track.id;
               const borderClass = isSelected
                 ? isMusicTrack
                   ? "bg-emerald-600/10 border-r-2 border-r-emerald-500"
-                  : "bg-blue-600/10 border-r-2 border-r-blue-500"
+                  : isBgTrack
+                    ? "bg-violet-600/10 border-r-2 border-r-violet-500"
+                    : "bg-blue-600/10 border-r-2 border-r-blue-500"
                 : "hover:bg-neutral-800/40";
               const textClass = isSelected
                 ? isMusicTrack
                   ? "text-emerald-400"
-                  : "text-blue-400"
+                  : isBgTrack
+                    ? "text-violet-400"
+                    : "text-blue-400"
                 : "text-neutral-400";
               const locked = track.locked;
               return (
@@ -309,6 +336,11 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                     <i
                       className="icon-[ri--music-2-line] h-3.5 w-3.5 shrink-0 text-emerald-500"
                       title="Dedicated Music Track"
+                    />
+                  ) : isBgTrack ? (
+                    <i
+                      className="icon-[ri--image-line] h-3.5 w-3.5 shrink-0 text-violet-400"
+                      title="Dedicated Background Track"
                     />
                   ) : (
                     <button
@@ -335,7 +367,7 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                   >
                     {track.name}
                   </span>
-                  {i > 1 && (
+                  {!isDedicated && (
                     <button
                       aria-label={`Delete ${track.name}`}
                       className="p-1 text-neutral-600 opacity-0 transition-opacity outline-none group-hover:opacity-100 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:opacity-100"
@@ -344,7 +376,7 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                         e.stopPropagation();
                         const st = useEditorStore.getState();
                         const hasClips = st.clips.some(
-                          (c) => trackIdOf(c, st.tracks, secondId) === track.id,
+                          (c) => trackIdOf(c, st.tracks) === track.id,
                         );
                         if (
                           !hasClips ||
@@ -354,20 +386,23 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                         ) {
                           for (const c of st.clips) {
                             if (
-                              trackIdOf(c, st.tracks, secondId) === track.id
+                              trackIdOf(c, st.tracks) === track.id
                             ) {
                               revokeClipUrls(c, st);
                             }
                           }
+                          const remaining = st.tracks.filter(
+                            (t) => t.id !== track.id,
+                          );
                           useEditorStore.setState({
-                            tracks: st.tracks.filter((t) => t.id !== track.id),
+                            tracks: remaining,
                             clips: st.clips.filter(
                               (c) =>
-                                trackIdOf(c, st.tracks, secondId) !== track.id,
+                                trackIdOf(c, st.tracks) !== track.id,
                             ),
                             selectedTrackId:
                               st.selectedTrackId === track.id
-                                ? tracks[0].id
+                                ? contentTrackId(remaining)
                                 : st.selectedTrackId,
                           });
                         }
@@ -434,8 +469,19 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                 key={track.id}
                 className="relative h-12 border-b border-neutral-800/30"
                 onPointerDown={(e) => {
-                  if (e.target === e.currentTarget)
-                    seekFromClientX(e.clientX, e.currentTarget);
+                  if (e.target !== e.currentTarget) return;
+                  seekFromClientX(e.clientX, e.currentTarget);
+                  // Empty bg-lane space edits the next clip's transition
+                  // (fade in from black across the gap).
+                  if (track.id === BG_TRACK_ID) {
+                    const t =
+                      (e.clientX -
+                        e.currentTarget.getBoundingClientRect().left +
+                        scrollLeft) /
+                      zoom;
+                    const next = bgLane.find((c) => c.start > t + 0.001);
+                    if (next) editBgTransition(next.id);
+                  }
                 }}
                 onContextMenu={(e) => e.preventDefault()}
               >
@@ -445,7 +491,10 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                     onContextMenu={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      useEditorStore.setState({ selectedClipId: clip.id });
+                      useEditorStore.setState({
+                        selectedClipId: clip.id,
+                        selectedTransitionClipId: null,
+                      });
                       setMenu({
                         x: e.clientX,
                         y: e.clientY,
@@ -460,6 +509,43 @@ export function Timeline({ resizing = false }: { resizing?: boolean }) {
                     />
                   </div>
                 ))}
+                {/* Transition badges on every background head. */}
+                {track.id === BG_TRACK_ID &&
+                  (byTrack.get(track.id) ?? [])
+                    .filter((c) => c.type === "background")
+                    .map((clip) => {
+                      const trType = resolveBgTransition(
+                        clip.settings as Record<string, unknown>,
+                      ).type;
+                      const hasTr = trType !== "none";
+                      return (
+                        <button
+                          key={`trx-${clip.id}`}
+                          type="button"
+                          title={
+                            hasTr
+                              ? `Edit transition into ${clipLabel(clip)}`
+                              : `No transition into ${clipLabel(clip)} — click to add`
+                          }
+                          aria-label={
+                            hasTr
+                              ? `Edit transition into ${clipLabel(clip)}`
+                              : `Add transition into ${clipLabel(clip)}`
+                          }
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            editBgTransition(clip.id);
+                          }}
+                          className={`absolute top-1/2 z-10 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 cursor-pointer rounded-[2px] border outline-none transition-transform hover:scale-150 focus-visible:outline-2 focus-visible:outline-white ${
+                            hasTr
+                              ? "border-blue-300/70 bg-gradient-to-br from-blue-400 to-violet-500"
+                              : "border-neutral-600 bg-neutral-700"
+                          }`}
+                          style={{ left: `${clip.start * zoom}px` }}
+                        />
+                      );
+                    })}
               </div>
             ))}
           </div>

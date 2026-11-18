@@ -32,6 +32,11 @@ export function useGlobalShortcuts() {
           useEditorStore.setState({ showRecordMenu: false });
           return;
         }
+        if (st.selectedTransitionClipId) {
+          e.preventDefault();
+          useEditorStore.setState({ selectedTransitionClipId: null });
+          return;
+        }
         if (typing) return;
         if (st.selectedClipId) {
           e.preventDefault();

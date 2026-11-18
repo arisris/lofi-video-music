@@ -193,7 +193,10 @@ export function VideoPreview() {
         let clipId: string | null = null;
         if (hit && !hit.isGlobalLyrics && hit.clip) {
           clipId = hit.clip.id;
-          useEditorStore.setState({ selectedClipId: hit.clip.id });
+          useEditorStore.setState({
+            selectedClipId: hit.clip.id,
+            selectedTransitionClipId: null,
+          });
         } else if (
           st.selectedClipId &&
           st.selectedClipId !== "lyrics" &&

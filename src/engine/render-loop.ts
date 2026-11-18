@@ -6,6 +6,7 @@ import { getDesignSize } from "../shared/lib/canvas-space";
 import type { TimelineClip } from "../shared/types/clip";
 import { withClipTransform } from "../shared/lib/canvas-transform";
 import { manageVideoPlayback } from "../shared/lib/video-playback";
+import { bgPreRoll, renderBackgroundLayers } from "../modules/bg-transitions";
 import { clipRegistry } from "../modules/clips";
 import { titleSettingsForFrame } from "../modules/clips/title/definition";
 import { lyricsClip } from "../modules/clips/lyrics/definition";
@@ -63,9 +64,10 @@ export function renderProjectFrame(
       c.type === "background" &&
       (c.settings.enabled as boolean | undefined) !== false,
   );
-  // Overlap window ±0.5s so adjacent clips crossfade instead of hard-cutting
+  // A clip with a head transition (or a fold successor) must be painted
+  // before its own start; the transition module owns the exact amount.
   const isBgActive = (c: TimelineClip) =>
-    time >= c.start - 0.5 && time <= c.start + c.duration + 0.5;
+    time >= c.start - bgPreRoll(c) && time <= c.start + c.duration;
   const bgClips = allBgClips
     .filter(isBgActive)
     .sort((a, b) => a.start - b.start);
@@ -84,51 +86,37 @@ export function renderProjectFrame(
     );
   });
 
-  for (const clip of bgClips) {
+  // All transition maths/effects live in the bg-transitions module. The
+  // painter here just applies the clip's transform; the module decides
+  // pre-roll, pair ordering, fade/zoom/blur/fold and the final settings.
+  const bgBbox = { x: 0, y: 0, width: w, height: h };
+  renderBackgroundLayers(ctx, w, h, allBgClips, time, (clip, settings) => {
     const def = clipRegistry.get(clip.type);
-    if (!def) continue;
-    const localTime = time - clip.start;
-    // 1s crossfade when the previous clip ends exactly where this one starts;
-    // the newer clip paints on top (sorted by start ascending).
-    let fade = 1;
-    if (localTime >= -0.5 && localTime < 0.5) {
-      const prev = allBgClips.find(
-        (c) =>
-          c.id !== clip.id &&
-          Math.abs(c.start + c.duration - clip.start) < 0.2,
-      );
-      if (prev) fade = Math.max(0, Math.min(1, (localTime + 0.5) / 1.0));
-    }
-    const baseOpacity =
-      typeof clip.settings.opacity === "number" ? clip.settings.opacity : 1;
-    // Full-canvas bbox so the x/y/scale/rotation transform applies around the
-    // frame centre (same convention as withClipTransform on the background
-    // pass). Animation stays inside def.draw; withClipTransform is
-    // transform-only. The def keeps no getItemBoundingBox on purpose so the
-    // clip never hijacks canvas hit-testing.
-    const bgBbox = { x: 0, y: 0, width: w, height: h };
-    const bgSettings: Record<string, unknown> = { ...clip.settings, opacity: baseOpacity * fade };
-    withClipTransform(ctx, bgSettings, bgBbox, () =>
+    if (!def) return;
+    withClipTransform(ctx, settings, bgBbox, () =>
       def.draw({
         ctx,
         w,
         h,
-        // Shallow copy — never mutate the store.
-        settings: bgSettings,
-        localTime,
+        settings,
+        localTime: time - clip.start,
         duration: clip.duration,
         clipId: clip.id,
       }),
     );
-    if (Array.isArray(clip.settings.mediaElements)) {
-      manageVideoPlayback(
-        clip,
-        time,
-        "mediaElements",
-        (clip.settings.loop as boolean | undefined) !== false,
-        0.5,
-      );
-    }
+  });
+
+  // Video elements must be cued during pre-roll too; this stays here
+  // because it belongs to the media subsystem, not to transitions.
+  for (const clip of bgClips) {
+    if (!Array.isArray(clip.settings.mediaElements)) continue;
+    manageVideoPlayback(
+      clip,
+      time,
+      "mediaElements",
+      (clip.settings.loop as boolean | undefined) !== false,
+      bgPreRoll(clip),
+    );
   }
 
   // Dim media backgrounds so upper layers stay readable

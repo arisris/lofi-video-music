@@ -273,6 +273,7 @@ export const handleCanvasDragStart = (e: DragPointerEvent) => {
   if (hit) {
     useEditorStore.setState({
       selectedClipId: hit.isGlobalLyrics ? "lyrics" : hit.clip!.id,
+      selectedTransitionClipId: null,
       isDragging: true,
       transformMode: "clip",
       canvasCursor: "move",

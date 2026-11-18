@@ -30,6 +30,7 @@ import {
   defaultPanelWidth,
   defaultTimelineHeight,
   getTotalDuration,
+  packBackgroundLane,
 } from "./project-defaults";
 
 export interface SnapLine {
@@ -87,6 +88,9 @@ interface EditorState {
   showRecordSettingsModal: boolean;
   showRecordMenu: boolean;
   showShortcutsHelp: boolean;
+  /** Dedicated transition selection: incoming bg clip owning the boundary.
+   * Inspector shows TransitionPanel instead of the clip panel. */
+  selectedTransitionClipId: string | null;
   pendingRecordMode: "timeline" | "clip";
   canvasCursor: string | null;
 
@@ -106,6 +110,8 @@ interface EditorState {
   ) => void;
   duplicateClip: (id: string) => void;
   removeClip: (id: string) => void;
+  /** Seal the bg lane (no gaps/overlaps); merges into the drag gesture. */
+  packBackground: (mergeKey?: string, tieId?: string, trimHeadId?: string) => void;
   select: (id: string | null) => void;
   /** Undo/redo history (pre-mutation snapshot; same-gesture drags merged). */
   past: HistoryNode[];
@@ -231,6 +237,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   showRecordSettingsModal: false,
   showRecordMenu: false,
   showShortcutsHelp: false,
+  selectedTransitionClipId: null,
   pendingRecordMode: "timeline" as "timeline" | "clip",
   canvasCursor: null as string | null,
 
@@ -303,7 +310,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         start: Math.round((src.start + src.duration) * 100) / 100,
         settings: cloneClipSettings(src.settings),
       };
-      return { clips: [...s.clips, copy], selectedClipId: copy.id };
+      const copyId = copy.id;
+      return {
+        // The copy wins its start tie so it lands right after the source.
+        clips: packBackgroundLane([...s.clips, copy], copyId),
+        selectedClipId: copy.id,
+      };
     });
   },
   removeClip: (id) => {
@@ -313,13 +325,21 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((s) => {
       revokeClipUrls(gone, s);
       return {
-        clips: s.clips.filter((c) => c.id !== id),
+        clips: packBackgroundLane(s.clips.filter((c) => c.id !== id)),
         snapLines: [],
         selectedClipId: s.selectedClipId === id ? null : s.selectedClipId,
       };
     });
   },
-  select: (id) => set({ selectedClipId: id }),
+  packBackground: (mergeKey, tieId, trimHeadId) => {
+    const s = get();
+    const packed = packBackgroundLane(s.clips, tieId, trimHeadId);
+    if (packed === s.clips) return;
+    get().pushHistory(mergeKey);
+    set({ clips: packed });
+  },
+  select: (id) =>
+    set({ selectedClipId: id, selectedTransitionClipId: null }),
   past: [],
   future: [],
   pushHistory: (mergeKey) => {

@@ -1,10 +1,17 @@
 import type { ClipType, TimelineClip } from "../../../shared/types/clip";
 import { VFX_TYPES } from "../../../shared/types/clip";
+import {
+  BG_TRACK_ID,
+  CONTENT_TRACK_ID,
+  MUSIC_TRACK_ID,
+} from "../../../store/project-defaults";
 
 let seq = 0;
 
 export function defaultTrackFor(type: ClipType): string {
-  return type === "music" ? "track-1" : "track-2";
+  if (type === "music") return MUSIC_TRACK_ID;
+  if (type === "background") return BG_TRACK_ID;
+  return CONTENT_TRACK_ID;
 }
 
 /** Deep-clone plain defaults so array/object settings (e.g. lyrics `lines`)

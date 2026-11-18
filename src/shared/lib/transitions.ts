@@ -94,6 +94,49 @@ export function resolveExitTransition(value: unknown): ExitTransition {
 /** How long a clip's own in/out transition runs, in seconds. */
 export const CLIP_TRANSITION_SECONDS = 0.6;
 
+/** Background-to-background transition: owned by the incoming clip. */
+export type BgTransitionType = "fade" | "zoom" | "blur" | "fold" | "none";
+
+export const BG_TRANSITION_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "fade", label: "Fade" },
+  { value: "zoom", label: "Cross Zoom" },
+  { value: "blur", label: "Blur Dissolve" },
+  { value: "fold", label: "Page Fold" },
+  { value: "none", label: "None" },
+];
+
+export const BG_TRANSITION_DEFAULT_DURATION = 1;
+export const BG_TRANSITION_MAX_DURATION = 3;
+
+export interface BgTransition {
+  type: BgTransitionType;
+  /** Seconds, clamped to [0, MAX]. Zero = hard cut even when type is fade. */
+  duration: number;
+}
+
+/** Coerce stored background transition settings (unknown-tolerant). */
+export function resolveBgTransition(
+  settings: Record<string, unknown>,
+): BgTransition {
+  const rawType = settings.transitionType;
+  const type: BgTransitionType =
+    rawType === "none"
+      ? "none"
+      : rawType === "zoom"
+        ? "zoom"
+        : rawType === "blur"
+          ? "blur"
+          : rawType === "fold"
+            ? "fold"
+            : "fade";
+  const raw = settings.transitionDuration;
+  const duration =
+    typeof raw === "number" && Number.isFinite(raw)
+      ? Math.min(Math.max(0, raw), BG_TRANSITION_MAX_DURATION)
+      : BG_TRANSITION_DEFAULT_DURATION;
+  return { type, duration };
+}
+
 export interface TransitionState {
   opacity: number;
   /** Vertical offset as a fraction of the caller's slide distance; + is down. */
@@ -107,6 +150,9 @@ export const easeInCubic = (t: number) => t * t * t;
 
 export const easeOutBack = (t: number) =>
   1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2);
+
+export const easeInOutCubic = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 const RESTING: TransitionState = { opacity: 1, offsetY: 0, scale: 1 };
 

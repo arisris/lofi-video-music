@@ -3,6 +3,13 @@
 // re-renders directly). The only model difference: audio search
 // for snap uses the active route clips.
 import { getTotalDuration, useEditorStore } from "../../store/editor-store";
+import {
+  BG_TRACK_ID,
+  DEDICATED_TRACK_IDS,
+  MUSIC_TRACK_ID,
+  contentTrackId,
+  resolveTrackId,
+} from "../../store/project-defaults";
 import { seekTo } from "../audio/audio-engine";
 import type { TimelineClip } from "../../shared/types/clip";
 
@@ -21,10 +28,6 @@ let isDraggingPlayhead = false;
 let isDraggingClip: DragState | null = null;
 
 const TRACK_ROW_H = 48;
-
-function trackIdOf(c: TimelineClip): string {
-  return c.trackId ?? (c.type === "music" ? "track-1" : "track-2");
-}
 
 export const beginPlayheadDrag = (
   e: React.MouseEvent | MouseEvent,
@@ -45,7 +48,10 @@ export const beginClipDrag = (
   type: ClipDragType,
 ) => {
   e.stopPropagation();
-  useEditorStore.setState({ selectedClipId: clip.id });
+  useEditorStore.setState({
+    selectedClipId: clip.id,
+    selectedTransitionClipId: null,
+  });
   isDraggingClip = {
     clipId: clip.id,
     type,
@@ -89,18 +95,27 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
   if (!clip) return;
 
   const nextSettings = { ...clip.settings };
-  let nextTrackId = clip.trackId ?? trackIdOf(clip);
+  let nextTrackId = resolveTrackId(clip, st.tracks);
   const currentTrack = st.tracks.find((t) => t.id === clip.trackId);
 
-  if (currentTrack?.locked && currentTrack.id !== "track-1") {
+  if (currentTrack?.locked && !DEDICATED_TRACK_IDS.has(currentTrack.id)) {
     st.setSnapLines([]);
     return;
   }
 
   if (clip.type === "music") {
-    targetTrackId = "track-1";
-  } else if (targetTrackId === "track-1") {
-    targetTrackId = clip.trackId !== "track-1" ? (clip.trackId ?? "track-2") : "track-2";
+    targetTrackId = MUSIC_TRACK_ID;
+  } else if (clip.type === "background") {
+    targetTrackId = BG_TRACK_ID;
+  } else if (
+    targetTrackId === MUSIC_TRACK_ID ||
+    targetTrackId === BG_TRACK_ID
+  ) {
+    // Content clips bounce off dedicated lanes.
+    targetTrackId =
+      clip.trackId && !DEDICATED_TRACK_IDS.has(clip.trackId)
+        ? clip.trackId
+        : contentTrackId(st.tracks);
   }
 
   const targetTrack = st.tracks.find((t) => t.id === targetTrackId);
@@ -113,6 +128,15 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
 
   let newStart = clip.start;
   let newDur = clip.duration;
+
+  // Background lane never overlaps (mirrors the append-only music habit).
+  // Moves are free — drop order decides the packing on release — while
+  // resizes clamp against the neighbours. Bounds come from the gesture's
+  // INITIAL geometry: live positions shift every mousemove and would let
+  // the clamp release mid-gesture, baking in a permanent overlap.
+  const initStart = isDraggingClip?.initialStart ?? clip.start;
+  const initDur = isDraggingClip?.initialDuration ?? clip.duration;
+  const initEnd = initStart + initDur;
 
   if (isDraggingClip?.type === "move") {
     newStart = Math.max(0, isDraggingClip.initialStart + dx);
@@ -152,8 +176,8 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
       );
     } else {
       newStart = Math.max(0, isDraggingClip.initialStart + dx);
-      const diff = clip.start - newStart;
-      newDur = clip.duration + diff;
+      const diff = isDraggingClip.initialStart - newStart;
+      newDur = isDraggingClip.initialDuration + diff;
     }
   }
 
@@ -246,6 +270,17 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
     newDur = s.videoDuration / speed;
   }
 
+  // Final seal for the bg lane, after all snapping. resize-end is free
+  // (tail extension ripples followers on release); resize-start is free
+  // too (it trims the predecessor on release) — only the 0 floor and the
+  // 0.1s minimum hold during the gesture.
+  if (clip.type === "background" && isDraggingClip) {
+    if (isDraggingClip.type === "resize-start") {
+      newStart = Math.min(Math.max(newStart, 0), initEnd - 0.1);
+      newDur = Math.max(0.1, initEnd - newStart);
+    }
+  }
+
   st.updateClip(clip.id, {
     start: Math.round(newStart * 100) / 100,
     duration: Math.round(newDur * 100) / 100,
@@ -257,9 +292,21 @@ export const handleWindowMouseMove = (e: MouseEvent) => {
 
 export const handleWindowMouseUp = () => {
   if (!isDraggingPlayhead && !isDraggingClip) return;
+  const draggedId = isDraggingClip?.clipId;
+  const draggedType = isDraggingClip?.type;
   isDraggingPlayhead = false;
   isDraggingClip = null;
-  useEditorStore.getState().setSnapLines([]);
+  const st = useEditorStore.getState();
+  st.setSnapLines([]);
+  // Seal the bg lane on release. Moves reorder by drop position; tail
+  // extension ripples followers; head extension trims the predecessor.
+  if (draggedId && st.clips.some((c) => c.id === draggedId && c.type === "background")) {
+    st.packBackground(
+      `update:${draggedId}`,
+      draggedId,
+      draggedType === "resize-start" ? draggedId : undefined,
+    );
+  }
   window.removeEventListener("mousemove", handleWindowMouseMove);
   window.removeEventListener("mouseup", handleWindowMouseUp);
 };

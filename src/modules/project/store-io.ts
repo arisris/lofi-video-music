@@ -3,6 +3,7 @@
 import type { TimelineClip } from "../../shared/types/clip";
 import type { MediaItem } from "../media/media-helper";
 import { useEditorStore } from "../../store/editor-store";
+import { ensureDedicatedTracks } from "../../store/project-defaults";
 import type { ProjectV1 } from "./schema";
 import { pauseAudio } from "../audio/audio-engine";
 import { serializeProject } from "./serialize";
@@ -242,6 +243,11 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
   }
   const route = st.route;
   const aspectRatio = project.output.aspectRatio === "9:16" ? "9:16" : "16:9";
+  // Old bundles predate the dedicated background lane — insert it so bg
+  // clips resolve to their lane via the hard lane rule.
+  const tracks = ensureDedicatedTracks(
+    project.tracks.length > 0 ? project.tracks : st.tracks,
+  );
   const recordResolution =
     project.output.recordResolution === "1080p" ||
     project.output.recordResolution === "1440p" ||
@@ -250,7 +256,7 @@ export async function importProjectBundle(file: File | Blob): Promise<ImportResu
       : st.recordResolution;
   useEditorStore.setState({
     projectName: typeof project.meta.name === "string" && project.meta.name ? project.meta.name : st.projectName,
-    tracks: project.tracks.length > 0 ? project.tracks : st.tracks,
+    tracks,
     mediaPool: pool,
     videoClips,
     thumbClips,

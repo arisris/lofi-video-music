@@ -2,6 +2,7 @@ import { SchemaFields } from "../../shared/ui";
 import { useClipSettings } from "../../shared/hooks/useClipSettings";
 import { clipRegistry } from "../clips";
 import { LyricsStyleSettings } from "./clip-views/LyricsSettings";
+import { TransitionPanel } from "./clip-views/TransitionPanel";
 import { getSettingsView } from "./clip-settings";
 import { useEditorStore } from "../../store/editor-store";
 
@@ -130,9 +131,18 @@ function LyricsGlobalView() {
 
 export function InspectorPanel() {
   const selectedId = useEditorStore((s) => s.selectedClipId);
+  const selectedTransitionId = useEditorStore((s) => s.selectedTransitionClipId);
   const clips = useEditorStore((s) => s.clips);
   const updateClipSettings = useEditorStore((s) => s.updateClipSettings);
   const removeClip = useEditorStore((s) => s.removeClip);
+
+  // Dedicated transition view wins: the boundary owns its own panel.
+  const transClip = selectedTransitionId
+    ? clips.find((c) => c.id === selectedTransitionId)
+    : undefined;
+  if (transClip && transClip.type === "background") {
+    return <TransitionPanel clipId={transClip.id} />;
+  }
 
   const clip = clips.find((c) => c.id === selectedId);
   if (!clip) {

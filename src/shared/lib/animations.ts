@@ -31,6 +31,10 @@ export const applyClipAnimations = (
     }
   }
 
+  // Background owns its motion (keyframes) and edges (Transition card) —
+  // the generic animation system does not apply to it at all.
+  if (clipType === "background") return;
+
   if (!settings.animations) return;
 
   const isPlaying = editorStore.getState().playing;

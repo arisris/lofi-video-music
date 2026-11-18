@@ -76,6 +76,11 @@ export const backgroundClip: ClipDefinition = {
     motionPreset: null,
     /** Explicit motion control points; 2+ drive the frame, else static. */
     motionKeyframes: null,
+    /** Boundary transition into this clip (head fade + tail fade in gaps). */
+    transitionType: "fade",
+    transitionDuration: 1,
+    /** Bass-driven zoom breathing (0 = off, 1 = full ±8%). */
+    audioPulse: 0,
     opacity: 1,
     speed: 1,
     loop: true,
@@ -106,6 +111,28 @@ export const backgroundClip: ClipDefinition = {
         "panUp",
         "panDown",
       ],
+    },
+    {
+      key: "transitionType",
+      label: "Transition",
+      kind: "select",
+      options: ["fade", "zoom", "blur", "fold", "none"],
+    },
+    {
+      key: "transitionDuration",
+      label: "Transition Duration",
+      kind: "slider",
+      min: 0,
+      max: 3,
+      step: 0.1,
+    },
+    {
+      key: "audioPulse",
+      label: "Audio Pulse",
+      kind: "slider",
+      min: 0,
+      max: 1,
+      step: 0.05,
     },
     {
       key: "opacity",
