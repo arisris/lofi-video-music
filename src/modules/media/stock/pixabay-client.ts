@@ -88,7 +88,9 @@ export async function searchPixabayDirect(
       if (colors) {
         url += `&colors=${encodeURIComponent(colors)}`;
       }
-      const res = await fetch(url);
+      // Reuse the browser's stored copy for identical searches (see
+      // pexels-client.ts): zero network, freshness bounded by search-cache.ts.
+      const res = await fetch(url, { cache: "force-cache" });
       if (!res.ok) await throwForStatus(res);
       const data = (await res.json()) as Partial<PixabaySearchResult>;
       return { hits: data.hits ?? [] };

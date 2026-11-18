@@ -88,7 +88,13 @@ export async function searchPexelsDirect(
       if (orientation !== "all") {
         url += `&orientation=${orientation}`;
       }
-      const res = await fetch(url, { headers: { Authorization: key } });
+      const res = await fetch(url, {
+        headers: { Authorization: key },
+        // Pexels replies `no-cache` (store but always revalidate). Force the
+        // browser to reuse its stored copy: identical searches cost zero
+        // network. Freshness within a session is bounded by search-cache.ts.
+        cache: "force-cache",
+      });
       if (!res.ok) await throwForStatus(res);
       const data = (await res.json()) as Partial<PexelsSearchResult>;
       return { photos: data.photos ?? [], videos: data.videos ?? [] };
