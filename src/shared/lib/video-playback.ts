@@ -7,7 +7,13 @@ import { resolveVideoLoop } from "./video-loop";
  * Looping clips ping-pong two elements with a short crossfade at each loop
  * seam; the draw side (background definition) blends the pair the same way.
  * Video elements are stored in settings[elementsKey] by the media module.
+ *
+ * Resume tolerance: re-assigning currentTime — even to the current value —
+ * flushes the decoder (seeking/seeked fire), flashing stale frames. The
+ * paused branch already pins elements within 0.1s, so resume only seeks on
+ * genuine drift and otherwise just plays.
  */
+const RESUME_SYNC_TOLERANCE = 0.15;
 export function manageVideoPlayback(
   clip: TimelineClip,
   globalTime: number,
@@ -82,14 +88,14 @@ function manageLoopingPlayback(
 
   if (isPlaying) {
     if (primaryVid.paused) {
-      safeSeek(primaryVid, primaryTargetTime, 0);
+      safeSeek(primaryVid, primaryTargetTime, RESUME_SYNC_TOLERANCE);
       void primaryVid.play().catch(() => {});
     } else {
       safeSeek(primaryVid, primaryTargetTime, 0.5);
     }
     if (inCrossfade) {
       if (secondaryVid.paused) {
-        safeSeek(secondaryVid, secondaryTargetTime, 0);
+        safeSeek(secondaryVid, secondaryTargetTime, RESUME_SYNC_TOLERANCE);
         void secondaryVid.play().catch(() => {});
       } else {
         safeSeek(secondaryVid, secondaryTargetTime, 0.5);
@@ -142,7 +148,7 @@ function manageNonLoopingPlayback(
   const isPlaying = useEditorStore.getState().playing;
   if (isPlaying && localTime < duration) {
     if (primaryVid.paused) {
-      safeSeek(primaryVid, targetTime, 0);
+      safeSeek(primaryVid, targetTime, RESUME_SYNC_TOLERANCE);
       void primaryVid.play().catch(() => {});
     } else {
       safeSeek(primaryVid, targetTime, 0.5);
