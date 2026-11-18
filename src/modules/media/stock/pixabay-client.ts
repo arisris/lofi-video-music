@@ -1,5 +1,6 @@
 // Direct Pixabay API client (no proxy). The caller supplies the user's own key,
 // sent as the `key` query parameter. See https://pixabay.com/api/docs/.
+import { buildStockCacheKey, fetchStockCached } from "./search-cache";
 
 export interface PixabayItem {
   id: number;
@@ -61,22 +62,36 @@ export async function searchPixabayDirect(
   const { key, query, type } = params;
   const page = params.page ?? 1;
   const per_page = params.per_page ?? 55;
-  // The video and image endpoints live under different paths.
-  const path = type === "video" ? "videos/" : "";
-  let url =
-    `https://pixabay.com/api/${path}` +
-    `?key=${encodeURIComponent(key)}&q=${encodeURIComponent(query.trim())}&page=${page}&per_page=${per_page}`;
-  if (type !== "video") {
-    url += `&image_type=${type}`;
-  }
-  if (params.orientation && params.orientation !== "all") {
-    url += `&orientation=${params.orientation}`;
-  }
-  if (params.colors) {
-    url += `&colors=${encodeURIComponent(params.colors)}`;
-  }
-  const res = await fetch(url);
-  if (!res.ok) await throwForStatus(res);
-  const data = (await res.json()) as Partial<PixabaySearchResult>;
-  return { hits: data.hits ?? [] };
+  const orientation = params.orientation ?? "all";
+  const colors = params.colors ?? "";
+  return fetchStockCached<PixabaySearchResult>(
+    buildStockCacheKey("pixabay", {
+      query: query.trim(),
+      type,
+      orientation,
+      colors,
+      page,
+      per_page,
+    }),
+    async () => {
+      // The video and image endpoints live under different paths.
+      const path = type === "video" ? "videos/" : "";
+      let url =
+        `https://pixabay.com/api/${path}` +
+        `?key=${encodeURIComponent(key)}&q=${encodeURIComponent(query.trim())}&page=${page}&per_page=${per_page}`;
+      if (type !== "video") {
+        url += `&image_type=${type}`;
+      }
+      if (orientation !== "all") {
+        url += `&orientation=${orientation}`;
+      }
+      if (colors) {
+        url += `&colors=${encodeURIComponent(colors)}`;
+      }
+      const res = await fetch(url);
+      if (!res.ok) await throwForStatus(res);
+      const data = (await res.json()) as Partial<PixabaySearchResult>;
+      return { hits: data.hits ?? [] };
+    },
+  );
 }

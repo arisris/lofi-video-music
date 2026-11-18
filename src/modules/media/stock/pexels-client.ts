@@ -1,5 +1,6 @@
 // Direct Pexels API client (no proxy). The caller supplies the user's own key,
 // sent as the Authorization header. See https://www.pexels.com/api/.
+import { buildStockCacheKey, fetchStockCached } from "./search-cache";
 
 export interface PexelsPhoto {
   id: number;
@@ -71,15 +72,26 @@ export async function searchPexelsDirect(
   const { key, query, type } = params;
   const page = params.page ?? 1;
   const per_page = params.per_page ?? 50;
-  const path = type === "photo" ? "search" : "videos/search";
-  let url =
-    `https://api.pexels.com/v1/${path}` +
-    `?query=${encodeURIComponent(query.trim())}&page=${page}&per_page=${per_page}`;
-  if (params.orientation && params.orientation !== "all") {
-    url += `&orientation=${params.orientation}`;
-  }
-  const res = await fetch(url, { headers: { Authorization: key } });
-  if (!res.ok) await throwForStatus(res);
-  const data = (await res.json()) as Partial<PexelsSearchResult>;
-  return { photos: data.photos ?? [], videos: data.videos ?? [] };
+  const orientation = params.orientation ?? "all";
+  return fetchStockCached<PexelsSearchResult>(
+    buildStockCacheKey("pexels", {
+      query: query.trim(),
+      type,
+      orientation,
+      page,
+      per_page,
+    }),
+    async () => {
+      let url =
+        `https://api.pexels.com/v1/${type === "photo" ? "search" : "videos/search"}` +
+        `?query=${encodeURIComponent(query.trim())}&page=${page}&per_page=${per_page}`;
+      if (orientation !== "all") {
+        url += `&orientation=${orientation}`;
+      }
+      const res = await fetch(url, { headers: { Authorization: key } });
+      if (!res.ok) await throwForStatus(res);
+      const data = (await res.json()) as Partial<PexelsSearchResult>;
+      return { photos: data.photos ?? [], videos: data.videos ?? [] };
+    },
+  );
 }
