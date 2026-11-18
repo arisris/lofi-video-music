@@ -90,10 +90,10 @@ export async function searchPexelsDirect(
       }
       const res = await fetch(url, {
         headers: { Authorization: key },
-        // Pexels replies `no-cache` (store but always revalidate). Force the
-        // browser to reuse its stored copy: identical searches cost zero
-        // network. Freshness within a session is bounded by search-cache.ts.
-        cache: "force-cache",
+        // Never touch the browser disk cache: stock results must not survive
+        // a restart. Repeat searches within a session are served from the
+        // in-memory cache in search-cache.ts instead.
+        cache: "no-store",
       });
       if (!res.ok) await throwForStatus(res);
       const data = (await res.json()) as Partial<PexelsSearchResult>;
