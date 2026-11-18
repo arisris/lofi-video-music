@@ -19,12 +19,7 @@ export default defineConfig({
   },
   server: {
     watch: {
-      ignored: [
-        "**/.wrangler/**",
-        "**/.playwright-mcp/**",
-        "**/.wu/**",
-        "**/dist/**",
-      ],
+      ignored: ["**/.playwright-mcp/**", "**/.wu/**", "**/dist/**"],
     },
   },
 });
