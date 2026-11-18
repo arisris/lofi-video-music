@@ -36,20 +36,14 @@ export const GlobalSettingsPanel = () => {
   const titleClip = clips.find((c) => c.type === "title");
   const playlistClip = clips.find((c) => c.type === "playlist");
 
-  const saveKeys = () => {
-    setPexelsKey(pexelsKey);
-    setPixabayKey(pixabayKey);
-    setPexelsKeyState(getPexelsKey());
-    setPixabayKeyState(getPixabayKey());
-    setKeyStatus("Keys saved in this browser.");
+  const updatePexelsKey = (value: string) => {
+    setPexelsKeyState(value);
+    setPexelsKey(value);
   };
 
-  const clearKeys = () => {
-    setPexelsKey("");
-    setPixabayKey("");
-    setPexelsKeyState("");
-    setPixabayKeyState("");
-    setKeyStatus("Keys cleared.");
+  const updatePixabayKey = (value: string) => {
+    setPixabayKeyState(value);
+    setPixabayKey(value);
   };
 
   const testKey = (provider: "pexels" | "pixabay") => {
@@ -208,7 +202,8 @@ export const GlobalSettingsPanel = () => {
           <SectionTitle className="mb-3">Stock API Keys</SectionTitle>
           <p className="mb-3 text-[10px] leading-relaxed text-neutral-500">
             Search Pixabay and Pexels directly with your own free keys. Keys
-            stay in this browser only.
+            save automatically as you type and stay in this browser only. Empty
+            the field to remove a key.
           </p>
           <div className="space-y-3">
             <div>
@@ -232,7 +227,7 @@ export const GlobalSettingsPanel = () => {
                     autoComplete="off"
                     spellCheck={false}
                     placeholder="Paste Pexels API key…"
-                    onChange={(e) => setPexelsKeyState(e.target.value)}
+                    onChange={(e) => updatePexelsKey(e.target.value)}
                     className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 pr-9 text-xs text-neutral-200 outline-none focus:border-blue-500"
                   />
                   <button
@@ -275,7 +270,7 @@ export const GlobalSettingsPanel = () => {
                     autoComplete="off"
                     spellCheck={false}
                     placeholder="Paste Pixabay API key…"
-                    onChange={(e) => setPixabayKeyState(e.target.value)}
+                    onChange={(e) => updatePixabayKey(e.target.value)}
                     className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-1.5 pr-9 text-xs text-neutral-200 outline-none focus:border-blue-500"
                   />
                   <button
@@ -296,22 +291,6 @@ export const GlobalSettingsPanel = () => {
                   {testingKey === "pixabay" ? "Testing…" : "Test"}
                 </button>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-blue-500"
-                onClick={saveKeys}
-              >
-                <i className="icon-[ri--save-line] h-3.5 w-3.5" />
-                Save Keys
-              </button>
-              <button
-                className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-neutral-800 px-3 py-1.5 text-xs font-bold text-neutral-200 transition hover:bg-neutral-700"
-                onClick={clearKeys}
-              >
-                <i className="icon-[ri--delete-bin-line] h-3.5 w-3.5" />
-                Clear
-              </button>
             </div>
             {keyStatus && (
               <p className="text-[10px] leading-relaxed text-neutral-400">

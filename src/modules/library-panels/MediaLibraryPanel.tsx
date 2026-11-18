@@ -887,22 +887,22 @@ export const MediaLibraryPanel = () => {
     ) {
       searchPixabay(stRef.current.pixabayQuery);
     }
-    // A key saved in Settings while this panel is mounted clears the
-    // missing-key notice and retries the current tab's search.
+    // Keys auto-save from Settings; re-render so a newly added key clears
+    // the missing-key notice without needing another click.
     const onStockKeysChanged = () => {
       const s = stRef.current;
       if (
-        s.activeSubTab === "pexels" &&
-        s.pexelsError === MISSING_PEXELS_KEY_MESSAGE &&
-        getPexelsKey()
+        (s.activeSubTab === "pexels" &&
+          s.pexelsError === MISSING_PEXELS_KEY_MESSAGE &&
+          getPexelsKey()) ||
+        (s.activeSubTab === "pixabay" &&
+          s.pixabayError === MISSING_PIXABAY_KEY_MESSAGE &&
+          getPixabayKey())
       ) {
-        searchPexels(s.pexelsQuery);
-      } else if (
-        s.activeSubTab === "pixabay" &&
-        s.pixabayError === MISSING_PIXABAY_KEY_MESSAGE &&
-        getPixabayKey()
-      ) {
-        searchPixabay(s.pixabayQuery);
+        apply({
+          pexelsError: null,
+          pixabayError: null,
+        });
       } else {
         forceUpdate();
       }
