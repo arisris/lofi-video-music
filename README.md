@@ -73,3 +73,7 @@ cleared on restart); changing a key drops the cache.
 ## Contributing
 
 Setup notes, commands, and architecture conventions live in `AGENTS.md`.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
