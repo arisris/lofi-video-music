@@ -92,7 +92,7 @@ export async function searchPexelsDirect(
         headers: { Authorization: key },
         // Never touch the browser disk cache: stock results must not survive
         // a restart. Repeat searches within a session are served from the
-        // in-memory cache in search-cache.ts instead.
+        // session cache in search-cache.ts instead.
         cache: "no-store",
       });
       if (!res.ok) await throwForStatus(res);
